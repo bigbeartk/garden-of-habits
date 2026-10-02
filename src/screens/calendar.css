@@ -1,5 +1,5 @@
 .screen--calendar {
-  display: flex; flex-direction: column; gap: 12px;
+  display: flex; flex-direction: column; justify-content: center; gap: 12px;
   background: linear-gradient(180deg, var(--peach) 0%, var(--butter) 50%, var(--mint) 100%);
   background-size: cover; background-position: center;
 }

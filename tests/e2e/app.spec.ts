@@ -99,3 +99,15 @@ test('hàng nút đổi cây/đổi chậu/ghi chú/ngày nghỉ hiện đủ, k
     expect(box!.y + box!.height, `${name} bị che`).toBeLessThanOrEqual(list!.y + 1);
   }
 });
+
+test('lịch nằm giữa màn hình (theo chiều dọc, phía trên thanh tab)', async ({ page }) => {
+  await page.clock.setFixedTime(at('2026-10-02T10:00:00'));
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Lịch', exact: true }).click();
+  const head = (await page.getByTestId('calendar-head').boundingBox())!;
+  const footer = (await page.locator('.cal__footer').boundingBox())!;
+  const tabbar = (await page.getByRole('navigation', { name: 'Điều hướng' }).boundingBox())!;
+  const topGap = head.y;
+  const bottomGap = tabbar.y - (footer.y + footer.height);
+  expect(Math.abs(topGap - bottomGap), `trên ${topGap}px, dưới ${bottomGap}px`).toBeLessThan(40);
+});
