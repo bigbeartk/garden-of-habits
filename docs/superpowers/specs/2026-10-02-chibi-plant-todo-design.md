@@ -124,7 +124,7 @@ Thanh tab dạng bong bóng: **Lịch** (màn mở đầu) · **Hôm nay** · **
   - ranh giới giờ của `timeOfDay`
   - chặn sửa ngày cũ
   - backup → restore khứ hồi giống hệt; gộp theo `updatedAt`
-- **Playwright** (giả lập "iPhone 14"):
+- **Playwright** (giả lập "iPhone 13" — thiết bị thật của người dùng):
   - tick todo → cây đổi giai đoạn
   - reload vẫn còn dữ liệu
   - giả lập đồng hồ sang ngày mới → cây mới + mẫu tự lên + câu chào
