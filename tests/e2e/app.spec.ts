@@ -86,3 +86,16 @@ test('mở được khi không có mạng', async ({ page, context, browserName 
   await expect(page.getByRole('navigation', { name: 'Điều hướng' })).toBeVisible();
   await context.setOffline(false);
 });
+
+test('hàng nút đổi cây/đổi chậu/ghi chú/ngày nghỉ hiện đủ, không bị danh sách che', async ({ page }) => {
+  await page.clock.setFixedTime(at('2026-10-02T10:00:00'));
+  await page.goto('/');
+  await openToday(page);
+  const list = await page.locator('.today__list').boundingBox();
+  for (const name of ['Đổi cây', 'Đổi chậu', 'Ghi chú', 'Ngày tiết kiệm năng lượng']) {
+    const btn = page.getByRole('button', { name, exact: true });
+    await expect(btn).toBeInViewport();
+    const box = await btn.boundingBox();
+    expect(box!.y + box!.height, `${name} bị che`).toBeLessThanOrEqual(list!.y + 1);
+  }
+});

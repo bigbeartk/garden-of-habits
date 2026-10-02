@@ -19,8 +19,5 @@ export default defineConfig({
   },
   projects: channel
     ? [{ name: 'iphone-13-chrome', use: { ...devices['iPhone 13'], defaultBrowserType: 'chromium', browserName: 'chromium', channel } }]
-    : [
-        { name: 'iphone-13', use: { ...devices['iPhone 13'] } },
-        { name: 'chromium-mobile', use: { ...devices['Pixel 7'] } },
-      ],
+    : [{ name: 'iphone-13', use: { ...devices['iPhone 13'] } }],
 });
