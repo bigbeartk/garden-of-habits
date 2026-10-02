@@ -4,6 +4,7 @@ import { useNav } from '../app/nav';
 import { AddTodoSheet } from '../components/AddTodoSheet';
 import { DayTitleInput } from '../components/DayTitleInput';
 import { IconButton } from '../components/IconButton';
+import { MoonIcon, NoteIcon, PlantSwapIcon, PotIcon, SunIcon } from '../components/icons';
 import { NoteSheet } from '../components/NoteSheet';
 import { PlantPickerSheet } from '../components/PlantPickerSheet';
 import { PlantScene } from '../components/PlantScene';
@@ -120,12 +121,12 @@ export function TodayScreen() {
           {special && <span className="today__badge">✨ Cây đặc biệt: {special.name}</span>}
         </div>
         <div className="today__actions">
-          <IconButton label="Đổi cây" icon="🔄" onClick={() => setSheet('plant')} disabled={day.isRestDay} />
-          <IconButton label="Đổi chậu" icon="🪴" onClick={() => setSheet('pot')} />
-          <IconButton label="Ghi chú" icon="📝" onClick={() => setSheet('note')} badge={day.note.length > 0} />
+          <IconButton label="Đổi cây" icon={<PlantSwapIcon size={30} />} onClick={() => setSheet('plant')} disabled={day.isRestDay} />
+          <IconButton label="Đổi chậu" icon={<PotIcon size={30} />} onClick={() => setSheet('pot')} />
+          <IconButton label="Ghi chú" icon={<NoteIcon size={30} />} onClick={() => setSheet('note')} badge={day.note.length > 0} />
           <IconButton
             label={day.isRestDay ? 'Thức dậy' : 'Ngày tiết kiệm năng lượng'}
-            icon={day.isRestDay ? '🌞' : '😴'}
+            icon={day.isRestDay ? <SunIcon size={30} /> : <MoonIcon size={30} />}
             pressed={day.isRestDay}
             onClick={() => run(setRestDay(deps, day.date, !day.isRestDay))}
           />

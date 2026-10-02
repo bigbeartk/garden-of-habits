@@ -1,6 +1,8 @@
+import type { ReactNode } from 'react';
+
 export function IconButton({
   label, icon, onClick, pressed, disabled, badge,
-}: { label: string; icon: string; onClick: () => void; pressed?: boolean; disabled?: boolean; badge?: boolean }) {
+}: { label: string; icon: ReactNode; onClick: () => void; pressed?: boolean; disabled?: boolean; badge?: boolean }) {
   return (
     <button
       type="button"
@@ -11,7 +13,7 @@ export function IconButton({
       onClick={onClick}
       disabled={disabled}
     >
-      <span aria-hidden="true">{icon}</span>
+      {icon}
       {badge && <span className="icon-btn__badge" aria-hidden="true" />}
     </button>
   );

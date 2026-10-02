@@ -1,12 +1,13 @@
-import { createContext, useContext } from 'react';
+import { createContext, useContext, type FC } from 'react';
+import { CalendarIcon, ClipboardIcon, GearIcon, SproutIcon } from '../components/icons';
 
 export type Tab = 'calendar' | 'today' | 'templates' | 'settings';
 
-export const TABS: { id: Tab; label: string; icon: string }[] = [
-  { id: 'calendar', label: 'Lịch', icon: '📅' },
-  { id: 'today', label: 'Hôm nay', icon: '🌱' },
-  { id: 'templates', label: 'Mẫu', icon: '📝' },
-  { id: 'settings', label: 'Cài đặt', icon: '⚙️' },
+export const TABS: { id: Tab; label: string; Icon: FC<{ size?: number }> }[] = [
+  { id: 'calendar', label: 'Lịch', Icon: CalendarIcon },
+  { id: 'today', label: 'Hôm nay', Icon: SproutIcon },
+  { id: 'templates', label: 'Mẫu', Icon: ClipboardIcon },
+  { id: 'settings', label: 'Cài đặt', Icon: GearIcon },
 ];
 
 export const NavContext = createContext<(tab: Tab) => void>(() => {});

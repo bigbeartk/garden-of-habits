@@ -28,7 +28,7 @@ PWA todo cho iPhone, có phần "nuôi cây": mỗi việc làm xong là một l
 
 ```
 src/
-  app/        App (tab + tự sang ngày mới), TabBar, nav (NavContext), deps (DepsContext), theme.css
+  app/        App (tab + tự sang ngày mới), TabBar (menu nổi), nav (TABS + NavContext), deps (DepsContext), theme.css
   domain/     logic thuần TS, test độc lập: dayKey, growth, random, timeOfDay, dayService,
               templateService, calendar, types
   db/         Dexie (db.ts), settings, queries, backup (export/import/merge), share
@@ -252,11 +252,14 @@ File phiên bản 1 vẫn khôi phục được: todo thiếu `period` được 
 - **Font:** Baloo 2 (tiêu đề) và Quicksand (nội dung), tự host qua `@fontsource` để chạy offline. Không gọi mạng lúc chạy; mọi file đều được precache bởi Workbox.
 - **Màn Hôm nay:** nửa trên là bầu trời cao `46dvh`. `.sky__content` là khung flex dọc, `.today__stage` có `flex: 1 1 0; min-height: 0`, SVG cây được **định vị tuyệt đối** trong stage.
   - **Không dùng `height: 100%` + `width: auto` cho SVG**: Safari tính sai và đẩy hàng 4 nút ra khỏi khung.
+- **Điều hướng = menu nổi** (`app/TabBar.tsx`): không còn thanh tab ở đáy. Chỉ có một nút tròn (icon bông hoa) cố định ở góc phải dưới, nằm **ngay dưới nút ＋** và có mặt ở cả 4 màn. Bấm vào thì dải 4 tab (Lịch, Hôm nay, Mẫu, Cài đặt) **trượt từ nút ra bên trái** (`clipPath` + các tab hiện lần lượt, tab gần nút hiện trước), nút chuyển thành ✕; bấm lần nữa thì trượt ngược về. Mặc định thu gọn khi mở app. **Chọn tab không đóng dải tab.** `--tabbar-h` (60px) là cỡ nút menu và nút ＋.
+- **Icon:** không dùng emoji cho icon chức năng; dùng bộ SVG tự vẽ trong `components/icons.tsx` (khung 32×32, viền cocoa, màu pastel, `data-icon` để test). Hiện có: `calendar`, `sprout`, `clipboard`, `gear` (4 tab), `menu`, `close`, `plant-swap`, `pot`, `note`, `moon`, `sun` (4 nút dưới chậu; ngày nghỉ đổi `moon` → `sun`). `IconButton` nhận `icon: ReactNode`.
 - **Màn Lịch:** căn giữa theo chiều dọc. Khi có ảnh nền, thẻ tháng và lưới ngày nhận class `is-glass` (kính mờ trong suốt, `backdrop-filter`), chữ có viền sáng để dễ đọc.
 - **Tôn trọng** `prefers-reduced-motion`, safe-area (`env(safe-area-inset-*)`) và chiều cao `100dvh`.
 - **Các label và `data-testid` mà test dựa vào, không đổi tuỳ tiện:**
   - `Tiêu đề hôm nay`, `Thêm việc mới` (nút ＋), popup `Thêm việc cần làm` với radio `Sáng`/`Chiều`/`Tối`, ô `Nội dung việc` + nút `Thêm`, `Hoàn thành: <việc>`, `todo-section-morning|afternoon|evening`
   - Form mẫu: `Việc buổi Sáng|Chiều|Tối (mỗi dòng một việc)`
+  - Menu nổi: nút `Mở menu` / `Đóng menu` (`aria-expanded`), dải `#fnav-tabs` với 4 nút tab (`aria-current="page"` cho tab hiện tại). Test E2E chuyển tab bằng helper `goTab(page, 'Lịch')`.
   - `Đổi cây`, `Đổi chậu`, `Ghi chú`, `Ngày tiết kiệm năng lượng` / `Thức dậy`
   - `＋ Mẫu mới`, `Tên mẫu`, `Đặt làm mặc định: <tên>`
   - `💾 Sao lưu dữ liệu`
@@ -269,4 +272,3 @@ File phiên bản 1 vẫn khôi phục được: todo thiếu `period` được 
 - `setDefaultTemplate` / `deleteTemplate` / `file.text()` thiếu `.catch`, nên lỗi không hiện thông báo.
 - Trợ năng: sửa todo bằng cách chạm vào `<span>`; BottomSheet chưa giữ focus và chưa xử lý Escape; `user-scalable=no`; chưa có cách sắp xếp lại không cần kéo thả.
 - Regex ngày trong file backup chấp nhận cả ngày không tồn tại.
-- Emoji 🪴 (nút đổi chậu) không hiển thị trên Chrome Windows, trên iPhone thì bình thường.

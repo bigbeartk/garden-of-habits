@@ -2,8 +2,15 @@ import { expect, test, type Page } from '@playwright/test';
 
 const at = (iso: string) => new Date(`${iso}+07:00`);
 
+/** Chuyển tab qua menu nổi: mở menu nếu đang thu gọn rồi bấm tab. */
+async function goTab(page: Page, name: 'Lịch' | 'Hôm nay' | 'Mẫu' | 'Cài đặt') {
+  const open = page.getByRole('button', { name: 'Mở menu' });
+  if (await open.isVisible()) await open.click();
+  await page.getByRole('button', { name, exact: true }).click();
+}
+
 async function openToday(page: Page) {
-  await page.getByRole('button', { name: 'Hôm nay', exact: true }).click();
+  await goTab(page, 'Hôm nay');
   await expect(page.getByTestId('plant-scene')).toBeVisible();
 }
 
@@ -39,7 +46,7 @@ test('tick việc làm cây lớn và dữ liệu còn sau khi tải lại', asy
 test('sang ngày mới: mẫu mặc định tự lên và cây chào', async ({ page }) => {
   await page.clock.setFixedTime(at('2026-10-02T10:00:00'));
   await page.goto('/');
-  await page.getByRole('button', { name: 'Mẫu', exact: true }).click();
+  await goTab(page, 'Mẫu');
   await page.getByRole('button', { name: '＋ Mẫu mới' }).click();
   await page.getByLabel('Tên mẫu').fill('Buổi sáng');
   await page.getByLabel('Việc buổi Sáng (mỗi dòng một việc)').fill('Tập thể dục');
@@ -51,7 +58,7 @@ test('sang ngày mới: mẫu mặc định tự lên và cây chào', async ({ 
   await page.clock.setFixedTime(at('2026-10-03T03:30:00'));
   await page.reload();
   // trước 4:00 vẫn là ngày 02 → không tự mở màn Hôm nay vì đã chào
-  await expect(page.getByRole('button', { name: 'Lịch', exact: true })).toHaveAttribute('aria-current', 'page');
+  await expect(page.getByTestId('calendar-card')).toBeVisible();
 
   await page.clock.setFixedTime(at('2026-10-03T08:00:00'));
   await page.reload();
@@ -66,7 +73,7 @@ test('ngày tiết kiệm năng lượng hiện hạt ngủ trên lịch', async
   await openToday(page);
   await page.getByRole('button', { name: 'Ngày tiết kiệm năng lượng' }).click();
   await expect(page.getByTestId('rest-message')).toBeVisible();
-  await page.getByRole('button', { name: 'Lịch', exact: true }).click();
+  await goTab(page, 'Lịch');
   await expect(page.getByTestId('day-2026-10-02')).toHaveAttribute('data-status', 'rest');
 });
 
@@ -76,7 +83,7 @@ test('ngày bỏ trống hiện cây héo, trước ngày đầu tiên để tr�
   await openToday(page);
   await page.clock.setFixedTime(at('2026-10-04T10:00:00'));
   await page.reload();
-  await page.getByRole('button', { name: 'Lịch', exact: true }).click();
+  await goTab(page, 'Lịch');
   await expect(page.getByTestId('day-2026-10-03')).toHaveAttribute('data-status', 'missed');
   await expect(page.getByTestId('day-2026-10-01')).toHaveAttribute('data-status', 'before-start');
 });
@@ -110,7 +117,7 @@ test('hàng nút đổi cây/đổi chậu/ghi chú/ngày nghỉ hiện đủ, k
 test('lịch nằm giữa màn hình (theo chiều dọc, phía trên thanh tab)', async ({ page }) => {
   await page.clock.setFixedTime(at('2026-10-02T10:00:00'));
   await page.goto('/');
-  await page.getByRole('button', { name: 'Lịch', exact: true }).click();
+  await goTab(page, 'Lịch');
   const head = (await page.getByTestId('calendar-head').boundingBox())!;
   const footer = (await page.locator('.cal__footer').boundingBox())!;
   const tabbar = (await page.getByRole('navigation', { name: 'Điều hướng' }).boundingBox())!;
@@ -178,4 +185,27 @@ test('việc chia 3 buổi; tick xong thì cây khen', async ({ page }) => {
   await expect(page.getByTestId('todo-section-morning').getByText('Chưa có việc')).toBeVisible();
   await evening.getByRole('checkbox', { name: 'Hoàn thành: Đọc truyện' }).click();
   await expect(page.getByTestId('speech-bubble')).toBeVisible();
+});
+
+test('menu nổi: nút nằm dưới nút ＋, dải tab trượt ra bên trái rồi thu lại', async ({ page }) => {
+  await page.clock.setFixedTime(at('2026-10-02T10:00:00'));
+  await page.goto('/');
+  await openToday(page);
+  const toggle = page.getByRole('button', { name: 'Đóng menu' });
+  // đang mở sau khi chọn tab
+  const tabs = page.locator('#fnav-tabs');
+  await expect(tabs).toBeVisible();
+  const t = (await toggle.boundingBox())!;
+  const bar = (await tabs.boundingBox())!;
+  expect(bar.x + bar.width).toBeLessThanOrEqual(t.x + 1);
+  expect(Math.abs(bar.y + bar.height / 2 - (t.y + t.height / 2))).toBeLessThan(6);
+  await toggle.click();
+  await expect(tabs).toHaveCount(0);
+  const menu = (await page.getByRole('button', { name: 'Mở menu' }).boundingBox())!;
+  const fab = (await page.getByRole('button', { name: 'Thêm việc mới' }).boundingBox())!;
+  expect(fab.y + fab.height).toBeLessThanOrEqual(menu.y);
+  expect(Math.abs(fab.x + fab.width / 2 - (menu.x + menu.width / 2))).toBeLessThan(4);
+  const vp = page.viewportSize()!;
+  expect(menu.x + menu.width).toBeGreaterThan(vp.width - 24);
+  expect(menu.y + menu.height).toBeGreaterThan(vp.height - 90);
 });
