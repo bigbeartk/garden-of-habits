@@ -1,0 +1,18 @@
+.todo { display: flex; flex-direction: column; gap: 12px; }
+.todo__add { display: flex; gap: 8px; }
+.todo__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.todo__row {
+  display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--cream);
+  border-radius: var(--radius-md); box-shadow: var(--shadow-pop);
+}
+.todo__check {
+  flex: none; width: 30px; height: 30px; border-radius: 50%; border: 2.5px solid var(--cocoa);
+  background: #fff; font-weight: 700; color: #fff; cursor: pointer;
+}
+.todo__row.is-done .todo__check { background: var(--leaf); }
+.todo__text { flex: 1; overflow-wrap: anywhere; cursor: text; }
+.todo__row.is-done .todo__text { text-decoration: line-through; color: var(--cocoa-soft); }
+.todo__edit { flex: 1; }
+.todo__delete { flex: none; border: none; background: none; font-size: 1.4rem; color: var(--cocoa-soft); cursor: pointer; width: 32px; height: 32px; }
+.todo__handle { flex: none; touch-action: none; cursor: grab; color: var(--cocoa-soft); letter-spacing: -3px; padding: 6px 2px; }
+.todo__empty { text-align: center; margin: 12px 0; }

@@ -1,0 +1,19 @@
+.sheet__backdrop { position: fixed; inset: 0; background: rgba(91, 70, 54, 0.25); z-index: 40; }
+.sheet {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 41; max-height: 85dvh; overflow-y: auto;
+  background: var(--white); border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  padding: 10px 16px calc(16px + env(safe-area-inset-bottom)); box-shadow: 0 -8px 24px rgba(91, 70, 54, 0.15);
+}
+.sheet__grip { width: 44px; height: 5px; border-radius: 3px; background: var(--lavender); margin: 0 auto 10px; }
+.sheet__title { font-family: var(--font-display); font-size: 1.3rem; margin: 0 0 12px; text-align: center; }
+.sheet__body { display: flex; flex-direction: column; gap: 12px; }
+.sheet__close { display: block; margin: 8px auto 0; }
+.sheet__save { align-self: flex-end; }
+.picker { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.picker__item {
+  display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px;
+  border: 2px solid transparent; border-radius: var(--radius-md); background: var(--cream);
+  font-weight: 700; font-size: 0.85rem; cursor: pointer;
+}
+.picker__item.is-selected { border-color: var(--berry); background: var(--peach); }
+.picker__scene { width: 80px; height: 96px; }
