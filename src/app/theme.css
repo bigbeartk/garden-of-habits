@@ -35,6 +35,7 @@ button, input, textarea { font: inherit; color: inherit; }
 .app__main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 .screen { min-height: 100%; padding: 16px 16px calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 24px); }
 .screen__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+.tpl-page__head { display: flex; align-items: center; gap: 4px; }
 .screen__title { font-family: var(--font-display); font-weight: 700; font-size: 1.6rem; margin: 0; }
 .card { background: var(--white); border-radius: var(--radius-lg); box-shadow: var(--shadow-soft); padding: 16px; }
 .muted { color: var(--cocoa-soft); }
@@ -87,6 +88,15 @@ button, input, textarea { font: inherit; color: inherit; }
 .fnav__tab.is-active { background: var(--peach); }
 .fnav__label { white-space: nowrap; }
 .icon { display: block; flex: none; }
+/* Nút quay lại: chỉ mũi tên, không nền, không viền */
+.back-btn {
+  position: absolute; top: 8px; left: 6px; z-index: 3; width: 44px; height: 44px;
+  display: grid; place-items: center; padding: 0; border: none; background: transparent; cursor: pointer;
+  filter: drop-shadow(0 1px 0 rgba(255, 253, 251, 0.9));
+}
+.back-btn:active { transform: scale(0.9); }
+.sky--evening .back-btn .icon path { stroke: #FFFDFB; }
+.back-btn--inline { position: static; flex: none; margin-left: -10px; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
 }

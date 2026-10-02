@@ -2,9 +2,10 @@ import { useEffect, useRef, useState } from 'react';
 import { useDeps } from '../app/deps';
 import { useNav } from '../app/nav';
 import { AddTodoSheet } from '../components/AddTodoSheet';
+import { BackButton } from '../components/BackButton';
 import { GoalInput } from '../components/GoalInput';
 import { IconButton } from '../components/IconButton';
-import { BackIcon, NoteIcon, PlantSwapIcon, PotIcon, SleepSeedIcon, SunIcon } from '../components/icons';
+import { NoteIcon, PlantSwapIcon, PotIcon, SleepSeedIcon, SunIcon } from '../components/icons';
 import { NoteSheet } from '../components/NoteSheet';
 import { PlantPickerSheet } from '../components/PlantPickerSheet';
 import { PlantScene } from '../components/PlantScene';
@@ -98,9 +99,7 @@ export function TodayScreen() {
     <section className="screen screen--today">
       <SkyBackground time={timeOfDay(now)}>
         <div className="today__stage">
-          <button type="button" className="back-btn" aria-label="Quay lại Lịch" onClick={() => nav('calendar')}>
-            <BackIcon size={34} />
-          </button>
+          <BackButton onClick={() => nav('calendar')} />
           {speech?.kind === 'greeting' && special && (
             <div className="special-intro" data-testid="special-intro" role="status">
               <span className="special-intro__sparkles" aria-hidden="true">✨ ✨ ✨</span>

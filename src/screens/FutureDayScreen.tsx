@@ -3,7 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { useDeps } from '../app/deps';
 import { AddTodoSheet } from '../components/AddTodoSheet';
 import { GoalInput } from '../components/GoalInput';
-import { BackIcon } from '../components/icons';
+import { BackButton } from '../components/BackButton';
 import { PlannedList } from '../components/PlannedList';
 import { PlantScene } from '../components/PlantScene';
 import { SkyBackground } from '../components/SkyBackground';
@@ -37,9 +37,7 @@ export function FutureDayScreen({ date, onBack }: { date: string; onBack: () => 
     <section className="screen screen--today screen--future" data-testid="future-day">
       <SkyBackground time={timeOfDay(now)}>
         <div className="today__stage">
-          <button type="button" className="back-btn" aria-label="Quay lại Lịch" onClick={onBack}>
-            <BackIcon size={34} />
-          </button>
+          <BackButton onClick={onBack} />
           <SpeechBubble text={`Hẹn gặp bạn vào ${weekday} nha! 🌱`} />
           <PlantScene
             className="today__plant"

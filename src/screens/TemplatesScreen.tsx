@@ -2,12 +2,13 @@ import { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useDeps } from '../app/deps';
 import { useNav } from '../app/nav';
+import { BackButton } from '../components/BackButton';
 import { ConfirmButton } from '../components/ConfirmButton';
 import { TemplateForm } from '../components/TemplateForm';
 import { addTodos, ensureToday } from '../domain/dayService';
 import { createTemplate, deleteTemplate, listTemplates, setDefaultTemplate, updateTemplate } from '../domain/templateService';
 import { PERIODS, PERIOD_LABEL } from '../domain/period';
-import { PeriodIcon } from '../components/icons';
+import { PeriodIcon, StarIcon } from '../components/icons';
 import type { Template } from '../domain/types';
 import './templates.css';
 
@@ -32,11 +33,16 @@ export function TemplatesScreen() {
 
   return (
     <section className="screen screen--templates">
-      <header className="screen__head">
+      <header className="tpl-page__head">
+        <BackButton inline onClick={() => nav('calendar')} />
         <h1 className="screen__title">Mẫu việc cần làm</h1>
-        <button type="button" className="btn btn--primary" onClick={() => setEditing('new')}>＋ Mẫu mới</button>
       </header>
-      <p className="muted">Mẫu có ⭐ sẽ tự động lên danh sách mỗi sáng (từ 4 giờ).</p>
+      <p className="muted tpl-page__hint">
+        Mẫu <span className="tpl-page__hint-star"><StarIcon size={18} filled /></span> mặc định sẽ tự lên danh sách mỗi sáng (từ 4 giờ).
+      </p>
+      {editing !== 'new' && (
+        <button type="button" className="tpl-new" onClick={() => setEditing('new')}>＋ Mẫu mới</button>
+      )}
       {message && (
         <p role="status" className="toast">
           {message} <button type="button" className="link" onClick={() => nav('today')}>Xem</button>
@@ -53,11 +59,11 @@ export function TemplatesScreen() {
         />
       )}
       {templates.length === 0 && editing !== 'new' && (
-        <p className="empty card">Chưa có mẫu nào. Tạo một mẫu cho buổi sáng nhé ☀️</p>
+        <p className="empty card">Chưa có mẫu nào. Tạo một mẫu cho buổi sáng nhé 🌱</p>
       )}
       <ul className="tpl__list">
         {templates.map((t) => (
-          <li key={t.id} className="card tpl">
+          <li key={t.id} className={`card tpl${t.isDefault ? ' is-default' : ''}`}>
             {editing === t.id ? (
               <TemplateForm
                 initialName={t.name}
@@ -71,6 +77,7 @@ export function TemplatesScreen() {
             ) : (
               <>
                 <div className="tpl__head">
+                  <h2 className="tpl__name">{t.name}</h2>
                   <button
                     type="button"
                     className={`tpl__star${t.isDefault ? ' is-on' : ''}`}
@@ -78,24 +85,32 @@ export function TemplatesScreen() {
                     aria-label={t.isDefault ? `Bỏ mặc định: ${t.name}` : `Đặt làm mặc định: ${t.name}`}
                     onClick={() => setDefaultTemplate(deps.db, t.isDefault ? null : t.id, nowMs())}
                   >
-                    {t.isDefault ? '⭐' : '☆'}
+                    <StarIcon size={22} filled={t.isDefault} />
+                    <span>{t.isDefault ? 'Mặc định' : 'Đặt mặc định'}</span>
                   </button>
-                  <h2 className="tpl__name">{t.name}</h2>
                 </div>
-                {PERIODS.filter((p) => t.items.some((i) => i.period === p)).map((p) => (
-                  <div key={p} className="tpl__period">
-                    <h3 className="tpl__period-title">
-                      <PeriodIcon period={p} /> {PERIOD_LABEL[p]}
-                    </h3>
-                    <ul className="tpl__items">
-                      {t.items.filter((i) => i.period === p).map((item, i) => <li key={i}>{item.text}</li>)}
-                    </ul>
-                  </div>
-                ))}
+                <div className="tpl__periods">
+                  {PERIODS.filter((p) => t.items.some((i) => i.period === p)).map((p) => {
+                    const items = t.items.filter((i) => i.period === p);
+                    return (
+                      <div key={p} className={`tpl__period todo__section--${p}`}>
+                        <h3 className="tpl__period-title">
+                          <PeriodIcon period={p} size={24} />
+                          <span>{PERIOD_LABEL[p]}</span>
+                          <span className="tpl__period-count">{items.length}</span>
+                        </h3>
+                        <ul className="tpl__items">
+                          {items.map((item, i) => <li key={i}>{item.text}</li>)}
+                        </ul>
+                      </div>
+                    );
+                  })}
+                  {t.items.length === 0 && <p className="muted tpl__empty">Mẫu này chưa có việc nào.</p>}
+                </div>
                 <div className="tpl__actions">
-                  <button type="button" className="btn" onClick={() => applyToToday(t)}>Thêm vào hôm nay</button>
-                  <button type="button" className="btn btn--ghost" onClick={() => setEditing(t.id)}>Sửa</button>
-                  <ConfirmButton label="Xoá" confirmLabel="Chắc chắn xoá" onConfirm={() => deleteTemplate(deps.db, t.id)} />
+                  <button type="button" className="btn btn--primary tpl__apply" onClick={() => applyToToday(t)}>Thêm vào hôm nay</button>
+                  <button type="button" className="tpl__mini" onClick={() => setEditing(t.id)}>Sửa</button>
+                  <ConfirmButton label="Xoá" confirmLabel="Chắc chắn xoá" className="tpl__mini" onConfirm={() => deleteTemplate(deps.db, t.id)} />
                 </div>
               </>
             )}

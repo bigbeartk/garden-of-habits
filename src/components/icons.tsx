@@ -238,3 +238,17 @@ export function PeriodIcon({ period, size = 26 }: { period: 'morning' | 'afterno
   const Icon = PERIOD_ICONS[period];
   return <Icon size={size} />;
 }
+
+/** Ngôi sao mặc định: tô vàng khi bật, viền nét khi tắt */
+export function StarIcon({ size, filled }: { size?: number; filled?: boolean }) {
+  return (
+    <Svg name="star" size={size}>
+      <path
+        d="M16 4.2 l3.4 7 l7.6 1.1 l-5.5 5.3 l1.3 7.6 l-6.8 -3.6 l-6.8 3.6 l1.3 -7.6 l-5.5 -5.3 l7.6 -1.1 Z"
+        fill={filled ? '#FFD86B' : '#FFFDFB'}
+        {...STROKE}
+      />
+      {filled && <circle cx={13} cy={13} r={1.4} fill="#FFFDFB" opacity={0.8} />}
+    </Svg>
+  );
+}

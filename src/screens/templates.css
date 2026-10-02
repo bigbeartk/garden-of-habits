@@ -1,18 +1,58 @@
-.screen--templates { display: flex; flex-direction: column; gap: 12px; }
-.tpl__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
-.tpl__head { display: flex; align-items: center; gap: 8px; }
-.tpl__name { font-family: var(--font-display); font-size: 1.2rem; margin: 0; }
-.tpl__star { width: 40px; height: 40px; border: none; border-radius: 50%; background: var(--butter); font-size: 1.3rem; cursor: pointer; }
-.tpl__star.is-on { background: #FFE58A; }
-.tpl__items { margin: 8px 0; padding-left: 22px; }
-.tpl__actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-.tpl-form { display: flex; flex-direction: column; gap: 8px; }
-.tpl-form label { font-weight: 700; }
+.screen--templates {
+  display: flex; flex-direction: column; gap: 12px;
+  /* chừa chỗ cho nút menu nổi để không che nút cuối trang */
+  padding-bottom: calc(var(--tabbar-h) + 56px + env(safe-area-inset-bottom));
+}
+.tpl-page__hint { margin: 0; }
+.tpl-page__hint-star { display: inline-block; vertical-align: -3px; margin: 0 2px; }
+.tpl-page__hint-star .icon { display: inline-block; }
+.tpl-new {
+  width: 100%; min-height: 52px; border-radius: var(--radius-md); cursor: pointer;
+  border: 2.5px dashed var(--berry); background: rgba(255, 214, 222, 0.45);
+  font-family: var(--font-display); font-size: 1.05rem; font-weight: 700; color: var(--cocoa);
+}
+.tpl-new:active { transform: scale(0.98); }
+
+.tpl__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
+.tpl { display: flex; flex-direction: column; gap: 12px; border: 2px solid transparent; }
+.tpl.is-default { border-color: #F5C542; }
+.tpl__head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.tpl__name { font-family: var(--font-display); font-size: 1.25rem; margin: 0; overflow-wrap: anywhere; }
+.tpl__star {
+  flex: none; display: inline-flex; align-items: center; gap: 4px; min-height: 36px; padding: 0 12px 0 8px;
+  border-radius: 999px; border: 2px solid var(--cocoa); background: var(--white);
+  font-size: 0.8rem; font-weight: 700; cursor: pointer; box-shadow: var(--shadow-pop);
+}
+.tpl__star.is-on { background: var(--butter); }
+.tpl__periods { display: flex; flex-direction: column; gap: 8px; }
+.tpl__period { padding: 8px 12px 10px; border-radius: var(--radius-sm); }
+.tpl__period-title { display: flex; align-items: center; gap: 6px; margin: 0 0 4px; font-size: 0.95rem; font-weight: 700; }
+.tpl__period-count {
+  margin-left: auto; min-width: 24px; padding: 1px 8px; border-radius: 999px; text-align: center;
+  background: rgba(255, 253, 251, 0.9); font-size: 0.8rem;
+}
+.tpl__items { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.tpl__items li { position: relative; padding-left: 16px; }
+.tpl__items li::before {
+  content: ''; position: absolute; left: 2px; top: 0.55em; width: 7px; height: 7px; border-radius: 50%;
+  background: var(--cocoa-soft);
+}
+.tpl__empty { margin: 0; }
+.tpl__actions { display: flex; align-items: center; gap: 8px; }
+.tpl__apply { flex: 1; white-space: nowrap; }
+.tpl__mini {
+  flex: none; min-height: 40px; padding: 0 14px; border-radius: 999px; border: 2px solid var(--cocoa-soft);
+  background: var(--white); font-weight: 700; cursor: pointer; white-space: nowrap;
+}
+.tpl__actions .confirm { display: inline-flex; gap: 6px; }
+.tpl__actions .confirm .btn { min-height: 40px; padding: 0 12px; }
+
+.tpl-form { display: flex; flex-direction: column; gap: 10px; }
+.tpl-form__label { font-weight: 700; }
+.tpl-form__period { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; border-radius: var(--radius-sm); }
+.tpl-form__period-label { display: flex; align-items: center; gap: 6px; font-weight: 700; }
+.tpl-form__period-label small { font-weight: 500; color: var(--cocoa-soft); }
+.tpl-form__textarea { min-height: 76px; background: rgba(255, 255, 255, 0.85); }
 .tpl-form__actions { display: flex; justify-content: flex-end; gap: 8px; }
 .confirm { display: inline-flex; gap: 6px; }
 .btn--danger { background: #FFC9D0; border-color: #C2415B; color: #8E2238; }
-.tpl__period { margin-top: 6px; }
-.tpl__period-title { margin: 0; font-size: 0.95rem; font-weight: 700; }
-.tpl__period .tpl__items { margin: 4px 0 0; }
-.tpl-form__period { display: flex; flex-direction: column; gap: 4px; }
-.tpl-form__textarea { min-height: 72px; }

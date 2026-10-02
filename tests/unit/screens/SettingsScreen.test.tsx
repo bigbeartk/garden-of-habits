@@ -60,3 +60,16 @@ describe('SettingsScreen', () => {
     await waitFor(async () => expect((await deps.db.days.toArray()).map((d) => d.date)).toEqual(['2026-09-01']));
   });
 });
+
+describe('SettingsScreen nút quay lại', () => {
+  it('nút mũi tên quay về Lịch', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
+    const nav = vi.fn();
+    const user = userEvent.setup();
+    renderWithDeps(<SettingsScreen />, deps, nav);
+    const back = screen.getByRole('button', { name: 'Quay lại Lịch' });
+    expect(back.querySelector('svg[data-icon="back"]')).not.toBeNull();
+    await user.click(back);
+    expect(nav).toHaveBeenCalledWith('calendar');
+  });
+});

@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useDeps } from '../app/deps';
+import { useNav } from '../app/nav';
+import { BackButton } from '../components/BackButton';
 import { BackgroundPicker } from '../components/BackgroundPicker';
 import { ConfirmButton } from '../components/ConfirmButton';
 import {
@@ -15,6 +17,7 @@ const formatDateTime = (ms: number) =>
 
 export function SettingsScreen() {
   const deps = useDeps();
+  const nav = useNav();
   const lastBackupAt = useLiveQuery(() => getSetting(deps.db, 'lastBackupAt'), [deps.db]);
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -69,7 +72,10 @@ export function SettingsScreen() {
 
   return (
     <section className="screen screen--settings">
-      <h1 className="screen__title">Cài đặt</h1>
+      <header className="tpl-page__head">
+        <BackButton inline onClick={() => nav('calendar')} />
+        <h1 className="screen__title">Cài đặt</h1>
+      </header>
       {status && <p role="status" className="toast">{status}</p>}
       {error && <p role="alert" className="error">{error}</p>}
 

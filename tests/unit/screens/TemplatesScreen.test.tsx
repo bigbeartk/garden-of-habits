@@ -1,5 +1,6 @@
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { vi } from 'vitest';
 import { TemplatesScreen } from '../../../src/screens/TemplatesScreen';
 import { CATALOG } from '../../../src/content/catalog';
 import { makeDeps, renderWithDeps } from '../helpers';
@@ -91,5 +92,28 @@ describe('TemplatesScreen mẫu theo buổi', () => {
     expect(screen.getByLabelText('Việc buổi Sáng (mỗi dòng một việc)')).toHaveValue('A');
     expect(screen.getByLabelText('Việc buổi Chiều (mỗi dòng một việc)')).toHaveValue('');
     expect(screen.getByLabelText('Việc buổi Tối (mỗi dòng một việc)')).toHaveValue('B');
+  });
+});
+
+describe('TemplatesScreen nút quay lại và ngôi sao tự vẽ', () => {
+  it('nút mũi tên quay về Lịch', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
+    const nav = vi.fn();
+    const user = userEvent.setup();
+    renderWithDeps(<TemplatesScreen />, deps, nav);
+    const back = screen.getByRole('button', { name: 'Quay lại Lịch' });
+    expect(back.querySelector('svg[data-icon="back"]')).not.toBeNull();
+    expect(back.textContent).toBe('');
+    await user.click(back);
+    expect(nav).toHaveBeenCalledWith('calendar');
+  });
+
+  it('nút mặc định dùng ngôi sao SVG, không dùng ký tự ☆/⭐', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
+    await createTemplate(deps.db, 'Mẫu A', [{ text: 'x', period: 'morning' }], 1);
+    renderWithDeps(<TemplatesScreen />, deps);
+    const star = await screen.findByRole('button', { name: 'Đặt làm mặc định: Mẫu A' });
+    expect(star.querySelector('svg[data-icon="star"]')).not.toBeNull();
+    expect(star.textContent ?? '').not.toMatch(/[☆⭐★]/);
   });
 });

@@ -1,5 +1,6 @@
 import { useId, useState } from 'react';
 import { PERIODS, PERIOD_LABEL, type Period } from '../domain/period';
+import { PeriodIcon } from './icons';
 import { parseItems } from '../domain/templateService';
 import type { TemplateItem } from '../domain/types';
 
@@ -34,14 +35,17 @@ export function TemplateForm({ initialName = '', initialItems = [], onSave, onCa
         }
       }}
     >
-      <label htmlFor={`${id}-name`}>Tên mẫu</label>
-      <input id={`${id}-name`} className="input" value={name} onChange={(e) => setName(e.target.value)} maxLength={60} />
+      <label htmlFor={`${id}-name`} className="tpl-form__label">Tên mẫu</label>
+      <input id={`${id}-name`} className="input" value={name} onChange={(e) => setName(e.target.value)} maxLength={60} placeholder="Ví dụ: Ngày đi làm" />
       {PERIODS.map((p) => (
-        <div key={p} className={`tpl-form__period tpl-form__period--${p}`}>
-          <label htmlFor={`${id}-${p}`}>Việc buổi {PERIOD_LABEL[p]} (mỗi dòng một việc)</label>
+        <div key={p} className={`tpl-form__period todo__section--${p}`}>
+          <label htmlFor={`${id}-${p}`} className="tpl-form__period-label">
+            <PeriodIcon period={p} size={24} /> <span>Việc buổi {PERIOD_LABEL[p]}</span> <small>(mỗi dòng một việc)</small>
+          </label>
           <textarea
             id={`${id}-${p}`}
             className="textarea tpl-form__textarea"
+            placeholder="Mỗi dòng một việc…"
             value={texts[p]}
             onChange={(e) => setTexts((t) => ({ ...t, [p]: e.target.value }))}
           />
