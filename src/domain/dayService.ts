@@ -23,10 +23,12 @@ export class LockedDayError extends Error {
 export async function ensureToday(deps: DayDeps): Promise<DayRecord> {
   const { db } = deps;
   const date = dayKey(deps.now());
-  return db.transaction('rw', db.days, db.templates, async () => {
+  return db.transaction('rw', db.days, db.templates, db.planned, async () => {
     const existing = await db.days.get(date);
     if (existing) return existing;
     const template = (await db.templates.toArray()).find((t) => t.isDefault);
+    // việc đã lên lịch cho hôm nay: vào sau việc của mẫu, rồi xoá khỏi danh sách chờ
+    const planned = await db.planned.where('date').equals(date).sortBy('createdAt');
     const plant = pickUniform(deps.catalog.plants, deps.rng);
     const ts = deps.now().getTime();
     const record: DayRecord = {
@@ -38,12 +40,13 @@ export async function ensureToday(deps: DayDeps): Promise<DayRecord> {
       title: '',
       greetedAt: null,
       note: '',
-      todos: toTodos(template?.items ?? [], 0),
+      todos: toTodos([...(template?.items ?? []), ...planned], 0),
       finalStage: 'seed',
       createdAt: ts,
       updatedAt: ts,
     };
     await db.days.add(record);
+    await db.planned.bulkDelete(planned.map((p) => p.id));
     return record;
   });
 }

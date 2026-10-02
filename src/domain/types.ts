@@ -43,6 +43,16 @@ export interface TemplateItem {
   period: Period;
 }
 
+/** Việc đã lên lịch cho một ngày tương lai; đến ngày đó sẽ được chuyển vào danh sách todo. */
+export interface PlannedTodo {
+  id: string;
+  /** 'YYYY-MM-DD', luôn sau hôm nay lúc tạo */
+  date: string;
+  text: string;
+  period: Period;
+  createdAt: number;
+}
+
 export interface CalendarBg {
   mime: string;
   data: ArrayBuffer;

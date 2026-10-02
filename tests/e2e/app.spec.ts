@@ -238,3 +238,22 @@ test('tab Hôm nay: cây đứng yên, chỉ danh sách việc cuộn', async ({
   expect(after.y).toBe(before.y);
   expect(await list.evaluate((el) => el.scrollTop)).toBeGreaterThan(0);
 });
+
+test('lên lịch việc cho ngày tương lai trên Lịch; tới ngày đó việc hiện ở Hôm nay', async ({ page }) => {
+  await page.clock.setFixedTime(at('2026-10-02T10:00:00'));
+  await page.goto('/');
+  await goTab(page, 'Lịch');
+  await page.getByTestId('day-2026-10-05').click();
+  const dialog = page.getByRole('dialog', { name: 'Thứ Hai, 05/10/2026' });
+  await dialog.getByRole('radio', { name: /Tối/ }).click();
+  await dialog.getByLabel('Việc cho ngày này').fill('Gọi điện cho mẹ');
+  await dialog.getByRole('button', { name: 'Lên lịch' }).click();
+  await expect(dialog.getByText('Gọi điện cho mẹ')).toBeVisible();
+  await dialog.getByRole('button', { name: 'Đóng' }).click();
+  await expect(page.getByTestId('day-2026-10-05').getByTestId('planned-count')).toHaveText('1');
+
+  await page.clock.setFixedTime(at('2026-10-05T08:00:00'));
+  await page.reload();
+  await openToday(page);
+  await expect(page.getByTestId('todo-section-evening').getByRole('checkbox', { name: 'Hoàn thành: Gọi điện cho mẹ' })).toBeVisible();
+});

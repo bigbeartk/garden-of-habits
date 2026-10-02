@@ -7,6 +7,9 @@ import { BackgroundPicker } from '../components/BackgroundPicker';
 import { DayCell } from '../components/DayCell';
 import { DayDetailSheet } from '../components/DayDetailSheet';
 import { firstDayKey, listDaysInRange } from '../db/queries';
+import { plannedCountsInRange } from '../domain/plannedService';
+
+const MAX_MONTHS_AHEAD = 12;
 import { WEEKDAY_SHORT, buildMonthGrid, dayCellStatus, monthLabel, shiftMonth } from '../domain/calendar';
 import { dayKey, formatDate, parseDayKey } from '../domain/dayKey';
 import { useCalendarBgUrl } from '../hooks/useCalendarBg';
@@ -26,13 +29,16 @@ export function CalendarScreen() {
   const from = formatDate(new Date(view.year, view.month, 1));
   const to = formatDate(new Date(view.year, view.month + 1, 0));
   const days = useLiveQuery(() => listDaysInRange(deps.db, from, to), [deps.db, from, to]) ?? [];
+  const plannedCounts = useLiveQuery(() => plannedCountsInRange(deps.db, from, to), [deps.db, from, to]) ?? {};
   const firstKey = useLiveQuery(() => firstDayKey(deps.db), [deps.db]) ?? null;
   const bgUrl = useCalendarBgUrl();
 
   const byKey = new Map(days.map((d) => [d.date, d]));
-  const isCurrentMonth = view.year === today.getFullYear() && view.month === today.getMonth();
+  // Đi tới tối đa 12 tháng sau để lên lịch việc tương lai
+  const monthsAhead = (view.year - today.getFullYear()) * 12 + (view.month - today.getMonth());
+  const atLastMonth = monthsAhead >= MAX_MONTHS_AHEAD;
   const go = (delta: number) => {
-    if (delta > 0 && isCurrentMonth) return;
+    if (delta > 0 && atLastMonth) return;
     setView((v) => shiftMonth(v.year, v.month, delta));
   };
   const selectedStatus = selected ? dayCellStatus(selected, byKey.get(selected), todayKey, firstKey) : null;
@@ -46,7 +52,7 @@ export function CalendarScreen() {
       <header className={`cal__head card${bgUrl ? ' is-glass' : ''}`} data-testid="calendar-head">
         <button type="button" className="btn btn--round" aria-label="Tháng trước" onClick={() => go(-1)}>‹</button>
         <h1 className="screen__title" aria-live="polite">{monthLabel(view.year, view.month)}</h1>
-        <button type="button" className="btn btn--round" aria-label="Tháng sau" onClick={() => go(1)} disabled={isCurrentMonth}>›</button>
+        <button type="button" className="btn btn--round" aria-label="Tháng sau" onClick={() => go(1)} disabled={atLastMonth}>›</button>
       </header>
 
       <motion.div
@@ -72,6 +78,7 @@ export function CalendarScreen() {
                 day={c.day}
                 status={dayCellStatus(c.key, byKey.get(c.key), todayKey, firstKey)}
                 record={byKey.get(c.key)}
+                plannedCount={plannedCounts[c.key] ?? 0}
                 isToday={c.key === todayKey}
                 onSelect={() => setSelected(c.key)}
               />

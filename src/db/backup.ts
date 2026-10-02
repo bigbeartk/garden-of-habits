@@ -46,12 +46,21 @@ const TemplateSchema = z.object({
   updatedAt: z.number(),
 });
 
+const PlannedSchema = z.object({
+  id: z.string(),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  text: z.string(),
+  period: z.enum(PERIODS),
+  createdAt: z.number(),
+});
+
 const BackupSchema = z.object({
   format: z.literal(BACKUP_FORMAT),
   schemaVersion: z.number().int().min(1),
   exportedAt: z.number(),
   days: z.array(DaySchema),
   templates: z.array(TemplateSchema),
+  planned: z.array(PlannedSchema).default([]), // file phiên bản 1–2 chưa có
   calendarBg: z.object({ mime: z.string(), base64: z.string().regex(/^[A-Za-z0-9+/]*={0,2}$/) }).nullable(),
 });
 
@@ -77,9 +86,10 @@ export function base64ToBytes(b64: string): ArrayBuffer {
 }
 
 export async function createBackup(db: PlantDB, now: number): Promise<BackupFile> {
-  return db.transaction('r', db.days, db.templates, db.settings, async () => {
+  return db.transaction('r', db.days, db.templates, db.settings, db.planned, async () => {
     const days = await db.days.orderBy('date').toArray();
     const templates = await db.templates.orderBy('createdAt').toArray();
+    const planned = await db.planned.orderBy('date').toArray();
     const bg = await getSetting(db, 'calendarBg');
     return {
       format: BACKUP_FORMAT,
@@ -87,6 +97,7 @@ export async function createBackup(db: PlantDB, now: number): Promise<BackupFile
       exportedAt: now,
       days,
       templates,
+      planned,
       calendarBg: bg ? { mime: bg.mime, base64: bytesToBase64(bg.data) } : null,
     };
   });
@@ -124,14 +135,16 @@ export function parseBackup(text: string): ParseResult {
 
 export async function restoreBackup(db: PlantDB, backup: BackupFile, mode: RestoreMode): Promise<{ days: number; templates: number }> {
   const bg = backup.calendarBg ? { mime: backup.calendarBg.mime, data: base64ToBytes(backup.calendarBg.base64) } : null;
-  return db.transaction('rw', db.days, db.templates, db.settings, async () => {
+  return db.transaction('rw', db.days, db.templates, db.settings, db.planned, async () => {
     let days = 0;
     let templates = 0;
     if (mode === 'replace') {
       await db.days.clear();
       await db.templates.clear();
+      await db.planned.clear();
       await db.days.bulkPut(backup.days);
       await db.templates.bulkPut(backup.templates);
+      await db.planned.bulkPut(backup.planned);
       if (bg) await setSetting(db, 'calendarBg', bg);
       else await deleteSetting(db, 'calendarBg');
       days = backup.days.length;
@@ -150,6 +163,9 @@ export async function restoreBackup(db: PlantDB, backup: BackupFile, mode: Resto
           await db.templates.put(t);
           templates++;
         }
+      }
+      for (const p of backup.planned) {
+        if (!(await db.planned.get(p.id))) await db.planned.put(p);
       }
       if (bg && !(await getSetting(db, 'calendarBg'))) await setSetting(db, 'calendarBg', bg);
     }

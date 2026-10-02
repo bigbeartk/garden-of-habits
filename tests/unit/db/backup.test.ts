@@ -152,7 +152,41 @@ describe('file sao lưu phiên bản 1 (chưa có buổi)', () => {
     expect(r.backup.templates[0].items).toEqual([{ text: 'A', period: 'morning' }]);
   });
 
-  it('file mới ghi schemaVersion 2', async () => {
-    expect((await createBackup(makeDb(), 1)).schemaVersion).toBe(2);
+  it('file mới ghi schemaVersion hiện tại (3)', async () => {
+    expect((await createBackup(makeDb(), 1)).schemaVersion).toBe(3);
+  });
+});
+
+describe('sao lưu việc đã lên lịch', () => {
+  const planned = { id: 'p1', date: '2026-10-09', text: 'Khám răng', period: 'afternoon' as const, createdAt: 5 };
+
+  it('sao lưu rồi khôi phục giữ việc đã lên lịch', async () => {
+    const src = makeDb();
+    await src.planned.put(planned);
+    const backup = await createBackup(src, 1);
+    expect(backup.schemaVersion).toBe(3);
+    const r = parseBackup(serializeBackup(backup));
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    const dst = makeDb();
+    await dst.planned.put({ ...planned, id: 'cu', text: 'Sẽ bị xoá khi thay thế' });
+    await restoreBackup(dst, r.backup, 'replace');
+    expect(await dst.planned.toArray()).toEqual([planned]);
+  });
+
+  it('gộp: thêm việc đã lên lịch chưa có, giữ việc của máy', async () => {
+    const src = makeDb();
+    await src.planned.put(planned);
+    const r = parseBackup(serializeBackup(await createBackup(src, 1)));
+    if (!r.ok) throw new Error(r.error);
+    const dst = makeDb();
+    await dst.planned.put({ ...planned, id: 'may', text: 'Của máy' });
+    await restoreBackup(dst, r.backup, 'merge');
+    expect((await dst.planned.toArray()).map((p) => p.id).sort()).toEqual(['may', 'p1']);
+  });
+
+  it('file cũ không có việc đã lên lịch vẫn khôi phục được', () => {
+    const r = parseBackup(JSON.stringify({ format: BACKUP_FORMAT, schemaVersion: 2, exportedAt: 1, days: [], templates: [], calendarBg: null }));
+    expect(r.ok && r.backup.planned).toEqual([]);
   });
 });

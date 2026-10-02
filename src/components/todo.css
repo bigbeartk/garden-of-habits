@@ -32,3 +32,4 @@
   font-weight: 700; cursor: pointer; box-shadow: var(--shadow-pop);
 }
 .period-picker__item.is-selected { background: var(--butter); transform: translateY(2px); box-shadow: none; }
+.todo__add .btn { flex: none; white-space: nowrap; }

@@ -21,3 +21,20 @@ describe('nâng cấp dữ liệu từ phiên bản 1', () => {
     ]);
   });
 });
+
+describe('nâng cấp dữ liệu từ phiên bản 2', () => {
+  it('giữ nguyên dữ liệu cũ và có bảng việc đã lên lịch', async () => {
+    const name = `test-mig2-${crypto.randomUUID()}`;
+    const old = new Dexie(name);
+    old.version(2).stores({ days: 'date', templates: 'id, createdAt', settings: 'key' });
+    await old.table('days').put({
+      date: '2026-10-01', plantId: 'corn', potId: 'rattan', specialId: null, isRestDay: false, greetedAt: 1, note: 'giữ',
+      todos: [{ id: 'a', text: 'Việc', done: false, doneAt: null, order: 0, period: 'evening' }], finalStage: 'seed', createdAt: 1, updatedAt: 1,
+    });
+    old.close();
+    const db = new PlantDB(name);
+    expect((await db.days.get('2026-10-01'))!.note).toBe('giữ');
+    await db.planned.put({ id: 'p', date: '2026-10-09', text: 'Mới', period: 'morning', createdAt: 1 });
+    expect(await db.planned.where('date').equals('2026-10-09').count()).toBe(1);
+  });
+});

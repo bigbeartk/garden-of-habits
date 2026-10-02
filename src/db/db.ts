@@ -1,7 +1,7 @@
 import Dexie, { type EntityTable } from 'dexie';
-import type { DayRecord, Template } from '../domain/types';
+import type { DayRecord, PlannedTodo, Template } from '../domain/types';
 
-export const SCHEMA_VERSION = 2;
+export const SCHEMA_VERSION = 3;
 
 export interface SettingRow {
   key: string;
@@ -12,6 +12,7 @@ export class PlantDB extends Dexie {
   days!: EntityTable<DayRecord, 'date'>;
   templates!: EntityTable<Template, 'id'>;
   settings!: EntityTable<SettingRow, 'key'>;
+  planned!: EntityTable<PlannedTodo, 'id'>;
 
   constructor(name = 'chau-cay-chibi') {
     super(name);
@@ -38,6 +39,8 @@ export class PlantDB extends Dexie {
             t.items = t.items.map((item) => (typeof item === 'string' ? { text: item, period: 'morning' } : item));
           });
       });
+    // v3: bảng việc đã lên lịch cho ngày tương lai.
+    this.version(3).stores({ days: 'date', templates: 'id, createdAt', settings: 'key', planned: 'id, date' });
   }
 }
 

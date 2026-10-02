@@ -51,7 +51,7 @@ src/
 - **Một ngày mới được tạo** như sau:
   - random đều một loài cây; chậu là `defaultPotId` của loài đó;
   - **10%** khả năng là cây đặc biệt (`SPECIAL_CHANCE`); khi trúng, hiệu ứng được chọn theo `weight`;
-  - todo lấy từ **mẫu mặc định**. Việc chưa xong hôm qua ở lại ngày cũ, không chuyển sang.
+  - todo lấy từ **mẫu mặc định**, rồi tới các **việc đã lên lịch** cho ngày đó (bảng `planned`, xoá khỏi bảng sau khi chuyển). Việc chưa xong hôm qua ở lại ngày cũ, không chuyển sang.
 - **Giai đoạn cây** tính theo tỉ lệ việc xong trong ngày (`stageFor`):
   - 0 việc xong, hoặc chưa có việc nào → `seed` (hạt giống)
   - ≥ 1 việc → `sprout` (nảy mầm)
@@ -77,7 +77,7 @@ src/
   | `today-pending` | hôm nay nhưng chưa có bản ghi |
   | `future` | ngày tương lai |
 
-  Không đi tới được các tháng sau tháng hiện tại.
+  Đi tới được tối đa **12 tháng sau** tháng hiện tại (`MAX_MONTHS_AHEAD`). **Ô ngày tương lai bấm được**: bảng chi tiết có mục "Việc đã lên lịch" để xem/thêm (chọn buổi)/xoá (`plannedService`: `addPlanned` chỉ nhận ngày **sau hôm nay**). Ô có việc đã lên lịch hiện huy hiệu số việc (`planned-count`). Việc tương lai **chỉ thêm được từ Lịch**, không từ popup ＋.
 - **Nền theo giờ** (`timeOfDay`): sáng 4–11h, trưa 11–14h, chiều 14–18h, tối 18–4h.
 - **Nhắc sao lưu:** khi đã quá 7 ngày kể từ lần sao lưu cuối, hoặc kể từ dữ liệu cũ nhất nếu chưa sao lưu lần nào.
 
@@ -167,9 +167,10 @@ Các thuộc tính để test bám vào: `data-testid` (mặc định `plant-sce
 
 ## Cơ sở dữ liệu (IndexedDB qua Dexie)
 
-Tên DB: `chau-cay-chibi`, `SCHEMA_VERSION = 2` (`src/db/db.ts`).
+Tên DB: `chau-cay-chibi`, `SCHEMA_VERSION = 3` (`src/db/db.ts`).
 
 - **v1**: bản đầu tiên.
+- **v3**: thêm bảng `planned` (việc đã lên lịch cho ngày tương lai).
 - **v2**: thêm buổi. Bước `upgrade` gán `period: 'morning'` cho todo cũ và chuyển `items: string[]` của mẫu cũ thành `{ text, period: 'morning' }[]`.
 
 | Bảng | Khoá / index | Nội dung |
@@ -177,12 +178,14 @@ Tên DB: `chau-cay-chibi`, `SCHEMA_VERSION = 2` (`src/db/db.ts`).
 | `days` | `date` | `DayRecord`, mỗi ngày một bản ghi |
 | `templates` | `id`, index `createdAt` | `Template` |
 | `settings` | `key` | `{ key, value }` |
+| `planned` | `id`, index `date` | `PlannedTodo` (việc đã lên lịch) |
 
 ```ts
 // src/domain/types.ts
 type Period = 'morning' | 'afternoon' | 'evening';
 interface Todo { id: string; text: string; done: boolean; doneAt: number | null; order: number; period: Period }
 interface TemplateItem { text: string; period: Period }
+interface PlannedTodo { id: string; date: string; text: string; period: Period; createdAt: number } // createdAt tăng dần trong một ngày
 
 interface DayRecord {
   date: string;              // 'YYYY-MM-DD' theo mốc 4:00
@@ -218,15 +221,16 @@ Tên file: `chau-cay-backup-YYYY-MM-DD.json`. Khi lưu, app mở menu Chia sẻ 
 ```json
 {
   "format": "chau-cay-chibi-backup",
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "exportedAt": 1790000000000,
   "days": [DayRecord, ...],
   "templates": [Template, ...],
+  "planned": [PlannedTodo, ...],
   "calendarBg": { "mime": "image/jpeg", "base64": "..." } | null
 }
 ```
 
-File phiên bản 1 vẫn khôi phục được: todo thiếu `period` được gán `'morning'`, mẫu có `items` dạng chuỗi được chuyển thành `{ text, period: 'morning' }`.
+File thiếu `planned` (phiên bản 1–2) được coi là `[]`; khi gộp, việc đã lên lịch chỉ được thêm nếu chưa có `id`. File phiên bản 1 vẫn khôi phục được: todo thiếu `period` được gán `'morning'`, mẫu có `items` dạng chuỗi được chuyển thành `{ text, period: 'morning' }`.
 
 `parseBackup` kiểm tra theo thứ tự sau; mọi thông báo lỗi đều bằng tiếng Việt và không ghi gì vào DB khi lỗi:
 1. JSON hợp lệ.
@@ -250,7 +254,7 @@ File phiên bản 1 vẫn khôi phục được: todo thiếu `period` được 
   - sky `#D4ECFF`
   - chữ cocoa `#5B4636`
 - **Font:** Baloo 2 (tiêu đề) và Quicksand (nội dung), tự host qua `@fontsource` để chạy offline. Không gọi mạng lúc chạy; mọi file đều được precache bởi Workbox.
-- **Màn Hôm nay:** nửa trên là bầu trời cao `46dvh`. `.sky__content` là khung flex dọc, `.today__stage` có `flex: 1 1 0; min-height: 0`, SVG cây được **định vị tuyệt đối** trong stage.
+- **Màn Hôm nay:** cao đúng bằng khung app (`overflow: hidden`); **trời + cây đứng yên, chỉ `.today__list` tự cuộn** (chừa `padding-bottom` cho nút ＋ và nút menu). Việc đã xong: chữ nhạt + dấu ✓, **không gạch ngang**. Nửa trên là bầu trời cao `46dvh`. `.sky__content` là khung flex dọc, `.today__stage` có `flex: 1 1 0; min-height: 0`, SVG cây được **định vị tuyệt đối** trong stage.
   - **Không dùng `height: 100%` + `width: auto` cho SVG**: Safari tính sai và đẩy hàng 4 nút ra khỏi khung.
 - **Điều hướng = menu nổi** (`app/TabBar.tsx`): không còn thanh tab ở đáy. Chỉ có một nút tròn (icon bông hoa) cố định ở góc phải dưới, nằm **ngay dưới nút ＋** và có mặt ở cả 4 màn. Bấm vào thì dải 4 tab (Lịch, Hôm nay, Mẫu, Cài đặt) **trượt từ nút ra bên trái** (`clipPath` + các tab hiện lần lượt, tab gần nút hiện trước), nút chuyển thành ✕; bấm lần nữa thì trượt ngược về. Mặc định thu gọn khi mở app. **Chọn tab không đóng dải tab.** `--tabbar-h` (60px) là cỡ nút menu và nút ＋.
 - **Icon:** không dùng emoji cho icon chức năng; dùng bộ SVG tự vẽ trong `components/icons.tsx` (khung 32×32, viền cocoa, màu pastel, `data-icon` để test). Hiện có: `calendar`, `sprout`, `clipboard`, `gear` (4 tab), `menu`, `close`, `plant-swap`, `pot`, `note`, `moon`, `sun` (4 nút dưới chậu; ngày nghỉ đổi `moon` → `sun`). `IconButton` nhận `icon: ReactNode`.
@@ -263,6 +267,7 @@ File phiên bản 1 vẫn khôi phục được: todo thiếu `period` được 
   - `Đổi cây`, `Đổi chậu`, `Ghi chú`, `Ngày tiết kiệm năng lượng` / `Thức dậy`
   - `＋ Mẫu mới`, `Tên mẫu`, `Đặt làm mặc định: <tên>`
   - `💾 Sao lưu dữ liệu`
+  - Lên lịch (Lịch): ô `Việc cho ngày này`, nút `Lên lịch`, `Xoá: <việc>`, `planned-count`
   - `day-YYYY-MM-DD` (+ `data-status`), `calendar-card`, `calendar-head`, `speech-bubble`, `special-intro`, `rest-message`
 
 ## Lỗi nhỏ đã biết (chưa sửa)
