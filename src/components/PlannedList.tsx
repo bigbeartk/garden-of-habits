@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { PERIODS, PERIOD_ICON, PERIOD_LABEL } from '../domain/period';
+import { PERIODS, PERIOD_LABEL } from '../domain/period';
+import { PeriodIcon } from './icons';
 import type { PlannedTodo } from '../domain/types';
 import './todo.css';
 
@@ -18,7 +19,7 @@ export function PlannedList({ items, onEdit, onDelete }: {
           <section key={p} className={`todo__section todo__section--${p}`} data-testid={`todo-section-${p}`}>
             <header className="todo__section-head">
               <h2 className="todo__section-title">
-                <span aria-hidden="true">{PERIOD_ICON[p]}</span> {PERIOD_LABEL[p]}
+                <PeriodIcon period={p} /> {PERIOD_LABEL[p]}
               </h2>
               {group.length > 0 && <span className="todo__section-count">{group.length}</span>}
             </header>

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Reorder, useDragControls } from 'motion/react';
-import { PERIODS, PERIOD_ICON, PERIOD_LABEL, type Period } from '../domain/period';
+import { PERIODS, PERIOD_LABEL, type Period } from '../domain/period';
+import { PeriodIcon } from './icons';
 import type { Todo } from '../domain/types';
 import './todo.css';
 
@@ -35,7 +36,7 @@ export function TodoList({ todos, currentPeriod, onToggle, onEdit, onDelete, onR
           >
             <header className="todo__section-head">
               <h2 className="todo__section-title">
-                <span aria-hidden="true">{PERIOD_ICON[p]}</span> {PERIOD_LABEL[p]}
+                <PeriodIcon period={p} /> {PERIOD_LABEL[p]}
               </h2>
               {group.length > 0 && <span className="todo__section-count">{done}/{group.length}</span>}
             </header>

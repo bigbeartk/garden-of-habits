@@ -4,7 +4,8 @@ import { getSpecies } from '../content/plants/registry';
 import { getSpecial } from '../content/specials/registry';
 import { longDateLabel, type CellStatus } from '../domain/calendar';
 import { STAGE_LABEL } from '../domain/growth';
-import { PERIODS, PERIOD_ICON, PERIOD_LABEL } from '../domain/period';
+import { PERIODS, PERIOD_LABEL } from '../domain/period';
+import { PeriodIcon } from './icons';
 import type { DayRecord } from '../domain/types';
 
 /** Chi tiết một ngày đã qua: chỉ để xem (việc theo buổi, ghi chú), không sửa được gì. */
@@ -33,7 +34,7 @@ export function DayDetailSheet({ dateKey, status, record, onClose }: {
                 return (
                   <section key={p} className={`detail__period todo__section--${p}`} data-testid={`detail-section-${p}`}>
                     <h4 className="detail__period-title">
-                      <span aria-hidden="true">{PERIOD_ICON[p]}</span> {PERIOD_LABEL[p]}
+                      <PeriodIcon period={p} /> {PERIOD_LABEL[p]}
                       {group.length > 0 && <span className="detail__period-count">{group.filter((t) => t.done).length}/{group.length}</span>}
                     </h4>
                     {group.length === 0 ? (
@@ -42,7 +43,8 @@ export function DayDetailSheet({ dateKey, status, record, onClose }: {
                       <ul className="detail__todos">
                         {group.map((t) => (
                           <li key={t.id} className={t.done ? 'is-done' : ''}>
-                            <span aria-hidden="true">{t.done ? '✅' : '⬜'}</span> {t.text}
+                            <span className={`detail__check${t.done ? ' is-done' : ''}`} aria-label={t.done ? 'Đã xong' : 'Chưa xong'} role="img">{t.done && <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 8.5 l2.6 2.6 L12 5.6" fill="none" stroke="#fff" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" /></svg>}</span>
+                            {t.text}
                           </li>
                         ))}
                       </ul>

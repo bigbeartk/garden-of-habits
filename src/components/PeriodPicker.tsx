@@ -1,4 +1,5 @@
-import { PERIODS, PERIOD_ICON, PERIOD_LABEL, type Period } from '../domain/period';
+import { PERIODS, PERIOD_LABEL, type Period } from '../domain/period';
+import { PeriodIcon } from './icons';
 
 /** Ba nút chọn buổi Sáng / Chiều / Tối (radio). */
 export function PeriodPicker({ value, onChange }: { value: Period; onChange: (p: Period) => void }) {
@@ -13,7 +14,7 @@ export function PeriodPicker({ value, onChange }: { value: Period; onChange: (p:
           className={`period-picker__item${p === value ? ' is-selected' : ''}`}
           onClick={() => onChange(p)}
         >
-          <span aria-hidden="true">{PERIOD_ICON[p]}</span> {PERIOD_LABEL[p]}
+          <PeriodIcon period={p} /> {PERIOD_LABEL[p]}
         </button>
       ))}
     </div>

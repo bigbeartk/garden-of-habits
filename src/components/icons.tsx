@@ -182,3 +182,58 @@ export function BackIcon({ size }: { size?: number }) {
     </Svg>
   );
 }
+
+/** Buổi sáng: mặt trời cười, má hồng */
+export function MorningIcon({ size }: { size?: number }) {
+  return (
+    <Svg name="period-morning" size={size}>
+      {[0, 45, 90, 135, 180, 225, 270, 315].map((a) => (
+        <path key={a} d="M16 2.8 V6.4" stroke="#F5A623" strokeWidth={2.6} strokeLinecap="round" transform={`rotate(${a} 16 16)`} />
+      ))}
+      <circle cx={16} cy={16} r={8.2} fill="#FFE58A" {...STROKE} />
+      <circle cx={13} cy={15} r={1.1} fill={INK} />
+      <circle cx={19} cy={15} r={1.1} fill={INK} />
+      <path d="M14 18.4 q2 1.8 4 0" fill="none" {...STROKE} strokeWidth={1.6} />
+      <Blush x1={11.4} x2={20.6} y={18} />
+    </Svg>
+  );
+}
+
+/** Buổi chiều: mặt trời nấp sau đám mây */
+export function AfternoonIcon({ size }: { size?: number }) {
+  return (
+    <Svg name="period-afternoon" size={size}>
+      {[-90, -45, 0, 45].map((a) => (
+        <path key={a} d="M20 3.2 V6.2" stroke="#F5A623" strokeWidth={2.4} strokeLinecap="round" transform={`rotate(${a} 20 12)`} />
+      ))}
+      <circle cx={20} cy={12} r={6.2} fill="#FFD27A" {...STROKE} />
+      <path d="M6.5 26 a4.5 4.5 0 0 1 0.8 -8.9 a6 6 0 0 1 11.2 -1.6 a4.8 4.8 0 0 1 6.9 4.3 a3.6 3.6 0 0 1 -0.9 6.2 Z" fill="#FFFDFB" {...STROKE} />
+      <circle cx={12.6} cy={21.4} r={1} fill={INK} />
+      <circle cx={17.4} cy={21.4} r={1} fill={INK} />
+      <path d="M13.8 23.6 q1.2 1.1 2.4 0" fill="none" {...STROKE} strokeWidth={1.4} />
+      <ellipse cx={10.6} cy={23.6} rx={1.3} ry={0.8} fill="#FF9FB2" />
+      <ellipse cx={19.4} cy={23.6} rx={1.3} ry={0.8} fill="#FF9FB2" />
+    </Svg>
+  );
+}
+
+/** Buổi tối: trăng khuyết ngủ và sao nhỏ */
+export function EveningIcon({ size }: { size?: number }) {
+  return (
+    <Svg name="period-evening" size={size}>
+      <path d="M19 4.5 A11.5 11.5 0 1 0 19 27.5 A16 16 0 0 1 19 4.5 Z" fill="#FFD86B" {...STROKE} />
+      <path d="M7.4 15.4 q1.2 1.1 2.4 0 M11.8 16.6 q1.2 1.1 2.4 0" fill="none" {...STROKE} strokeWidth={1.5} />
+      <ellipse cx={8.4} cy={19} rx={1.4} ry={0.9} fill="#FF9FB2" />
+      <path d="M24 6 l1 2.2 l2.3 0.4 l-1.7 1.6 l0.4 2.3 l-2 -1.1 l-2 1.1 l0.4 -2.3 l-1.7 -1.6 l2.3 -0.4 Z" fill="#C9B8F0" stroke={INK} strokeWidth={1.2} strokeLinejoin="round" />
+      <circle cx={26.5} cy={17} r={1.3} fill="#C9B8F0" />
+    </Svg>
+  );
+}
+
+const PERIOD_ICONS = { morning: MorningIcon, afternoon: AfternoonIcon, evening: EveningIcon } as const;
+
+/** Icon buổi Sáng / Chiều / Tối (SVG tự vẽ, giống nhau trên mọi máy). */
+export function PeriodIcon({ period, size = 26 }: { period: 'morning' | 'afternoon' | 'evening'; size?: number }) {
+  const Icon = PERIOD_ICONS[period];
+  return <Icon size={size} />;
+}

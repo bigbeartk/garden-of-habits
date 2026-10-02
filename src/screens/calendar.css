@@ -64,3 +64,10 @@
 .detail__period-empty { margin: 0; font-size: 0.85rem; }
 .detail__note-box { padding: 10px 12px; border-radius: var(--radius-sm); background: var(--cream); }
 .detail__note { margin: 4px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.detail__todos li { display: flex; align-items: center; gap: 8px; }
+.detail__check {
+  flex: none; width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--cocoa);
+  background: #fff; display: grid; place-items: center;
+}
+.detail__check.is-done { background: var(--leaf); }
+.detail__check svg { width: 12px; height: 12px; }

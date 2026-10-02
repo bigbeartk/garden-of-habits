@@ -6,7 +6,8 @@ import { ConfirmButton } from '../components/ConfirmButton';
 import { TemplateForm } from '../components/TemplateForm';
 import { addTodos, ensureToday } from '../domain/dayService';
 import { createTemplate, deleteTemplate, listTemplates, setDefaultTemplate, updateTemplate } from '../domain/templateService';
-import { PERIODS, PERIOD_ICON, PERIOD_LABEL } from '../domain/period';
+import { PERIODS, PERIOD_LABEL } from '../domain/period';
+import { PeriodIcon } from '../components/icons';
 import type { Template } from '../domain/types';
 import './templates.css';
 
@@ -84,7 +85,7 @@ export function TemplatesScreen() {
                 {PERIODS.filter((p) => t.items.some((i) => i.period === p)).map((p) => (
                   <div key={p} className="tpl__period">
                     <h3 className="tpl__period-title">
-                      <span aria-hidden="true">{PERIOD_ICON[p]}</span> {PERIOD_LABEL[p]}
+                      <PeriodIcon period={p} /> {PERIOD_LABEL[p]}
                     </h3>
                     <ul className="tpl__items">
                       {t.items.filter((i) => i.period === p).map((item, i) => <li key={i}>{item.text}</li>)}
