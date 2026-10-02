@@ -11,3 +11,8 @@
 .tpl-form__actions { display: flex; justify-content: flex-end; gap: 8px; }
 .confirm { display: inline-flex; gap: 6px; }
 .btn--danger { background: #FFC9D0; border-color: #C2415B; color: #8E2238; }
+.tpl__period { margin-top: 6px; }
+.tpl__period-title { margin: 0; font-size: 0.95rem; font-weight: 700; }
+.tpl__period .tpl__items { margin: 4px 0 0; }
+.tpl-form__period { display: flex; flex-direction: column; gap: 4px; }
+.tpl-form__textarea { min-height: 72px; }

@@ -21,6 +21,8 @@ export interface PlantSpecies {
   stages: Record<GrowthStage, Art>;
   faceAnchor: Record<GrowthStage, FaceAnchor>;
   greetings?: string[];
+  /** câu khen riêng khi xong một việc (gộp với câu khen chung) */
+  praises?: string[];
 }
 
 export interface PotStyle {

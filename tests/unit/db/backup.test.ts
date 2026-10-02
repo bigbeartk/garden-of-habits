@@ -6,14 +6,14 @@ import { getSetting, setSetting } from '../../../src/db/settings';
 import { makeDay, makeDb } from '../helpers';
 
 const tpl = (id: string, isDefault: boolean, updatedAt: number) => ({
-  id, name: id, items: ['x'], isDefault, createdAt: 1, updatedAt,
+  id, name: id, items: [{ text: 'x', period: 'morning' as const }], isDefault, createdAt: 1, updatedAt,
 });
 
 async function seeded() {
   const db = makeDb();
   await db.days.bulkPut([
     makeDay({ date: '2026-10-01', note: 'một', updatedAt: 10 }),
-    makeDay({ date: '2026-10-02', todos: [{ id: 't', text: 'A', done: true, doneAt: 5, order: 0 }], finalStage: 'bloom', updatedAt: 20 }),
+    makeDay({ date: '2026-10-02', todos: [{ id: 't', text: 'A', done: true, doneAt: 5, order: 0, period: 'evening' }], finalStage: 'bloom', updatedAt: 20 }),
   ]);
   await db.templates.put(tpl('sang', true, 3));
   await setSetting(db, 'calendarBg', { mime: 'image/jpeg', data: new Uint8Array([9, 8, 7]).buffer });
@@ -136,5 +136,23 @@ describe('tương thích file sao lưu cũ', () => {
     await src.days.put(makeDay({ date: '2026-10-01', title: 'Ngày đẹp' }));
     const r = parseBackup(serializeBackup(await createBackup(src, 1)));
     expect(r.ok && r.backup.days[0].title).toBe('Ngày đẹp');
+  });
+});
+
+describe('file sao lưu phiên bản 1 (chưa có buổi)', () => {
+  it('việc và mẫu cũ được xếp vào buổi sáng khi khôi phục', async () => {
+    const r = parseBackup(JSON.stringify({
+      format: BACKUP_FORMAT, schemaVersion: 1, exportedAt: 1, calendarBg: null,
+      days: [{ ...makeDay({ date: '2026-10-01' }), todos: [{ id: 'a', text: 'Cũ', done: false, doneAt: null, order: 0 }] }],
+      templates: [{ id: 't', name: 'Mẫu', items: ['A'], isDefault: true, createdAt: 1, updatedAt: 1 }],
+    }));
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.backup.days[0].todos[0].period).toBe('morning');
+    expect(r.backup.templates[0].items).toEqual([{ text: 'A', period: 'morning' }]);
+  });
+
+  it('file mới ghi schemaVersion 2', async () => {
+    expect((await createBackup(makeDb(), 1)).schemaVersion).toBe(2);
   });
 });

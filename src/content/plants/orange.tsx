@@ -67,4 +67,5 @@ export const orange: PlantSpecies = {
     bloom: { x: 100, y: 94, scale: 0.75 },
   },
   greetings: ['Vitamin C cho ngày mới nè! 🍊', 'Làm xong việc là có cam ngọt ăn đó!'],
+  praises: ['Ngọt như cam luôn đó 🍊'],
 };

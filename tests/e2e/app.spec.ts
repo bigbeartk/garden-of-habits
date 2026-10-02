@@ -42,7 +42,8 @@ test('sang ngày mới: mẫu mặc định tự lên và cây chào', async ({ 
   await page.getByRole('button', { name: 'Mẫu', exact: true }).click();
   await page.getByRole('button', { name: '＋ Mẫu mới' }).click();
   await page.getByLabel('Tên mẫu').fill('Buổi sáng');
-  await page.getByLabel('Các việc (mỗi dòng một việc)').fill('Tập thể dục\nĂn sáng');
+  await page.getByLabel('Việc buổi Sáng (mỗi dòng một việc)').fill('Tập thể dục');
+  await page.getByLabel('Việc buổi Tối (mỗi dòng một việc)').fill('Ăn sáng');
   await page.getByRole('button', { name: 'Lưu mẫu' }).click();
   await page.getByRole('button', { name: 'Đặt làm mặc định: Buổi sáng' }).click();
   await expect(page.getByRole('button', { name: 'Bỏ mặc định: Buổi sáng' })).toBeVisible();
@@ -164,4 +165,17 @@ test('ô đầu danh sách là tiêu đề ngày và còn sau khi tải lại', 
   await page.reload();
   await openToday(page);
   await expect(page.getByLabel('Tiêu đề hôm nay')).toHaveValue('Ngày dọn nhà');
+});
+
+test('việc chia 3 buổi; tick xong thì cây khen', async ({ page }) => {
+  await page.clock.setFixedTime(at('2026-10-02T19:00:00'));
+  await page.goto('/');
+  await openToday(page);
+  await addTodo(page, 'Đọc truyện');
+  await page.getByRole('dialog', { name: 'Thêm việc cần làm' }).getByRole('button', { name: 'Đóng' }).click();
+  const evening = page.getByTestId('todo-section-evening');
+  await expect(evening.getByRole('checkbox', { name: 'Hoàn thành: Đọc truyện' })).toBeVisible();
+  await expect(page.getByTestId('todo-section-morning').getByText('Chưa có việc')).toBeVisible();
+  await evening.getByRole('checkbox', { name: 'Hoàn thành: Đọc truyện' }).click();
+  await expect(page.getByTestId('speech-bubble')).toBeVisible();
 });

@@ -1,6 +1,6 @@
 import type { PlantDB } from '../db/db';
 import { newId } from './id';
-import type { Template } from './types';
+import type { Template, TemplateItem } from './types';
 
 export function parseItems(text: string): string[] {
   return text.split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
@@ -12,15 +12,15 @@ function cleanName(name: string): string {
   return n;
 }
 
-function cleanItems(items: string[]): string[] {
-  return items.map((s) => s.trim()).filter(Boolean);
+function cleanItems(items: TemplateItem[]): TemplateItem[] {
+  return items.map((i) => ({ text: i.text.trim(), period: i.period })).filter((i) => i.text);
 }
 
 export function listTemplates(db: PlantDB): Promise<Template[]> {
   return db.templates.orderBy('createdAt').toArray();
 }
 
-export async function createTemplate(db: PlantDB, name: string, items: string[], now: number): Promise<Template> {
+export async function createTemplate(db: PlantDB, name: string, items: TemplateItem[], now: number): Promise<Template> {
   const template: Template = {
     id: newId(),
     name: cleanName(name),
@@ -36,7 +36,7 @@ export async function createTemplate(db: PlantDB, name: string, items: string[],
 export async function updateTemplate(
   db: PlantDB,
   id: string,
-  patch: { name?: string; items?: string[] },
+  patch: { name?: string; items?: TemplateItem[] },
   now: number,
 ): Promise<Template> {
   return db.transaction('rw', db.templates, async () => {

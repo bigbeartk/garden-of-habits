@@ -16,3 +16,19 @@
 .todo__delete { flex: none; border: none; background: none; font-size: 1.4rem; color: var(--cocoa-soft); cursor: pointer; width: 32px; height: 32px; }
 .todo__handle { flex: none; touch-action: none; cursor: grab; color: var(--cocoa-soft); letter-spacing: -3px; padding: 6px 2px; }
 .todo__empty { text-align: center; margin: 12px 0; }
+.todo__hint { text-align: center; margin: 0; }
+.todo__section { display: flex; flex-direction: column; gap: 8px; padding: 10px 10px 12px; border-radius: var(--radius-md); }
+.todo__section--morning { background: rgba(255, 241, 193, 0.45); }
+.todo__section--afternoon { background: rgba(212, 236, 255, 0.5); }
+.todo__section--evening { background: rgba(227, 217, 255, 0.5); }
+.todo__section.is-current { box-shadow: inset 0 0 0 2px var(--cocoa); }
+.todo__section-head { display: flex; align-items: center; justify-content: space-between; }
+.todo__section-title { margin: 0; font-family: var(--font-display); font-size: 1.05rem; font-weight: 700; }
+.todo__section-count { font-weight: 700; font-size: 0.85rem; padding: 2px 10px; border-radius: 999px; background: rgba(255, 253, 251, 0.85); }
+.todo__section .todo__empty { margin: 0; font-size: 0.9rem; text-align: left; padding-left: 4px; }
+.period-picker { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.period-picker__item {
+  min-height: 44px; border: 2px solid var(--cocoa); border-radius: 999px; background: var(--white);
+  font-weight: 700; cursor: pointer; box-shadow: var(--shadow-pop);
+}
+.period-picker__item.is-selected { background: var(--butter); transform: translateY(2px); box-shadow: none; }

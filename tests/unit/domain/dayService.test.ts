@@ -4,20 +4,21 @@ import {
 } from '../../../src/domain/dayService';
 import { makeDay, makeDeps } from '../helpers';
 
-const TEMPLATE = (isDefault: boolean, items: string[]) => ({
+const m = (text: string) => ({ text, period: 'morning' as const });
+const TEMPLATE = (isDefault: boolean, items: { text: string; period: 'morning' | 'afternoon' | 'evening' }[]) => ({
   id: crypto.randomUUID(), name: 'Sáng', items, isDefault, createdAt: 1, updatedAt: 1,
 });
 
 describe('ensureToday', () => {
   it('tạo ngày mới với cây trong catalog, chậu mặc định và todo từ mẫu mặc định', async () => {
     const { deps } = makeDeps();
-    await deps.db.templates.bulkAdd([TEMPLATE(false, ['Không dùng']), TEMPLATE(true, ['Tập thể dục', 'Ăn sáng'])]);
+    await deps.db.templates.bulkAdd([TEMPLATE(false, [m('Không dùng')]), TEMPLATE(true, [m('Tập thể dục'), { text: 'Đọc sách', period: 'evening' }])]);
     const day = await ensureToday(deps);
     expect(day.date).toBe('2026-10-02');
     const plant = deps.catalog.plants.find((p) => p.id === day.plantId)!;
     expect(plant).toBeDefined();
     expect(day.potId).toBe(plant.defaultPotId);
-    expect(day.todos.map((t) => t.text)).toEqual(['Tập thể dục', 'Ăn sáng']);
+    expect(day.todos.map((t) => [t.text, t.period])).toEqual([['Tập thể dục', 'morning'], ['Đọc sách', 'evening']]);
     expect(day.todos.map((t) => t.order)).toEqual([0, 1]);
     expect(day.finalStage).toBe('seed');
     expect(day.greetedAt).toBeNull();
@@ -65,14 +66,14 @@ describe('todo', () => {
     const { deps } = makeDeps();
     const { date } = await ensureToday(deps);
     await addTodo(deps, date, 'A');
-    const day = await addTodos(deps, date, ['B', ' ', 'C']);
+    const day = await addTodos(deps, date, [m('B'), m(' '), m('C')]);
     expect(day.todos.map((t) => [t.text, t.order])).toEqual([['A', 0], ['B', 1], ['C', 2]]);
   });
 
   it('toggleTodo cập nhật trạng thái, giai đoạn và báo giai đoạn trước', async () => {
     const { deps } = makeDeps();
     const { date } = await ensureToday(deps);
-    await addTodos(deps, date, ['A', 'B']);
+    await addTodos(deps, date, [m('A'), m('B')]);
     const [a] = (await deps.db.days.get(date))!.todos;
     const r1 = await toggleTodo(deps, date, a.id);
     expect(r1.completed).toBe(true);
@@ -88,7 +89,7 @@ describe('todo', () => {
   it('editTodo, deleteTodo và reorderTodos', async () => {
     const { deps } = makeDeps();
     const { date } = await ensureToday(deps);
-    const day = await addTodos(deps, date, ['A', 'B', 'C']);
+    const day = await addTodos(deps, date, [m('A'), m('B'), m('C')]);
     const [a, b, c] = day.todos;
     expect((await editTodo(deps, date, a.id, ' A2 ')).todos[0].text).toBe('A2');
     const reordered = await reorderTodos(deps, date, [c.id, a.id, b.id]);
@@ -174,5 +175,28 @@ describe('tiêu đề ngày', () => {
     const { date } = await ensureToday(deps);
     clock.current = new Date(2026, 9, 3, 9, 0);
     await expect(setTitle(deps, date, 'muộn')).rejects.toBeInstanceOf(LockedDayError);
+  });
+});
+
+describe('buổi Sáng / Chiều / Tối', () => {
+  it('addTodo gắn buổi được chọn, mặc định là sáng', async () => {
+    const { deps } = makeDeps();
+    const { date } = await ensureToday(deps);
+    await addTodo(deps, date, 'A');
+    const day = await addTodo(deps, date, 'B', 'evening');
+    expect(day.todos.map((t) => [t.text, t.period])).toEqual([['A', 'morning'], ['B', 'evening']]);
+  });
+
+  it('sắp xếp trong một buổi không làm xáo trộn buổi khác', async () => {
+    const { deps } = makeDeps();
+    const { date } = await ensureToday(deps);
+    await addTodos(deps, date, [m('S1'), { text: 'T1', period: 'evening' }, m('S2'), { text: 'T2', period: 'evening' }]);
+    const day = (await deps.db.days.get(date))!;
+    const [s1, , s2] = day.todos;
+    const after = await reorderTodos(deps, date, [s2.id, s1.id]);
+    const morning = after.todos.filter((t) => t.period === 'morning').map((t) => t.text);
+    const evening = after.todos.filter((t) => t.period === 'evening').map((t) => t.text);
+    expect(morning).toEqual(['S2', 'S1']);
+    expect(evening).toEqual(['T1', 'T2']);
   });
 });

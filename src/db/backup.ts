@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { SCHEMA_VERSION, type PlantDB } from './db';
 import { deleteSetting, getSetting, setSetting } from './settings';
 import { GROWTH_STAGES } from '../domain/growth';
+import { PERIODS } from '../domain/period';
 import { formatDate } from '../domain/dayKey';
 
 export const BACKUP_FORMAT = 'chau-cay-chibi-backup';
@@ -13,6 +14,7 @@ const TodoSchema = z.object({
   done: z.boolean(),
   doneAt: z.number().nullable(),
   order: z.number(),
+  period: z.enum(PERIODS).default('morning'), // file phiên bản 1 chưa có buổi
 });
 
 const DaySchema = z.object({
@@ -33,7 +35,12 @@ const DaySchema = z.object({
 const TemplateSchema = z.object({
   id: z.string(),
   name: z.string(),
-  items: z.array(z.string()),
+  items: z.array(
+    z.union([
+      z.string().transform((text) => ({ text, period: 'morning' as const })), // file phiên bản 1
+      z.object({ text: z.string(), period: z.enum(PERIODS) }),
+    ]),
+  ),
   isDefault: z.boolean(),
   createdAt: z.number(),
   updatedAt: z.number(),

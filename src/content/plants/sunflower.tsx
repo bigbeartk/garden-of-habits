@@ -51,4 +51,5 @@ export const sunflower: PlantSpecies = {
     bloom: { x: 100, y: 80, scale: 0.8 },
   },
   greetings: ['Hôm nay mình hướng về phía bạn nè! 🌻', 'Nắng lên rồi, mình cùng tỏa sáng nha ☀️'],
+  praises: ['Bạn sáng chói như mặt trời luôn 🌻'],
 };

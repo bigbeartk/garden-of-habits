@@ -15,12 +15,14 @@ import { TodoList } from '../components/TodoList';
 import { WateringCan } from '../components/WateringCan';
 import type { Mood } from '../content/Face';
 import { pickGreeting } from '../content/greetings';
+import { pickPraise } from '../content/praises';
 import { getSpecies } from '../content/plants/registry';
 import { getSpecial } from '../content/specials/registry';
 import {
   addTodo, changePlant, changePot, deleteTodo, editTodo, markGreeted, reorderTodos, setNote, setRestDay, setTitle, toggleTodo,
 } from '../domain/dayService';
 import { stageIndex } from '../domain/growth';
+import { periodOf } from '../domain/period';
 import { timeOfDay } from '../domain/timeOfDay';
 import { useBackupReminder } from '../hooks/useBackupReminder';
 import { useToday } from '../hooks/useToday';
@@ -33,7 +35,8 @@ export function TodayScreen() {
   const nav = useNav();
   const { day, now, error: loadError } = useToday();
   const showReminder = useBackupReminder();
-  const [greeting, setGreeting] = useState<string | null>(null);
+  /** lời cây nói: chào đầu ngày hoặc khen khi xong việc */
+  const [speech, setSpeech] = useState<{ text: string; kind: 'greeting' | 'praise' } | null>(null);
   const [celebrating, setCelebrating] = useState(false);
   const [waterKey, setWaterKey] = useState(0);
   const [burstKey, setBurstKey] = useState(0);
@@ -44,15 +47,15 @@ export function TodayScreen() {
   useEffect(() => {
     if (!day || day.greetedAt !== null || greetedFor.current === day.date) return;
     greetedFor.current = day.date;
-    setGreeting(pickGreeting(getSpecies(day.plantId), deps.rng));
+    setSpeech({ text: pickGreeting(getSpecies(day.plantId), deps.rng), kind: 'greeting' });
     markGreeted(deps, day.date).catch((e: Error) => setError(e.message));
   }, [day, deps]);
 
   useEffect(() => {
-    if (!greeting) return;
-    const t = setTimeout(() => setGreeting(null), 5000);
+    if (!speech) return;
+    const t = setTimeout(() => setSpeech(null), speech.kind === 'greeting' ? 5000 : 3500);
     return () => clearTimeout(t);
-  }, [greeting]);
+  }, [speech]);
 
   useEffect(() => {
     if (!celebrating) return;
@@ -70,7 +73,8 @@ export function TodayScreen() {
   const run = (p: Promise<unknown>) => {
     p.catch((e: Error) => setError(e.message));
   };
-  const mood: Mood = day.isRestDay ? 'sleep' : greeting ? 'talk' : celebrating ? 'smile' : 'normal';
+  const mood: Mood = day.isRestDay ? 'sleep' : celebrating ? 'smile' : speech ? 'talk' : 'normal';
+  const currentPeriod = periodOf(now);
   const doneCount = day.todos.filter((t) => t.done).length;
   const special = day.isRestDay ? null : getSpecial(day.specialId);
 
@@ -81,6 +85,8 @@ export function TodayScreen() {
         setWaterKey((k) => k + 1);
         setCelebrating(true);
         if (stageIndex(r.day.finalStage) > stageIndex(r.prevStage)) setBurstKey((k) => k + 1);
+        const bloomed = r.day.finalStage === 'bloom' && r.prevStage !== 'bloom';
+        setSpeech({ text: pickPraise(getSpecies(r.day.plantId), deps.rng, bloomed), kind: 'praise' });
       }
     } catch (e) {
       setError((e as Error).message);
@@ -91,13 +97,13 @@ export function TodayScreen() {
     <section className="screen screen--today">
       <SkyBackground time={timeOfDay(now)}>
         <div className="today__stage">
-          {greeting && special && (
+          {speech?.kind === 'greeting' && special && (
             <div className="special-intro" data-testid="special-intro" role="status">
               <span className="special-intro__sparkles" aria-hidden="true">✨ ✨ ✨</span>
               Hôm nay mình là cây đặc biệt: {special.name}!
             </div>
           )}
-          <SpeechBubble text={greeting} />
+          <SpeechBubble text={speech?.text ?? null} />
           <PlantScene
             className="today__plant"
             plantId={day.plantId}
@@ -147,6 +153,7 @@ export function TodayScreen() {
             <DayTitleInput value={day.title ?? ''} onSave={(title) => run(setTitle(deps, day.date, title))} />
             <TodoList
               todos={day.todos}
+              currentPeriod={currentPeriod}
               onToggle={handleToggle}
               onEdit={(id, t) => run(editTodo(deps, day.date, id, t))}
               onDelete={(id) => run(deleteTodo(deps, day.date, id))}
@@ -161,7 +168,12 @@ export function TodayScreen() {
           <span aria-hidden="true">＋</span>
         </button>
       )}
-      <AddTodoSheet open={sheet === 'add'} onClose={() => setSheet(null)} onAdd={(t) => run(addTodo(deps, day.date, t))} />
+      <AddTodoSheet
+        open={sheet === 'add'}
+        defaultPeriod={currentPeriod}
+        onClose={() => setSheet(null)}
+        onAdd={(t, p) => run(addTodo(deps, day.date, t, p))}
+      />
       <PlantPickerSheet
         open={sheet === 'plant'}
         currentId={day.plantId}

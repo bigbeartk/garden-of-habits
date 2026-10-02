@@ -60,4 +60,5 @@ export const cherry: PlantSpecies = {
     bloom: { x: 100, y: 94, scale: 0.75 },
   },
   greetings: ['Hôm nay mình hồng hào lắm nè 🍒', 'Một quả cherry cho mỗi việc hoàn thành!'],
+  praises: ['Thưởng bạn một quả cherry nè 🍒'],
 };

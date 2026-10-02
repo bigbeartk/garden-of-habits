@@ -3,11 +3,12 @@ import userEvent from '@testing-library/user-event';
 import { TemplatesScreen } from '../../../src/screens/TemplatesScreen';
 import { CATALOG } from '../../../src/content/catalog';
 import { makeDeps, renderWithDeps } from '../helpers';
+import { createTemplate } from '../../../src/domain/templateService';
 
 async function createViaForm(user: ReturnType<typeof userEvent.setup>, name: string, items: string) {
   await user.click(screen.getByRole('button', { name: '＋ Mẫu mới' }));
   await user.type(screen.getByLabelText('Tên mẫu'), name);
-  await user.type(screen.getByLabelText('Các việc (mỗi dòng một việc)'), items);
+  await user.type(screen.getByLabelText('Việc buổi Sáng (mỗi dòng một việc)'), items);
   await user.click(screen.getByRole('button', { name: 'Lưu mẫu' }));
 }
 
@@ -57,5 +58,38 @@ describe('TemplatesScreen', () => {
     await user.click(within(card).getByRole('button', { name: 'Xoá' }));
     await user.click(within(card).getByRole('button', { name: 'Chắc chắn xoá' }));
     await waitFor(async () => expect(await deps.db.templates.count()).toBe(0));
+  });
+});
+
+describe('TemplatesScreen mẫu theo buổi', () => {
+  it('mẫu có 3 ô Sáng/Chiều/Tối; áp dụng thì việc vào đúng buổi', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
+    const user = userEvent.setup();
+    renderWithDeps(<TemplatesScreen />, deps);
+    await user.click(screen.getByRole('button', { name: '＋ Mẫu mới' }));
+    await user.type(screen.getByLabelText('Tên mẫu'), 'Cả ngày');
+    await user.type(screen.getByLabelText('Việc buổi Sáng (mỗi dòng một việc)'), 'Tập thể dục');
+    await user.type(screen.getByLabelText('Việc buổi Chiều (mỗi dòng một việc)'), 'Đi chợ');
+    await user.type(screen.getByLabelText('Việc buổi Tối (mỗi dòng một việc)'), 'Đọc sách{Enter}Thiền');
+    await user.click(screen.getByRole('button', { name: 'Lưu mẫu' }));
+    const card = (await screen.findByRole('heading', { name: 'Cả ngày' })).closest('li')!;
+    expect(within(card).getByText('Đi chợ')).toBeInTheDocument();
+    await user.click(within(card).getByRole('button', { name: 'Thêm vào hôm nay' }));
+    await screen.findByText(/Đã thêm 4 việc vào hôm nay/);
+    expect((await deps.db.days.get('2026-10-02'))!.todos.map((t) => [t.text, t.period])).toEqual([
+      ['Tập thể dục', 'morning'], ['Đi chợ', 'afternoon'], ['Đọc sách', 'evening'], ['Thiền', 'evening'],
+    ]);
+  });
+
+  it('sửa mẫu hiện lại đúng việc trong từng ô', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
+    await createTemplate(deps.db, 'Mẫu', [{ text: 'A', period: 'morning' }, { text: 'B', period: 'evening' }], 1);
+    const user = userEvent.setup();
+    renderWithDeps(<TemplatesScreen />, deps);
+    const card = (await screen.findByRole('heading', { name: 'Mẫu' })).closest('li')!;
+    await user.click(within(card).getByRole('button', { name: 'Sửa' }));
+    expect(screen.getByLabelText('Việc buổi Sáng (mỗi dòng một việc)')).toHaveValue('A');
+    expect(screen.getByLabelText('Việc buổi Chiều (mỗi dòng một việc)')).toHaveValue('');
+    expect(screen.getByLabelText('Việc buổi Tối (mỗi dòng một việc)')).toHaveValue('B');
   });
 });

@@ -6,6 +6,7 @@ import { ConfirmButton } from '../components/ConfirmButton';
 import { TemplateForm } from '../components/TemplateForm';
 import { addTodos, ensureToday } from '../domain/dayService';
 import { createTemplate, deleteTemplate, listTemplates, setDefaultTemplate, updateTemplate } from '../domain/templateService';
+import { PERIODS, PERIOD_ICON, PERIOD_LABEL } from '../domain/period';
 import type { Template } from '../domain/types';
 import './templates.css';
 
@@ -80,9 +81,16 @@ export function TemplatesScreen() {
                   </button>
                   <h2 className="tpl__name">{t.name}</h2>
                 </div>
-                <ul className="tpl__items">
-                  {t.items.map((item, i) => <li key={i}>{item}</li>)}
-                </ul>
+                {PERIODS.filter((p) => t.items.some((i) => i.period === p)).map((p) => (
+                  <div key={p} className="tpl__period">
+                    <h3 className="tpl__period-title">
+                      <span aria-hidden="true">{PERIOD_ICON[p]}</span> {PERIOD_LABEL[p]}
+                    </h3>
+                    <ul className="tpl__items">
+                      {t.items.filter((i) => i.period === p).map((item, i) => <li key={i}>{item.text}</li>)}
+                    </ul>
+                  </div>
+                ))}
                 <div className="tpl__actions">
                   <button type="button" className="btn" onClick={() => applyToToday(t)}>Thêm vào hôm nay</button>
                   <button type="button" className="btn btn--ghost" onClick={() => setEditing(t.id)}>Sửa</button>

@@ -2,6 +2,8 @@ import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { TodayScreen } from '../../../src/screens/TodayScreen';
 import { CATALOG } from '../../../src/content/catalog';
+import { BLOOM_PRAISES, COMMON_PRAISES } from '../../../src/content/praises';
+import { getSpecies } from '../../../src/content/plants/registry';
 import { makeDay, makeDeps, renderWithDeps } from '../helpers';
 
 async function addTodoViaPopup(user: ReturnType<typeof userEvent.setup>, text: string) {
@@ -110,5 +112,61 @@ describe('TodayScreen tiêu đề ngày và nút thêm việc', () => {
     const { deps, user } = setup();
     await addTodoViaPopup(user, '   ');
     expect((await deps.db.days.get('2026-10-02'))!.todos).toHaveLength(0);
+  });
+});
+
+describe('TodayScreen chia việc theo buổi', () => {
+  it('luôn hiện đủ 3 mục Sáng, Chiều, Tối; mục trống ghi "Chưa có việc"', async () => {
+    setup();
+    for (const p of ['morning', 'afternoon', 'evening']) {
+      const section = await screen.findByTestId(`todo-section-${p}`);
+      expect(within(section).getByText('Chưa có việc')).toBeInTheDocument();
+    }
+    expect(within(screen.getByTestId('todo-section-morning')).getByRole('heading', { name: /Sáng/ })).toBeInTheDocument();
+    expect(within(screen.getByTestId('todo-section-afternoon')).getByRole('heading', { name: /Chiều/ })).toBeInTheDocument();
+    expect(within(screen.getByTestId('todo-section-evening')).getByRole('heading', { name: /Tối/ })).toBeInTheDocument();
+  });
+
+  it('popup chọn buổi; việc hiện đúng mục và mỗi mục đếm riêng', async () => {
+    const { deps, user } = setup();
+    const dialog = await addTodoViaPopup(user, 'Ăn sáng');
+    await user.click(within(dialog).getByRole('radio', { name: /Tối/ }));
+    await user.type(within(dialog).getByLabelText('Nội dung việc'), 'Đọc truyện{Enter}');
+    await waitFor(async () => expect((await deps.db.days.get('2026-10-02'))!.todos).toHaveLength(2));
+    const morning = screen.getByTestId('todo-section-morning');
+    const evening = screen.getByTestId('todo-section-evening');
+    expect(within(morning).getByRole('checkbox', { name: 'Hoàn thành: Ăn sáng' })).toBeInTheDocument();
+    expect(await within(evening).findByRole('checkbox', { name: 'Hoàn thành: Đọc truyện' })).toBeInTheDocument();
+    expect(within(evening).getByText('0/1')).toBeInTheDocument();
+  });
+
+  it('buổi mặc định trong popup là buổi hiện tại', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 2, 19, 30), CATALOG);
+    const user = userEvent.setup();
+    renderWithDeps(<TodayScreen />, deps);
+    await user.click(await screen.findByRole('button', { name: 'Thêm việc mới' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Thêm việc cần làm' });
+    expect(within(dialog).getByRole('radio', { name: /Tối/ })).toHaveAttribute('aria-checked', 'true');
+  });
+});
+
+describe('TodayScreen cây khen', () => {
+  it('xong một việc thì cây nói lời khen', async () => {
+    const { user } = setup();
+    await addTodoViaPopup(user, 'Việc A');
+    await addTodoViaPopup(user, 'Việc B');
+    await user.click(screen.getByRole('button', { name: 'Đóng' }));
+    await user.click(await screen.findByRole('checkbox', { name: 'Hoàn thành: Việc A' }));
+    const species = getSpecies(screen.getByTestId('plant-scene').getAttribute('data-plant')!);
+    const pool = [...COMMON_PRAISES, ...(species.praises ?? [])];
+    await waitFor(() => expect(pool).toContain(screen.getByTestId('speech-bubble').textContent));
+  });
+
+  it('xong việc cuối cùng (ra hoa) thì khen đặc biệt', async () => {
+    const { user } = setup();
+    await addTodoViaPopup(user, 'Việc duy nhất');
+    await user.click(screen.getByRole('button', { name: 'Đóng' }));
+    await user.click(await screen.findByRole('checkbox', { name: 'Hoàn thành: Việc duy nhất' }));
+    await waitFor(() => expect(BLOOM_PRAISES).toContain(screen.getByTestId('speech-bubble').textContent));
   });
 });

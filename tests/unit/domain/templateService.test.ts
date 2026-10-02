@@ -10,9 +10,9 @@ describe('templateService', () => {
 
   it('createTemplate làm sạch dữ liệu và từ chối tên rỗng', async () => {
     const db = makeDb();
-    const t = await createTemplate(db, '  Buổi sáng ', [' A ', '', 'B'], 100);
-    expect(t).toMatchObject({ name: 'Buổi sáng', items: ['A', 'B'], isDefault: false, createdAt: 100, updatedAt: 100 });
-    await expect(createTemplate(db, '  ', ['A'], 100)).rejects.toThrow('Tên mẫu không được để trống');
+    const t = await createTemplate(db, '  Buổi sáng ', [{ text: ' A ', period: 'morning' }, { text: '', period: 'morning' }, { text: 'B', period: 'evening' }], 100);
+    expect(t).toMatchObject({ name: 'Buổi sáng', items: [{ text: 'A', period: 'morning' }, { text: 'B', period: 'evening' }], isDefault: false, createdAt: 100, updatedAt: 100 });
+    await expect(createTemplate(db, '  ', [{ text: 'A', period: 'morning' }], 100)).rejects.toThrow('Tên mẫu không được để trống');
   });
 
   it('listTemplates theo thứ tự tạo', async () => {
@@ -37,9 +37,9 @@ describe('templateService', () => {
 
   it('updateTemplate và deleteTemplate', async () => {
     const db = makeDb();
-    const a = await createTemplate(db, 'A', ['x'], 1);
-    const updated = await updateTemplate(db, a.id, { name: 'A2', items: ['y', ' '] }, 5);
-    expect(updated).toMatchObject({ name: 'A2', items: ['y'], updatedAt: 5, createdAt: 1 });
+    const a = await createTemplate(db, 'A', [{ text: 'x', period: 'morning' }], 1);
+    const updated = await updateTemplate(db, a.id, { name: 'A2', items: [{ text: 'y', period: 'afternoon' }, { text: ' ', period: 'morning' }] }, 5);
+    expect(updated).toMatchObject({ name: 'A2', items: [{ text: 'y', period: 'afternoon' }], updatedAt: 5, createdAt: 1 });
     await deleteTemplate(db, a.id);
     expect(await listTemplates(db)).toEqual([]);
   });

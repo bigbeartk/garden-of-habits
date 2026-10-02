@@ -60,7 +60,9 @@ src/
 - **Ngày đã qua bị khoá** (`LockedDayError`): chỉ sửa được ghi chú.
 - **Chỉ hôm nay** mới được: thêm/sửa/xoá/tick/sắp xếp todo, đặt **tiêu đề ngày** (`setTitle`), đổi cây, đổi chậu, bật ngày tiết kiệm năng lượng.
 - **Tiêu đề ngày** (`title`): ô ở đầu danh sách màn Hôm nay, lưu khi rời ô hoặc Enter, tối đa 60 ký tự. Ngày đã qua chỉ xem được tiêu đề trong bảng chi tiết ngày ở Lịch.
-- **Thêm việc:** nút ＋ nổi cố định ở góc phải dưới, ngay trên thanh tab (không cuộn theo danh sách), mở popup "Thêm việc cần làm". Popup không tự đóng sau mỗi lần thêm, để thêm liên tiếp. Nút bị ẩn trong ngày tiết kiệm năng lượng.
+- **Buổi Sáng / Chiều / Tối** (`domain/period.ts`): mỗi todo và mỗi việc trong mẫu có `period`. Màn Hôm nay luôn hiện đủ 3 mục (mục trống ghi "Chưa có việc"); mỗi mục có số việc xong/tổng riêng; mục của buổi hiện tại (`periodOf`: 4–11h sáng, 11–18h chiều, còn lại tối) có viền đậm. Kéo thả chỉ sắp xếp trong cùng một buổi. Cây vẫn lớn theo tỉ lệ việc xong của **cả ngày**.
+- **Cây khen:** xong một việc thì cây cười và nói một câu khen khoảng 3,5 giây (`pickPraise`: câu chung `COMMON_PRAISES` + `species.praises`); xong việc cuối cùng (cây vừa ra hoa) thì dùng `BLOOM_PRAISES`. Câu chào đầu ngày và câu khen dùng chung một bong bóng thoại; khung ✨ cây đặc biệt chỉ hiện khi chào.
+- **Thêm việc:** nút ＋ nổi cố định ở góc phải dưới, ngay trên thanh tab (không cuộn theo danh sách), mở popup "Thêm việc cần làm" có 3 nút chọn buổi (mặc định là buổi hiện tại, giữ lựa chọn khi thêm liên tiếp). Popup không tự đóng sau mỗi lần thêm, để thêm liên tiếp. Nút bị ẩn trong ngày tiết kiệm năng lượng.
 - **Đổi cây:** nếu đang dùng chậu mặc định của cây cũ thì chậu đổi theo cây mới; nếu người dùng đã tự chọn chậu khác thì giữ chậu đó. Không đổi `specialId`.
 - **Ngày tiết kiệm năng lượng** (`isRestDay`): todo bị ẩn nhưng vẫn giữ, cây hiện hình hạt giống ôm gối ngủ.
 - **Chào hỏi:** lần đầu trong ngày (`greetedAt === null`), App tự chuyển sang tab Hôm nay, cây nói một câu ngẫu nhiên (câu chung + câu riêng của loài), rồi ghi `greetedAt`. Nếu là cây đặc biệt thì hiện thêm khung ✨ giới thiệu.
@@ -104,6 +106,7 @@ interface PlantSpecies {
   stages: Record<'seed'|'sprout'|'bud'|'bloom', Art>;
   faceAnchor: Record<'seed'|'sprout'|'bud'|'bloom', FaceAnchor>;
   greetings?: string[];                              // câu chào riêng
+  praises?: string[];                                // câu khen riêng khi xong việc
 }
 ```
 **Thêm cây mới** gồm 3 bước:
@@ -164,7 +167,10 @@ Các thuộc tính để test bám vào: `data-testid` (mặc định `plant-sce
 
 ## Cơ sở dữ liệu (IndexedDB qua Dexie)
 
-Tên DB: `chau-cay-chibi`, `SCHEMA_VERSION = 1` (`src/db/db.ts`).
+Tên DB: `chau-cay-chibi`, `SCHEMA_VERSION = 2` (`src/db/db.ts`).
+
+- **v1**: bản đầu tiên.
+- **v2**: thêm buổi. Bước `upgrade` gán `period: 'morning'` cho todo cũ và chuyển `items: string[]` của mẫu cũ thành `{ text, period: 'morning' }[]`.
 
 | Bảng | Khoá / index | Nội dung |
 |---|---|---|
@@ -174,7 +180,9 @@ Tên DB: `chau-cay-chibi`, `SCHEMA_VERSION = 1` (`src/db/db.ts`).
 
 ```ts
 // src/domain/types.ts
-interface Todo { id: string; text: string; done: boolean; doneAt: number | null; order: number }
+type Period = 'morning' | 'afternoon' | 'evening';
+interface Todo { id: string; text: string; done: boolean; doneAt: number | null; order: number; period: Period }
+interface TemplateItem { text: string; period: Period }
 
 interface DayRecord {
   date: string;              // 'YYYY-MM-DD' theo mốc 4:00
@@ -191,7 +199,7 @@ interface DayRecord {
   updatedAt: number;         // dùng khi gộp backup (bản mới hơn thắng)
 }
 
-interface Template { id: string; name: string; items: string[]; isDefault: boolean; createdAt: number; updatedAt: number }
+interface Template { id: string; name: string; items: TemplateItem[]; isDefault: boolean; createdAt: number; updatedAt: number }
 // chỉ một mẫu được isDefault = true (setDefaultTemplate đảm bảo)
 
 // settings
@@ -210,13 +218,15 @@ Tên file: `chau-cay-backup-YYYY-MM-DD.json`. Khi lưu, app mở menu Chia sẻ 
 ```json
 {
   "format": "chau-cay-chibi-backup",
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "exportedAt": 1790000000000,
   "days": [DayRecord, ...],
   "templates": [Template, ...],
   "calendarBg": { "mime": "image/jpeg", "base64": "..." } | null
 }
 ```
+
+File phiên bản 1 vẫn khôi phục được: todo thiếu `period` được gán `'morning'`, mẫu có `items` dạng chuỗi được chuyển thành `{ text, period: 'morning' }`.
 
 `parseBackup` kiểm tra theo thứ tự sau; mọi thông báo lỗi đều bằng tiếng Việt và không ghi gì vào DB khi lỗi:
 1. JSON hợp lệ.
@@ -245,7 +255,8 @@ Tên file: `chau-cay-backup-YYYY-MM-DD.json`. Khi lưu, app mở menu Chia sẻ 
 - **Màn Lịch:** căn giữa theo chiều dọc. Khi có ảnh nền, thẻ tháng và lưới ngày nhận class `is-glass` (kính mờ trong suốt, `backdrop-filter`), chữ có viền sáng để dễ đọc.
 - **Tôn trọng** `prefers-reduced-motion`, safe-area (`env(safe-area-inset-*)`) và chiều cao `100dvh`.
 - **Các label và `data-testid` mà test dựa vào, không đổi tuỳ tiện:**
-  - `Tiêu đề hôm nay`, `Thêm việc mới` (nút ＋), popup `Thêm việc cần làm` với ô `Nội dung việc` + nút `Thêm`, `Hoàn thành: <việc>`
+  - `Tiêu đề hôm nay`, `Thêm việc mới` (nút ＋), popup `Thêm việc cần làm` với radio `Sáng`/`Chiều`/`Tối`, ô `Nội dung việc` + nút `Thêm`, `Hoàn thành: <việc>`, `todo-section-morning|afternoon|evening`
+  - Form mẫu: `Việc buổi Sáng|Chiều|Tối (mỗi dòng một việc)`
   - `Đổi cây`, `Đổi chậu`, `Ghi chú`, `Ngày tiết kiệm năng lượng` / `Thức dậy`
   - `＋ Mẫu mới`, `Tên mẫu`, `Đặt làm mặc định: <tên>`
   - `💾 Sao lưu dữ liệu`

@@ -1,4 +1,5 @@
 import type { GrowthStage } from './growth';
+import type { Period } from './period';
 
 export interface Todo {
   id: string;
@@ -6,6 +7,8 @@ export interface Todo {
   done: boolean;
   doneAt: number | null;
   order: number;
+  /** buổi của việc: sáng / chiều / tối */
+  period: Period;
 }
 
 export interface DayRecord {
@@ -29,10 +32,15 @@ export interface DayRecord {
 export interface Template {
   id: string;
   name: string;
-  items: string[];
+  items: TemplateItem[];
   isDefault: boolean;
   createdAt: number;
   updatedAt: number;
+}
+
+export interface TemplateItem {
+  text: string;
+  period: Period;
 }
 
 export interface CalendarBg {

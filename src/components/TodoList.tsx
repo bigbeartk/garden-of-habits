@@ -1,17 +1,21 @@
 import { useEffect, useRef, useState } from 'react';
 import { Reorder, useDragControls } from 'motion/react';
+import { PERIODS, PERIOD_ICON, PERIOD_LABEL, type Period } from '../domain/period';
 import type { Todo } from '../domain/types';
 import './todo.css';
 
 export interface TodoListProps {
   todos: Todo[];
+  /** buổi hiện tại, được làm nổi bật */
+  currentPeriod: Period;
   onToggle: (id: string) => void;
   onEdit: (id: string, text: string) => void;
   onDelete: (id: string) => void;
+  /** thứ tự mới của các việc trong một buổi */
   onReorder: (ids: string[]) => void;
 }
 
-export function TodoList({ todos, onToggle, onEdit, onDelete, onReorder }: TodoListProps) {
+export function TodoList({ todos, currentPeriod, onToggle, onEdit, onDelete, onReorder }: TodoListProps) {
   const [items, setItems] = useState(todos);
   const itemsRef = useRef(items);
   itemsRef.current = items;
@@ -19,22 +23,47 @@ export function TodoList({ todos, onToggle, onEdit, onDelete, onReorder }: TodoL
 
   return (
     <div className="todo">
-      {items.length === 0 ? (
-        <p className="todo__empty muted">Chưa có việc nào. Bấm ＋ để thêm việc và tưới cây nhé 💧</p>
-      ) : (
-        <Reorder.Group axis="y" values={items} onReorder={setItems} className="todo__list" as="ul">
-          {items.map((t) => (
-            <TodoRow
-              key={t.id}
-              todo={t}
-              onToggle={onToggle}
-              onEdit={onEdit}
-              onDelete={onDelete}
-              onDragEnd={() => onReorder(itemsRef.current.map((i) => i.id))}
-            />
-          ))}
-        </Reorder.Group>
-      )}
+      {items.length === 0 && <p className="todo__hint muted">Bấm ＋ để thêm việc và tưới cây nhé 💧</p>}
+      {PERIODS.map((p) => {
+        const group = items.filter((t) => t.period === p);
+        const done = group.filter((t) => t.done).length;
+        return (
+          <section
+            key={p}
+            className={`todo__section todo__section--${p}${p === currentPeriod ? ' is-current' : ''}`}
+            data-testid={`todo-section-${p}`}
+          >
+            <header className="todo__section-head">
+              <h2 className="todo__section-title">
+                <span aria-hidden="true">{PERIOD_ICON[p]}</span> {PERIOD_LABEL[p]}
+              </h2>
+              {group.length > 0 && <span className="todo__section-count">{done}/{group.length}</span>}
+            </header>
+            {group.length === 0 ? (
+              <p className="todo__empty muted">Chưa có việc</p>
+            ) : (
+              <Reorder.Group
+                axis="y"
+                values={group}
+                onReorder={(next: Todo[]) => setItems((prev) => [...prev.filter((t) => t.period !== p), ...next])}
+                className="todo__list"
+                as="ul"
+              >
+                {group.map((t) => (
+                  <TodoRow
+                    key={t.id}
+                    todo={t}
+                    onToggle={onToggle}
+                    onEdit={onEdit}
+                    onDelete={onDelete}
+                    onDragEnd={() => onReorder(itemsRef.current.filter((x) => x.period === p).map((x) => x.id))}
+                  />
+                ))}
+              </Reorder.Group>
+            )}
+          </section>
+        );
+      })}
     </div>
   );
 }

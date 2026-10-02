@@ -3,7 +3,8 @@ import { dayKey } from './dayKey';
 import { stageOfTodos, type GrowthStage } from './growth';
 import { newId } from './id';
 import { pickUniform, rollSpecial, type Rng } from './random';
-import type { Catalog, DayRecord, Todo } from './types';
+import type { Period } from './period';
+import type { Catalog, DayRecord, TemplateItem, Todo } from './types';
 
 export interface DayDeps {
   db: PlantDB;
@@ -47,11 +48,11 @@ export async function ensureToday(deps: DayDeps): Promise<DayRecord> {
   });
 }
 
-function toTodos(texts: string[], startOrder: number): Todo[] {
-  return texts
-    .map((t) => t.trim())
-    .filter(Boolean)
-    .map((text, i) => ({ id: newId(), text, done: false, doneAt: null, order: startOrder + i }));
+function toTodos(items: TemplateItem[], startOrder: number): Todo[] {
+  return items
+    .map((item) => ({ text: item.text.trim(), period: item.period }))
+    .filter((item) => item.text)
+    .map((item, i) => ({ id: newId(), text: item.text, period: item.period, done: false, doneAt: null, order: startOrder + i }));
 }
 
 type EditKind = 'today-only' | 'note';
@@ -78,17 +79,17 @@ function findTodo(day: DayRecord, id: string): Todo {
   return todo;
 }
 
-export function addTodo(deps: DayDeps, date: string, text: string): Promise<DayRecord> {
+export function addTodo(deps: DayDeps, date: string, text: string, period: Period = 'morning'): Promise<DayRecord> {
   const clean = text.trim();
   if (!clean) return Promise.reject(new Error('Nội dung việc cần làm không được để trống'));
   return mutateDay(deps, date, 'today-only', (d) => {
-    d.todos.push(...toTodos([clean], d.todos.length));
+    d.todos.push(...toTodos([{ text: clean, period }], d.todos.length));
   });
 }
 
-export function addTodos(deps: DayDeps, date: string, texts: string[]): Promise<DayRecord> {
+export function addTodos(deps: DayDeps, date: string, items: TemplateItem[]): Promise<DayRecord> {
   return mutateDay(deps, date, 'today-only', (d) => {
-    d.todos.push(...toTodos(texts, d.todos.length));
+    d.todos.push(...toTodos(items, d.todos.length));
   });
 }
 

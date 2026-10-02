@@ -10,7 +10,7 @@ async function setup() {
   const { deps } = makeDeps(new Date(2026, 9, 15, 10, 0), CATALOG);
   await deps.db.days.bulkPut([
     makeDay({ date: '2026-10-02', plantId: 'cherry', potId: 'polka', finalStage: 'bloom', specialId: 'glow', note: 'vui',
-      todos: [{ id: 'a', text: 'Tập yoga', done: true, doneAt: 1, order: 0 }] }),
+      todos: [{ id: 'a', text: 'Tập yoga', done: true, doneAt: 1, order: 0, period: 'morning' }] }),
     makeDay({ date: '2026-10-03', isRestDay: true }),
   ]);
   const nav = vi.fn();
