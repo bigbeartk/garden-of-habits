@@ -4,6 +4,7 @@ PWA todo cho iPhone, có phần "nuôi cây": mỗi việc làm xong là một l
 - Chạy offline, không cần tài khoản, không lên App Store.
 - Người dùng chính là vợ của chủ repo, dùng **iPhone 13** (390×844, Safari / PWA cài ra màn hình chính).
 - Toàn bộ chữ trên giao diện là **tiếng Việt**.
+- Tên hiển thị là **Garden of Habits** (`<title>`, manifest `name`/`short_name`, `apple-mobile-web-app-title`). **Giữ nguyên** tên DB `chau-cay-chibi` và mã định dạng sao lưu `chau-cay-chibi-backup` để không mất dữ liệu cũ.
 
 - Spec gốc: `docs/superpowers/specs/2026-10-02-chibi-plant-todo-design.md`
 - Kế hoạch triển khai: `docs/superpowers/plans/2026-10-02-chibi-plant-todo.md`
@@ -23,6 +24,15 @@ PWA todo cho iPhone, có phần "nuôi cây": mỗi việc làm xong là một l
 
 - Chỉ commit và push khi mọi test đều pass. Nối lệnh bằng `&&`, không dùng `;`. Khi lọc output test qua `| grep`, bật `set -o pipefail` (nếu không, test fail vẫn đi tiếp tới commit/push).
 - Thay đổi giao diện phải chạy E2E trên **WebKit**: Chrome không bắt được lỗi bố cục riêng của Safari.
+- Làm theo TDD: viết test đỏ trước, rồi mới sửa code. Soát hình bằng ảnh chụp WebKit khổ iPhone 13.
+- Test E2E/unit hay chập chờn khi chưa chờ ghi IndexedDB xong (reload ngay sau khi gõ) hoặc chờ một trong hai `useLiveQuery`: chờ trạng thái cuối cùng hiện ra trên giao diện. Nút gạt/toggle đọc từ DB phải giữ state cục bộ (optimistic), nếu không bấm nhanh hai lần sẽ sai.
+
+## Môi trường (Windows)
+
+- Máy dev là Windows 10; công cụ Bash là Git Bash (POSIX). Đường dẫn Windows trong biến môi trường (`$APPDATA`…) bị hỏng trong Bash, nên dùng PowerShell khi cần.
+- Không có `gh` CLI: xem trạng thái deploy tại https://github.com/bigbeartk/garden-of-habits/actions.
+- Push dùng tài khoản `bigbeartk` (remote `origin`).
+- Source Control của VS Code có thể còn đếm hàng nghìn file `node_modules` từ lúc vừa `npm install`, dù `git status` sạch. Bấm Refresh hoặc **Developer: Reload Window**.
 
 ## Kiến trúc
 
@@ -176,9 +186,9 @@ Các thuộc tính để test bám vào: `data-testid` (mặc định `plant-sce
 Tên DB: `chau-cay-chibi`, `SCHEMA_VERSION = 4` (`src/db/db.ts`).
 
 - **v1**: bản đầu tiên.
-- **v4**: thêm bảng `plannedGoals` (mục tiêu đặt trước cho ngày tương lai).
-- **v3**: thêm bảng `planned` (việc đã lên lịch cho ngày tương lai).
 - **v2**: thêm buổi. Bước `upgrade` gán `period: 'morning'` cho todo cũ và chuyển `items: string[]` của mẫu cũ thành `{ text, period: 'morning' }[]`.
+- **v3**: thêm bảng `planned` (việc đã lên lịch cho ngày tương lai).
+- **v4**: thêm bảng `plannedGoals` (mục tiêu đặt trước cho ngày tương lai).
 
 | Bảng | Khoá / index | Nội dung |
 |---|---|---|
@@ -216,6 +226,8 @@ interface Template { id: string; name: string; items: TemplateItem[]; isDefault:
 // settings
 calendarBg:   { mime: string; data: ArrayBuffer }   // ảnh nền lịch, đã nén JPEG ≤ 1600px
 lastBackupAt: number
+calendarTheme: 'default' | 'cat' | 'grass' | 'rain' | 'gamer' | 'photo'
+showCalendarBgButton: boolean                        // không có = bật
 ```
 
 - **Ảnh lưu dạng `ArrayBuffer`, không dùng `Blob`**, vì IndexedDB của Safari xử lý Blob không ổn định.
@@ -296,4 +308,3 @@ File thiếu `planned` (phiên bản 1–2) hoặc `plannedGoals` (phiên bản 
 - `setDefaultTemplate` / `deleteTemplate` / `file.text()` thiếu `.catch`, nên lỗi không hiện thông báo.
 - Trợ năng: sửa todo bằng cách chạm vào `<span>`; BottomSheet chưa giữ focus và chưa xử lý Escape; `user-scalable=no`; chưa có cách sắp xếp lại không cần kéo thả.
 - Regex ngày trong file backup chấp nhận cả ngày không tồn tại.
-- Tên hiển thị của app là **Garden of Habits** (`<title>`, manifest `name`/`short_name`, `apple-mobile-web-app-title`). Giữ nguyên tên DB `chau-cay-chibi` và mã định dạng sao lưu `chau-cay-chibi-backup` để không mất dữ liệu cũ.
