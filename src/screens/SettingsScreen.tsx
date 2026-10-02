@@ -19,7 +19,10 @@ export function SettingsScreen() {
   const deps = useDeps();
   const nav = useNav();
   const lastBackupAt = useLiveQuery(() => getSetting(deps.db, 'lastBackupAt'), [deps.db]);
-  const showBgButton = useLiveQuery(async () => (await getSetting(deps.db, 'showCalendarBgButton')) !== false, [deps.db], true);
+  const storedShowBgButton = useLiveQuery(async () => (await getSetting(deps.db, 'showCalendarBgButton')) !== false, [deps.db], true);
+  // giữ trạng thái ngay trên giao diện để bấm nhanh liên tiếp vẫn đổi đúng
+  const [showBgButton, setShowBgButton] = useState(storedShowBgButton);
+  useEffect(() => setShowBgButton(storedShowBgButton), [storedShowBgButton]);
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState<BackupFile | null>(null);
@@ -119,7 +122,11 @@ export function SettingsScreen() {
           aria-checked={showBgButton}
           aria-label="Hiện nút đổi hình nền ở trang Lịch"
           className={`switch-row${showBgButton ? ' is-on' : ''}`}
-          onClick={() => setSetting(deps.db, 'showCalendarBgButton', !showBgButton).catch((e: Error) => setError(e.message))}
+          onClick={() => {
+            const next = !showBgButton;
+            setShowBgButton(next);
+            setSetting(deps.db, 'showCalendarBgButton', next).catch((e: Error) => setError(e.message));
+          }}
         >
           <span className="switch-row__text">Hiện nút đổi hình nền ở trang Lịch</span>
           <span className="switch" aria-hidden="true"><span className="switch__knob" /></span>

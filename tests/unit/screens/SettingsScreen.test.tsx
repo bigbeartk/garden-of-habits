@@ -131,8 +131,9 @@ describe('SettingsScreen công tắc nút đổi hình nền ở trang Lịch', 
     expect(toggle).toHaveAttribute('aria-checked', 'true');
     await user.click(toggle);
     await waitFor(async () => expect(await getSetting(deps.db, 'showCalendarBgButton')).toBe(false));
-    expect(toggle).toHaveAttribute('aria-checked', 'false');
+    await waitFor(() => expect(toggle).toHaveAttribute('aria-checked', 'false'));
     await user.click(toggle);
+    expect(toggle).toHaveAttribute('aria-checked', 'true'); // đổi ngay trên giao diện, không chờ DB
     await waitFor(async () => expect(await getSetting(deps.db, 'showCalendarBgButton')).toBe(true));
   });
 });
