@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Reorder, useDragControls } from 'motion/react';
+import { DeleteWithConfirm } from './DeleteWithConfirm';
 import { PERIODS, PERIOD_LABEL, type Period } from '../domain/period';
 import { PeriodIcon } from './icons';
 import type { Todo } from '../domain/types';
@@ -106,7 +107,7 @@ function TodoRow({
       ) : (
         <span className="todo__text" onClick={() => { setText(todo.text); setEditing(true); }}>{todo.text}</span>
       )}
-      <button type="button" className="todo__delete" aria-label={`Xoá: ${todo.text}`} onClick={() => onDelete(todo.id)}>×</button>
+      <DeleteWithConfirm text={todo.text} onConfirm={() => onDelete(todo.id)} />
       <span className="todo__handle" aria-hidden="true" onPointerDown={(e) => controls.start(e)}>⋮⋮</span>
     </Reorder.Item>
   );

@@ -217,15 +217,16 @@ export function AfternoonIcon({ size }: { size?: number }) {
   );
 }
 
-/** Buổi tối: trăng khuyết ngủ và sao nhỏ */
+/** Buổi tối: trăng khuyết to, ngủ, kèm sao nhỏ */
 export function EveningIcon({ size }: { size?: number }) {
   return (
     <Svg name="period-evening" size={size}>
-      <path d="M19 4.5 A11.5 11.5 0 1 0 19 27.5 A16 16 0 0 1 19 4.5 Z" fill="#FFD86B" {...STROKE} />
-      <path d="M7.4 15.4 q1.2 1.1 2.4 0 M11.8 16.6 q1.2 1.1 2.4 0" fill="none" {...STROKE} strokeWidth={1.5} />
-      <ellipse cx={8.4} cy={19} rx={1.4} ry={0.9} fill="#FF9FB2" />
-      <path d="M24 6 l1 2.2 l2.3 0.4 l-1.7 1.6 l0.4 2.3 l-2 -1.1 l-2 1.1 l0.4 -2.3 l-1.7 -1.6 l2.3 -0.4 Z" fill="#C9B8F0" stroke={INK} strokeWidth={1.2} strokeLinejoin="round" />
-      <circle cx={26.5} cy={17} r={1.3} fill="#C9B8F0" />
+      <path d="M22 2.5 A13.5 13.5 0 1 0 22 29.5 A30 30 0 0 1 22 2.5 Z" fill="#FFD86B" {...STROKE} />
+      <path d="M10.2 15.4 q1.3 1.2 2.6 0 M15 15.8 q1.3 1.2 2.6 0" fill="none" {...STROKE} strokeWidth={1.6} />
+      <ellipse cx={11.2} cy={19.4} rx={1.5} ry={1} fill="#FF9FB2" />
+      <ellipse cx={17.4} cy={19.6} rx={1.3} ry={0.9} fill="#FF9FB2" />
+      <path d="M27 4.5 l0.8 1.7 l1.8 0.3 l-1.3 1.3 l0.3 1.8 l-1.6 -0.9 l-1.6 0.9 l0.3 -1.8 l-1.3 -1.3 l1.8 -0.3 Z" fill="#C9B8F0" stroke={INK} strokeWidth={1} strokeLinejoin="round" />
+      <circle cx={28.6} cy={14} r={1.2} fill="#C9B8F0" />
     </Svg>
   );
 }

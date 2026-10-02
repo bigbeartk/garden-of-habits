@@ -158,6 +158,12 @@ describe('CalendarScreen lên lịch việc cho ngày tương lai', () => {
     await waitFor(async () => expect((await deps.db.planned.toArray())[0].text).toBe('Khám răng 9h'));
 
     await user.click(await within(afternoon).findByRole('button', { name: 'Xoá: Khám răng 9h' }));
+    // phải xác nhận mới xoá
+    expect(await deps.db.planned.count()).toBe(1);
+    await user.click(within(afternoon).getByRole('button', { name: 'Thôi' }));
+    expect(within(afternoon).getByText('Khám răng 9h')).toBeInTheDocument();
+    await user.click(within(afternoon).getByRole('button', { name: 'Xoá: Khám răng 9h' }));
+    await user.click(within(afternoon).getByRole('button', { name: 'Xác nhận xoá: Khám răng 9h' }));
     await waitFor(async () => expect(await deps.db.planned.count()).toBe(0));
   });
 

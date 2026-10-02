@@ -36,3 +36,10 @@
 .todo__bullet { flex: none; width: 14px; height: 14px; margin: 0 8px; border-radius: 50%; border: 2px dashed var(--cocoa-soft); }
 .todo__section-title, .period-picker__item { display: inline-flex; align-items: center; gap: 6px; }
 .period-picker__item { justify-content: center; }
+.todo__confirm { flex: none; display: inline-flex; gap: 6px; }
+.todo__confirm-yes, .todo__confirm-no {
+  min-height: 34px; padding: 0 12px; border-radius: 999px; border: 2px solid var(--cocoa);
+  font-weight: 700; font-size: 0.85rem; cursor: pointer; box-shadow: var(--shadow-pop);
+}
+.todo__confirm-yes { background: #FFC9D0; color: #8E2238; border-color: #C2415B; }
+.todo__confirm-no { background: var(--white); }

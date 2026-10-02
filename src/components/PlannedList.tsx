@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { DeleteWithConfirm } from './DeleteWithConfirm';
 import { PERIODS, PERIOD_LABEL } from '../domain/period';
 import { PeriodIcon } from './icons';
 import type { PlannedTodo } from '../domain/types';
@@ -55,7 +56,7 @@ function PlannedRow({ item, onEdit, onDelete }: { item: PlannedTodo; onEdit: (id
       ) : (
         <span className="todo__text" onClick={() => { setText(item.text); setEditing(true); }}>{item.text}</span>
       )}
-      <button type="button" className="todo__delete" aria-label={`Xoá: ${item.text}`} onClick={() => onDelete(item.id)}>×</button>
+      <DeleteWithConfirm text={item.text} onConfirm={() => onDelete(item.id)} />
     </li>
   );
 }

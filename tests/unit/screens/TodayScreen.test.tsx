@@ -198,3 +198,18 @@ describe('TodayScreen nút quay lại', () => {
     expect(nav).toHaveBeenCalledWith('calendar');
   });
 });
+
+describe('TodayScreen xoá việc cần xác nhận', () => {
+  it('bấm × chưa xoá; bấm Thôi thì giữ; bấm Xoá mới xoá', async () => {
+    const { deps, user } = setup();
+    await addTodoViaPopup(user, 'Rửa bát');
+    await user.click(screen.getByRole('button', { name: 'Đóng' }));
+    await user.click(await screen.findByRole('button', { name: 'Xoá: Rửa bát' }));
+    expect((await deps.db.days.get('2026-10-02'))!.todos).toHaveLength(1);
+    await user.click(screen.getByRole('button', { name: 'Thôi' }));
+    expect(screen.getByRole('checkbox', { name: 'Hoàn thành: Rửa bát' })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Xoá: Rửa bát' }));
+    await user.click(screen.getByRole('button', { name: 'Xác nhận xoá: Rửa bát' }));
+    await waitFor(async () => expect((await deps.db.days.get('2026-10-02'))!.todos).toHaveLength(0));
+  });
+});
