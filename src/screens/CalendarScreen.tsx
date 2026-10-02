@@ -43,14 +43,15 @@ export function CalendarScreen() {
       style={bgUrl ? { backgroundImage: `url(${bgUrl})` } : undefined}
       data-has-bg={bgUrl ? 'true' : 'false'}
     >
-      <header className="cal__head card">
+      <header className={`cal__head card${bgUrl ? ' is-glass' : ''}`} data-testid="calendar-head">
         <button type="button" className="btn btn--round" aria-label="Tháng trước" onClick={() => go(-1)}>‹</button>
         <h1 className="screen__title" aria-live="polite">{monthLabel(view.year, view.month)}</h1>
         <button type="button" className="btn btn--round" aria-label="Tháng sau" onClick={() => go(1)} disabled={isCurrentMonth}>›</button>
       </header>
 
       <motion.div
-        className="cal card"
+        className={`cal card${bgUrl ? ' is-glass' : ''}`}
+        data-testid="calendar-card"
         drag="x"
         dragConstraints={{ left: 0, right: 0 }}
         dragElastic={0.2}

@@ -4,6 +4,7 @@ import { vi } from 'vitest';
 import { CalendarScreen } from '../../../src/screens/CalendarScreen';
 import { CATALOG } from '../../../src/content/catalog';
 import { makeDay, makeDeps, renderWithDeps } from '../helpers';
+import { setSetting } from '../../../src/db/settings';
 
 async function setup() {
   const { deps } = makeDeps(new Date(2026, 9, 15, 10, 0), CATALOG);
@@ -60,5 +61,27 @@ describe('CalendarScreen', () => {
     await user.click(await screen.findByTestId('day-2026-10-15'));
     await user.click(await screen.findByRole('button', { name: 'Đi tới Hôm nay 🌱' }));
     expect(nav).toHaveBeenCalledWith('today');
+  });
+});
+
+describe('CalendarScreen trong suốt khi có ảnh nền', () => {
+  beforeEach(() => {
+    Object.defineProperty(URL, 'createObjectURL', { configurable: true, value: () => 'blob:bg' });
+    Object.defineProperty(URL, 'revokeObjectURL', { configurable: true, value: () => {} });
+  });
+
+  it('không có ảnh nền: thẻ lịch giữ nền trắng', async () => {
+    await setup();
+    await screen.findByTestId('day-2026-10-02');
+    expect(screen.getByTestId('calendar-card')).not.toHaveClass('is-glass');
+    expect(screen.getByTestId('calendar-head')).not.toHaveClass('is-glass');
+  });
+
+  it('có ảnh nền: thẻ tháng và lưới ngày chuyển sang kính mờ trong suốt', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 15, 10, 0), CATALOG);
+    await setSetting(deps.db, 'calendarBg', { mime: 'image/jpeg', data: new Uint8Array([1, 2, 3]).buffer });
+    renderWithDeps(<CalendarScreen />, deps);
+    await waitFor(() => expect(screen.getByTestId('calendar-card')).toHaveClass('is-glass'));
+    expect(screen.getByTestId('calendar-head')).toHaveClass('is-glass');
   });
 });

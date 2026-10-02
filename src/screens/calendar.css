@@ -32,3 +32,21 @@
 .detail__todos li.is-done { color: var(--cocoa-soft); }
 .detail__label { font-weight: 700; }
 .detail__row { display: flex; justify-content: flex-end; align-items: center; gap: 10px; }
+/* Có ảnh nền: thẻ lịch thành kính mờ trong suốt để thấy ảnh phía sau */
+.card.is-glass {
+  background: rgba(255, 253, 251, 0.28);
+  -webkit-backdrop-filter: blur(10px) saturate(1.2);
+  backdrop-filter: blur(10px) saturate(1.2);
+  border: 1.5px solid rgba(255, 255, 255, 0.6);
+}
+.cal.is-glass .cal__cell { background: rgba(255, 253, 251, 0.35); }
+.cal.is-glass .cal__cell:disabled { background: transparent; }
+.cal.is-glass .cal__cell.is-today { background: rgba(255, 214, 222, 0.75); }
+.cal.is-glass .cal__cell--rest { background: rgba(227, 217, 255, 0.6); }
+.cal.is-glass .cal__cell--missed { background: rgba(244, 239, 230, 0.5); }
+.cal.is-glass .cal__num,
+.cal.is-glass .cal__weekdays span,
+.cal__head.is-glass .screen__title { text-shadow: 0 0 4px rgba(255, 255, 255, 0.95), 0 0 2px rgba(255, 255, 255, 0.95); }
+.cal.is-glass .cal__weekdays span { color: var(--cocoa); }
+.cal.is-glass .cal__cell--future .cal__num,
+.cal.is-glass .cal__cell--before-start .cal__num { color: var(--cocoa); opacity: 0.75; }
