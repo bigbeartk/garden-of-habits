@@ -247,3 +247,13 @@ describe('CalendarScreen hình nền', () => {
     expect(screen.getByTestId('calendar-card')).not.toHaveClass('is-glass');
   });
 });
+
+describe('CalendarScreen ẩn nút đổi hình nền theo cài đặt', () => {
+  it('cài đặt tắt thì trang Lịch không có nút đổi hình nền', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 15, 10, 0), CATALOG);
+    await setSetting(deps.db, 'showCalendarBgButton', false);
+    renderWithDeps(<CalendarScreen />, deps);
+    await screen.findByTestId('calendar-card');
+    await waitFor(() => expect(screen.queryByRole('button', { name: /Đổi hình nền lịch/ })).not.toBeInTheDocument());
+  });
+});

@@ -85,37 +85,34 @@
 @keyframes rain-lamp { from { opacity: 0.7; } to { opacity: 1; } }
 @keyframes rain-window { 0%, 100% { opacity: 0.35; } 50% { opacity: 0.85; } }
 
-/* --- Gaming neon --- */
-.neon-strip { animation: neon-flicker 3.4s steps(1) infinite; }
-.neon-strip--b { animation-delay: 1.1s; }
-.neon-particle { animation: neon-float 5s ease-in-out infinite; }
-.neon-glow { animation: neon-pulse 2.6s ease-in-out infinite alternate; }
-.neon-screen { animation: neon-screen 4s ease-in-out infinite; }
-.neon-screen-art { animation: neon-hue 6s linear infinite; }
-.neon-keyboard { animation: neon-hue 3s linear infinite; }
-.neon-headphone { animation: neon-hue 4s linear infinite; }
-.neon-head { transform-box: fill-box; transform-origin: 40% 100%; animation: neon-bob 0.9s ease-in-out infinite alternate; }
-.neon-note { animation: neon-note 3.9s ease-out infinite; opacity: 0; }
-@keyframes neon-flicker { 0%, 100% { opacity: 1; } 47% { opacity: 0.55; } 50% { opacity: 1; } 52% { opacity: 0.7; } }
-@keyframes neon-float {
-  0%, 100% { transform: translateY(0); opacity: 0.4; }
-  50% { transform: translateY(-16px); opacity: 1; }
+/* --- Gaming pixel: hiệu ứng nhảy khung (steps) như game cổ --- */
+.pixel-scene { image-rendering: pixelated; }
+.pixel-rgb { animation: pixel-rgb 4s steps(8) infinite; }
+.pixel-twinkle { animation: pixel-twinkle 1.6s steps(1) infinite; }
+.pixel-hero { animation: pixel-hero 2.4s steps(1) infinite; }
+.pixel-code { animation: pixel-code 3s steps(6) infinite; }
+.pixel-fans { animation: pixel-fans 0.8s steps(1) infinite; }
+.pixel-bob { animation: pixel-bob 1s steps(1) infinite; }
+.pixel-poster { animation: pixel-poster 2s steps(1) infinite; }
+@keyframes pixel-rgb { from { filter: hue-rotate(0deg); } to { filter: hue-rotate(360deg); } }
+@keyframes pixel-twinkle { 0%, 100% { opacity: 1; } 50% { opacity: 0.15; } }
+@keyframes pixel-hero {
+  0%, 100% { transform: translate(0, 0); }
+  16% { transform: translate(3px, -3px); }
+  33% { transform: translate(6px, -6px); }
+  50% { transform: translate(9px, -3px); }
+  66% { transform: translate(12px, 0); }
+  83% { transform: translate(6px, 0); }
 }
-@keyframes neon-pulse { from { opacity: 0.6; } to { opacity: 1; } }
-@keyframes neon-screen { 0%, 100% { fill: #1F3A7A; } 50% { fill: #2C2A8C; } }
-@keyframes neon-hue { from { filter: hue-rotate(0deg); } to { filter: hue-rotate(360deg); } }
-@keyframes neon-bob { from { transform: rotate(-2deg) translateY(0); } to { transform: rotate(3deg) translateY(1.5px); } }
-@keyframes neon-note {
-  0% { opacity: 0; transform: translate(0, 0) scale(0.7); }
-  20% { opacity: 1; }
-  100% { opacity: 0; transform: translate(-14px, -60px) scale(1.1); }
-}
+@keyframes pixel-code { from { transform: translateY(0); } to { transform: translateY(-6px); } }
+@keyframes pixel-fans { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
+@keyframes pixel-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(1px); } }
+@keyframes pixel-poster { 0%, 100% { opacity: 1; } 50% { opacity: 0.8; } }
 
 @media (prefers-reduced-motion: reduce) {
   .cat-body, .cat-paws, .cat-head, .cat-tail, .cat-heart, .cat-twinkle, .cat-cloud, .grass-sun,
   .rain-drop, .rain-glass, .rain-steam, .rain-flame, .rain-lamp, .rain-window-light,
-  .neon-strip, .neon-particle, .neon-glow, .neon-screen, .neon-screen-art, .neon-keyboard,
-  .neon-headphone, .neon-head, .neon-note { animation: none; }
+  .pixel-rgb, .pixel-twinkle, .pixel-hero, .pixel-code, .pixel-fans, .pixel-bob, .pixel-poster { animation: none; }
   .grass-blade, .grass-flower { animation: none; transform: none; }
   .rain-drop { opacity: 0.3; }
 }

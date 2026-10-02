@@ -4,6 +4,8 @@ import type { CalendarBg, CalendarTheme } from '../domain/types';
 export interface SettingsShape {
   calendarBg: CalendarBg;
   calendarTheme: CalendarTheme;
+  /** hiện nút tròn đổi hình nền ngay trên trang Lịch (mặc định: có) */
+  showCalendarBgButton: boolean;
   lastBackupAt: number;
 }
 

@@ -88,7 +88,7 @@
 .bg-swatch--grass .bg-swatch__preview { background: linear-gradient(180deg, #D4F1F9, #9ED9A0); }
 .bg-swatch--photo .bg-swatch__preview { background: var(--sky); }
 .bg-swatch--rain .bg-swatch__preview { background: linear-gradient(180deg, #4A5A8C, #8FA3D6); }
-.bg-swatch--gamer .bg-swatch__preview { background: linear-gradient(180deg, #1A1033, #3B1C66); }
+.bg-swatch--gamer .bg-swatch__preview { background: #2B2147; }
 .bg-swatch__art { width: 80%; height: auto; }
 .bg-swatch__label { text-align: center; }
 /* nút đổi hình nền: chỉ một hình xem trước tròn nhỏ, không chữ */

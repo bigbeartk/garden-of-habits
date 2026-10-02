@@ -227,3 +227,15 @@ describe('sao lưu nền mới', () => {
     }
   });
 });
+
+describe('sao lưu công tắc nút hình nền', () => {
+  it('giữ showCalendarBgButton khi khôi phục', async () => {
+    const src = makeDb();
+    await setSetting(src, 'showCalendarBgButton', false);
+    const r = parseBackup(serializeBackup(await createBackup(src, 1)));
+    if (!r.ok) throw new Error(r.error);
+    const dst = makeDb();
+    await restoreBackup(dst, r.backup, 'replace');
+    expect(await getSetting(dst, 'showCalendarBgButton')).toBe(false);
+  });
+});

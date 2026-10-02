@@ -19,6 +19,7 @@ export function SettingsScreen() {
   const deps = useDeps();
   const nav = useNav();
   const lastBackupAt = useLiveQuery(() => getSetting(deps.db, 'lastBackupAt'), [deps.db]);
+  const showBgButton = useLiveQuery(async () => (await getSetting(deps.db, 'showCalendarBgButton')) !== false, [deps.db], true);
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState<BackupFile | null>(null);
@@ -112,6 +113,17 @@ export function SettingsScreen() {
       <div className="card settings__section">
         <h2>Ảnh nền lịch</h2>
         <BackgroundPicker />
+        <button
+          type="button"
+          role="switch"
+          aria-checked={showBgButton}
+          aria-label="Hiện nút đổi hình nền ở trang Lịch"
+          className={`switch-row${showBgButton ? ' is-on' : ''}`}
+          onClick={() => setSetting(deps.db, 'showCalendarBgButton', !showBgButton).catch((e: Error) => setError(e.message))}
+        >
+          <span className="switch-row__text">Hiện nút đổi hình nền ở trang Lịch</span>
+          <span className="switch" aria-hidden="true"><span className="switch__knob" /></span>
+        </button>
       </div>
 
       <div className="card settings__section">

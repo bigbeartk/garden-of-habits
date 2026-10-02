@@ -7,6 +7,7 @@ import { BackgroundPicker } from '../components/BackgroundPicker';
 import { DayCell } from '../components/DayCell';
 import { DayDetailSheet } from '../components/DayDetailSheet';
 import { firstDayKey, listDaysInRange } from '../db/queries';
+import { getSetting } from '../db/settings';
 import { plannedCountsInRange } from '../domain/plannedService';
 import { FutureDayScreen } from './FutureDayScreen';
 
@@ -16,7 +17,7 @@ import { dayKey, formatDate, parseDayKey } from '../domain/dayKey';
 import { useCalendarBgUrl, useCalendarTheme } from '../hooks/useCalendarBg';
 import { CatStretchScene } from '../components/backgrounds/CatStretchScene';
 import { GrassBloomScene } from '../components/backgrounds/GrassBloomScene';
-import { NeonGamerScene } from '../components/backgrounds/NeonGamerScene';
+import { PixelGamingRoomScene } from '../components/backgrounds/PixelGamingRoomScene';
 import { RainChillScene } from '../components/backgrounds/RainChillScene';
 import { useNow } from '../hooks/useNow';
 import './calendar.css';
@@ -40,6 +41,7 @@ export function CalendarScreen() {
   const firstKey = useLiveQuery(() => firstDayKey(deps.db), [deps.db]) ?? null;
   const bgUrl = useCalendarBgUrl();
   const theme = useCalendarTheme();
+  const showBgButton = useLiveQuery(async () => (await getSetting(deps.db, 'showCalendarBgButton')) !== false, [deps.db], true);
   const photoUrl = theme === 'photo' ? bgUrl : null;
   const glass = theme !== 'default' ? ' is-glass' : '';
 
@@ -72,7 +74,7 @@ export function CalendarScreen() {
       {theme === 'cat' && <CatStretchScene />}
       {theme === 'grass' && <GrassBloomScene />}
       {theme === 'rain' && <RainChillScene />}
-      {theme === 'gamer' && <NeonGamerScene />}
+      {theme === 'gamer' && <PixelGamingRoomScene />}
       <header className={`cal__head card${glass}`} data-testid="calendar-head">
         <button type="button" className="btn btn--round" aria-label="Tháng trước" onClick={() => go(-1)}>‹</button>
         <h1 className="screen__title" aria-live="polite">{monthLabel(view.year, view.month)}</h1>
@@ -115,7 +117,7 @@ export function CalendarScreen() {
       </motion.div>
 
       <div className="cal__footer">
-        <BackgroundPicker />
+        {showBgButton && <BackgroundPicker />}
       </div>
 
       <DayDetailSheet

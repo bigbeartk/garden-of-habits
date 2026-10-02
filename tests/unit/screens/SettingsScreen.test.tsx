@@ -92,7 +92,7 @@ describe('SettingsScreen chọn hình nền lịch', () => {
     let picker = await openPicker(user);
     expect(within(picker).getAllByRole('radio')).toHaveLength(6);
     expect(within(picker).getByRole('radio', { name: /Mặc định/ })).toHaveAttribute('aria-checked', 'true');
-    for (const [name, id] of [[/Mèo vươn vai/, 'cat'], [/Cỏ nở/, 'grass'], [/Mưa chill/, 'rain'], [/Gaming neon/, 'gamer'], [/Mặc định/, 'default']] as const) {
+    for (const [name, id] of [[/Mèo vươn vai/, 'cat'], [/Cỏ nở/, 'grass'], [/Mưa chill/, 'rain'], [/Gaming pixel/, 'gamer'], [/Mặc định/, 'default']] as const) {
       await user.click(within(picker).getByRole('radio', { name }));
       await waitFor(async () => expect(await getSetting(deps.db, 'calendarTheme')).toBe(id));
       await waitFor(() => expect(screen.queryByRole('radiogroup', { name: 'Hình nền lịch' })).not.toBeInTheDocument());
@@ -119,5 +119,20 @@ describe('SettingsScreen phiên bản app', () => {
     const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
     renderWithDeps(<SettingsScreen />, deps);
     expect(await screen.findByTestId('app-version')).toHaveTextContent(/^Phiên bản \S+/);
+  });
+});
+
+describe('SettingsScreen công tắc nút đổi hình nền ở trang Lịch', () => {
+  it('mặc định bật; tắt thì lưu false, bật lại thì lưu true', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
+    const user = userEvent.setup();
+    renderWithDeps(<SettingsScreen />, deps);
+    const toggle = await screen.findByRole('switch', { name: 'Hiện nút đổi hình nền ở trang Lịch' });
+    expect(toggle).toHaveAttribute('aria-checked', 'true');
+    await user.click(toggle);
+    await waitFor(async () => expect(await getSetting(deps.db, 'showCalendarBgButton')).toBe(false));
+    expect(toggle).toHaveAttribute('aria-checked', 'false');
+    await user.click(toggle);
+    await waitFor(async () => expect(await getSetting(deps.db, 'showCalendarBgButton')).toBe(true));
   });
 });

@@ -12,7 +12,7 @@ const OPTIONS: { id: CalendarTheme; label: string }[] = [
   { id: 'cat', label: 'Mèo vươn vai' },
   { id: 'grass', label: 'Cỏ nở' },
   { id: 'rain', label: 'Mưa chill' },
-  { id: 'gamer', label: 'Gaming neon' },
+  { id: 'gamer', label: 'Gaming pixel' },
   { id: 'photo', label: 'Ảnh của bạn' },
 ];
 
@@ -50,14 +50,14 @@ function Swatch({ id }: { id: CalendarTheme }) {
     );
   }
   if (id === 'gamer') {
+    const px: [number, number, number, number, string][] = [
+      [14, 6, 20, 14, '#1A1033'], [16, 8, 16, 10, '#5DA9FF'], [16, 15, 16, 3, '#3FA34D'], [19, 12, 2, 3, '#E8473F'],
+      [22, 20, 4, 3, '#1A1033'], [8, 24, 32, 2, '#6B4E9B'], [16, 22, 14, 2, '#FF5FD2'],
+      [4, 12, 8, 12, '#FF5FD2'], [5, 10, 6, 6, '#5A3A8C'], [4, 9, 8, 1, '#4DF3FF'],
+    ];
     return (
-      <svg viewBox="0 0 48 36" className="bg-swatch__art" aria-hidden="true">
-        <rect x={20} y={6} width={22} height={15} rx={2} fill="#1E1B3A" stroke="#4DF3FF" strokeWidth={1.5} />
-        <circle cx={14} cy={18} r={7} fill="#3A2E5C" />
-        <path d="M7 17 a7 7 0 0 1 14 0" fill="none" stroke="#FF5FD2" strokeWidth={2.2} />
-        <rect x={5.5} y={16} width={3} height={5} rx={1.4} fill="#FF5FD2" />
-        <rect x={19.5} y={16} width={3} height={5} rx={1.4} fill="#FF5FD2" />
-        <rect x={18} y={27} width={26} height={4} rx={1.5} fill="#4DF3FF" />
+      <svg viewBox="0 0 48 30" className="bg-swatch__art" aria-hidden="true" shapeRendering="crispEdges">
+        {px.map(([x, y, w, h, c], i) => <rect key={i} x={x} y={y} width={w} height={h} fill={c} />)}
       </svg>
     );
   }

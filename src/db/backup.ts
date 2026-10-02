@@ -64,6 +64,7 @@ const BackupSchema = z.object({
   plannedGoals: z.array(z.object({ date: z.string(), title: z.string() })).default([]), // file phiên bản 1–3 chưa có
   calendarBg: z.object({ mime: z.string(), base64: z.string().regex(/^[A-Za-z0-9+/]*={0,2}$/) }).nullable(),
   calendarTheme: z.enum(['default', 'cat', 'grass', 'rain', 'gamer', 'photo']).optional(), // file cũ chưa có
+  showCalendarBgButton: z.boolean().optional(), // file cũ chưa có
 });
 
 export type BackupFile = z.infer<typeof BackupSchema>;
@@ -95,6 +96,7 @@ export async function createBackup(db: PlantDB, now: number): Promise<BackupFile
     const plannedGoals = await db.plannedGoals.toArray();
     const bg = await getSetting(db, 'calendarBg');
     const calendarTheme = await getSetting(db, 'calendarTheme');
+    const showCalendarBgButton = await getSetting(db, 'showCalendarBgButton');
     return {
       format: BACKUP_FORMAT,
       schemaVersion: SCHEMA_VERSION,
@@ -105,6 +107,7 @@ export async function createBackup(db: PlantDB, now: number): Promise<BackupFile
       plannedGoals,
       calendarBg: bg ? { mime: bg.mime, base64: bytesToBase64(bg.data) } : null,
       ...(calendarTheme ? { calendarTheme } : {}),
+      ...(showCalendarBgButton !== undefined ? { showCalendarBgButton } : {}),
     };
   });
 }
@@ -157,6 +160,8 @@ export async function restoreBackup(db: PlantDB, backup: BackupFile, mode: Resto
       else await deleteSetting(db, 'calendarBg');
       if (backup.calendarTheme) await setSetting(db, 'calendarTheme', backup.calendarTheme);
       else await deleteSetting(db, 'calendarTheme');
+      if (backup.showCalendarBgButton !== undefined) await setSetting(db, 'showCalendarBgButton', backup.showCalendarBgButton);
+      else await deleteSetting(db, 'showCalendarBgButton');
       days = backup.days.length;
       templates = backup.templates.length;
     } else {
@@ -182,6 +187,9 @@ export async function restoreBackup(db: PlantDB, backup: BackupFile, mode: Resto
       }
       if (bg && !(await getSetting(db, 'calendarBg'))) await setSetting(db, 'calendarBg', bg);
       if (backup.calendarTheme && !(await getSetting(db, 'calendarTheme'))) await setSetting(db, 'calendarTheme', backup.calendarTheme);
+      if (backup.showCalendarBgButton !== undefined && (await getSetting(db, 'showCalendarBgButton')) === undefined) {
+        await setSetting(db, 'showCalendarBgButton', backup.showCalendarBgButton);
+      }
     }
     const defaults = (await db.templates.toArray())
       .filter((t) => t.isDefault)
