@@ -1,0 +1,18 @@
+@keyframes special-pulse {
+  0%, 100% { opacity: 0.55; transform: scale(1); }
+  50% { opacity: 0.95; transform: scale(1.06); }
+}
+@keyframes special-twinkle {
+  0%, 100% { opacity: 0.2; transform: scale(0.6); }
+  50% { opacity: 1; transform: scale(1); }
+}
+@keyframes special-hue {
+  from { filter: hue-rotate(0deg) saturate(1.3); }
+  to { filter: hue-rotate(360deg) saturate(1.3); }
+}
+.special-halo { transform-box: view-box; transform-origin: 100px 110px; animation: special-pulse 2.4s ease-in-out infinite; }
+.special-star { transform-box: fill-box; transform-origin: center; animation: special-twinkle 1.8s ease-in-out infinite; }
+.special-rainbow-plant { animation: special-hue 6s linear infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .special-halo, .special-star, .special-rainbow-plant { animation: none; }
+}
