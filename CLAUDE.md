@@ -34,7 +34,7 @@ src/
   db/         Dexie (db.ts), settings, queries, backup (export/import/merge), share
   content/    NỘI DUNG mở rộng được: plants/, pots/, specials/, common/, Face, ArtView, catalog, greetings
   components/ PlantScene, SkyBackground, TodoList, BottomSheet, DayCell, ...
-  screens/    CalendarScreen (màn mở đầu), TodayScreen, TemplatesScreen, SettingsScreen
+  screens/    CalendarScreen (màn mở đầu; mở FutureDayScreen cho ngày tương lai), TodayScreen, TemplatesScreen, SettingsScreen
   hooks/      useNow, useToday, useBackupReminder, useCalendarBg
   dev/        ArtGallery.tsx — xem trước mọi cây/chậu (render tạm từ main.tsx khi cần)
 ```
@@ -77,7 +77,7 @@ src/
   | `today-pending` | hôm nay nhưng chưa có bản ghi |
   | `future` | ngày tương lai |
 
-  Đi tới được tối đa **12 tháng sau** tháng hiện tại (`MAX_MONTHS_AHEAD`). **Ô ngày tương lai bấm được**: bảng chi tiết có mục "Việc đã lên lịch" để xem/thêm (chọn buổi)/xoá (`plannedService`: `addPlanned` chỉ nhận ngày **sau hôm nay**). Ô có việc đã lên lịch hiện huy hiệu số việc (`planned-count`). Việc tương lai **chỉ thêm được từ Lịch**, không từ popup ＋.
+  Đi tới được tối đa **12 tháng sau** tháng hiện tại (`MAX_MONTHS_AHEAD`). **Chạm ô ngày tương lai mở `FutureDayScreen`** (thay chỗ lưới lịch, nút `Quay lại Lịch`): bố cục giống Hôm nay (trời + chậu đứng yên, danh sách cuộn), chậu đất nung có **hạt giống bí ẩn đang ngủ** + bong bóng "Hẹn gặp bạn vào <thứ> nha!"; danh sách 3 buổi (`PlannedList`: sửa bằng chạm chữ, xoá; **không có ô tick**); nút ＋ nổi mở cùng popup "Thêm việc cần làm" và lưu thành việc đã lên lịch. Không có 4 nút đổi cây/chậu/ghi chú/ngày nghỉ. (`plannedService`: `addPlanned` chỉ nhận ngày **sau hôm nay**, `editPlanned`, `deletePlanned`.) Ngày đã qua/hôm nay vẫn mở bảng chi tiết như cũ. Ô có việc đã lên lịch hiện huy hiệu số việc (`planned-count`). Việc tương lai **chỉ thêm được từ Lịch**, không từ popup ＋.
 - **Nền theo giờ** (`timeOfDay`): sáng 4–11h, trưa 11–14h, chiều 14–18h, tối 18–4h.
 - **Nhắc sao lưu:** khi đã quá 7 ngày kể từ lần sao lưu cuối, hoặc kể từ dữ liệu cũ nhất nếu chưa sao lưu lần nào.
 
@@ -267,7 +267,7 @@ File thiếu `planned` (phiên bản 1–2) được coi là `[]`; khi gộp, vi
   - `Đổi cây`, `Đổi chậu`, `Ghi chú`, `Ngày tiết kiệm năng lượng` / `Thức dậy`
   - `＋ Mẫu mới`, `Tên mẫu`, `Đặt làm mặc định: <tên>`
   - `💾 Sao lưu dữ liệu`
-  - Lên lịch (Lịch): ô `Việc cho ngày này`, nút `Lên lịch`, `Xoá: <việc>`, `planned-count`
+  - Ngày tương lai: `future-day`, nút `Quay lại Lịch`, `Thêm việc mới`, `Sửa việc`, `Xoá: <việc>`, `planned-count` (ô lịch)
   - `day-YYYY-MM-DD` (+ `data-status`), `calendar-card`, `calendar-head`, `speech-bubble`, `special-intro`, `rest-message`
 
 ## Lỗi nhỏ đã biết (chưa sửa)

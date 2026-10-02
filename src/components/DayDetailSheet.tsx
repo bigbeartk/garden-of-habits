@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { BottomSheet } from './BottomSheet';
 import { MiniPlant } from './MiniPlant';
-import { PlannedSection } from './PlannedSection';
 import { useDeps } from '../app/deps';
 import { getSpecies } from '../content/plants/registry';
 import { getSpecial } from '../content/specials/registry';
@@ -49,7 +48,6 @@ export function DayDetailSheet({ dateKey, todayKey, status, record, onClose, onG
           {status === 'rest' && <p className="detail__line">💤 Ngày tiết kiệm năng lượng</p>}
           {status === 'missed' && <p className="detail__line muted">Hôm đó cây chưa được chăm sóc 🥀</p>}
           {status === 'today-pending' && <p className="detail__line muted">Cây hôm nay đang chờ bạn đó!</p>}
-          {status === 'future' && dateKey && <PlannedSection date={dateKey} />}
           {record && !record.isRestDay && record.todos.length > 0 && (
             <ul className="detail__todos">
               {record.todos.map((t) => (

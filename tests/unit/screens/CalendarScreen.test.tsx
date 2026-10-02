@@ -119,22 +119,55 @@ describe('CalendarScreen lên lịch việc cho ngày tương lai', () => {
     expect(cell).toHaveAccessibleName(/2 việc đã lên lịch/);
   });
 
-  it('chạm ngày tương lai: thêm việc theo buổi rồi xoá', async () => {
+  it('chạm ngày tương lai: mở màn giống Hôm nay (không phải bảng trên Lịch)', async () => {
     const { deps } = makeDeps(new Date(2026, 9, 15, 10, 0), CATALOG);
     const user = userEvent.setup();
     renderWithDeps(<CalendarScreen />, deps);
     await user.click(await screen.findByTestId('day-2026-10-20'));
-    const dialog = await screen.findByRole('dialog', { name: 'Thứ Ba, 20/10/2026' });
-    expect(within(dialog).getByText('Chưa có việc nào được lên lịch.')).toBeInTheDocument();
+    const future = await screen.findByTestId('future-day');
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('calendar-card')).not.toBeInTheDocument();
+    expect(within(future).getByRole('heading', { name: 'Thứ Ba, 20/10/2026' })).toBeInTheDocument();
+    expect(within(future).getByTestId('plant-scene')).toHaveAttribute('data-mode', 'sleeping');
+    expect(within(future).getByTestId('speech-bubble')).toHaveTextContent('Hẹn gặp bạn vào Thứ Ba nha!');
+    for (const p of ['morning', 'afternoon', 'evening']) expect(within(future).getByTestId(`todo-section-${p}`)).toBeInTheDocument();
+    expect(within(future).queryByRole('button', { name: 'Đổi cây' })).not.toBeInTheDocument();
+  });
+
+  it('màn ngày tương lai: nút ＋ thêm việc theo buổi, sửa, xoá; không có ô tick', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 15, 10, 0), CATALOG);
+    const user = userEvent.setup();
+    renderWithDeps(<CalendarScreen />, deps);
+    await user.click(await screen.findByTestId('day-2026-10-20'));
+    await user.click(await screen.findByRole('button', { name: 'Thêm việc mới' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Thêm việc cần làm' });
     await user.click(within(dialog).getByRole('radio', { name: /Chiều/ }));
-    await user.type(within(dialog).getByLabelText('Việc cho ngày này'), 'Khám răng');
-    await user.click(within(dialog).getByRole('button', { name: 'Lên lịch' }));
-    expect(await within(dialog).findByText('Khám răng')).toBeInTheDocument();
-    expect(within(dialog).getByLabelText('Việc cho ngày này')).toHaveValue('');
+    await user.type(within(dialog).getByLabelText('Nội dung việc'), 'Khám răng{Enter}');
+    const afternoon = screen.getByTestId('todo-section-afternoon');
+    expect(await within(afternoon).findByText('Khám răng')).toBeInTheDocument();
+    expect(screen.getByText('1 việc')).toBeInTheDocument();
+    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
     const saved = await deps.db.planned.toArray();
     expect(saved.map((p) => [p.date, p.text, p.period])).toEqual([['2026-10-20', 'Khám răng', 'afternoon']]);
-    await user.click(within(dialog).getByRole('button', { name: 'Xoá: Khám răng' }));
+
+    await user.click(within(dialog).getByRole('button', { name: 'Đóng' }));
+    await user.click(within(afternoon).getByText('Khám răng'));
+    const edit = within(afternoon).getByLabelText('Sửa việc');
+    await user.clear(edit);
+    await user.type(edit, 'Khám răng 9h{Enter}');
+    await waitFor(async () => expect((await deps.db.planned.toArray())[0].text).toBe('Khám răng 9h'));
+
+    await user.click(await within(afternoon).findByRole('button', { name: 'Xoá: Khám răng 9h' }));
     await waitFor(async () => expect(await deps.db.planned.count()).toBe(0));
+  });
+
+  it('nút ‹ Lịch quay lại lịch', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 15, 10, 0), CATALOG);
+    const user = userEvent.setup();
+    renderWithDeps(<CalendarScreen />, deps);
+    await user.click(await screen.findByTestId('day-2026-10-20'));
+    await user.click(await screen.findByRole('button', { name: 'Quay lại Lịch' }));
+    expect(await screen.findByTestId('calendar-card')).toBeInTheDocument();
   });
 
   it('ngày đã qua và hôm nay không có ô lên lịch', async () => {

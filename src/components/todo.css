@@ -33,3 +33,4 @@
 }
 .period-picker__item.is-selected { background: var(--butter); transform: translateY(2px); box-shadow: none; }
 .todo__add .btn { flex: none; white-space: nowrap; }
+.todo__bullet { flex: none; width: 14px; height: 14px; margin: 0 8px; border-radius: 50%; border: 2px dashed var(--cocoa-soft); }

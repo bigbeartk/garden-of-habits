@@ -8,6 +8,7 @@ import { DayCell } from '../components/DayCell';
 import { DayDetailSheet } from '../components/DayDetailSheet';
 import { firstDayKey, listDaysInRange } from '../db/queries';
 import { plannedCountsInRange } from '../domain/plannedService';
+import { FutureDayScreen } from './FutureDayScreen';
 
 const MAX_MONTHS_AHEAD = 12;
 import { WEEKDAY_SHORT, buildMonthGrid, dayCellStatus, monthLabel, shiftMonth } from '../domain/calendar';
@@ -24,6 +25,8 @@ export function CalendarScreen() {
   const today = parseDayKey(todayKey);
   const [view, setView] = useState({ year: today.getFullYear(), month: today.getMonth() });
   const [selected, setSelected] = useState<string | null>(null);
+  /** ngày tương lai đang mở (màn giống Hôm nay để lên lịch việc) */
+  const [futureDate, setFutureDate] = useState<string | null>(null);
 
   const cells = useMemo(() => buildMonthGrid(view.year, view.month), [view]);
   const from = formatDate(new Date(view.year, view.month, 1));
@@ -42,6 +45,8 @@ export function CalendarScreen() {
     setView((v) => shiftMonth(v.year, v.month, delta));
   };
   const selectedStatus = selected ? dayCellStatus(selected, byKey.get(selected), todayKey, firstKey) : null;
+
+  if (futureDate) return <FutureDayScreen date={futureDate} onBack={() => setFutureDate(null)} />;
 
   return (
     <section
@@ -70,22 +75,23 @@ export function CalendarScreen() {
           {WEEKDAY_SHORT.map((w) => <span key={w}>{w}</span>)}
         </div>
         <div className="cal__grid">
-          {cells.map((c, i) =>
-            c.key && c.day ? (
+          {cells.map((c, i) => {
+            const key = c.key;
+            return key && c.day ? (
               <DayCell
-                key={c.key}
-                dateKey={c.key}
+                key={key}
+                dateKey={key}
                 day={c.day}
-                status={dayCellStatus(c.key, byKey.get(c.key), todayKey, firstKey)}
-                record={byKey.get(c.key)}
-                plannedCount={plannedCounts[c.key] ?? 0}
-                isToday={c.key === todayKey}
-                onSelect={() => setSelected(c.key)}
+                status={dayCellStatus(key, byKey.get(key), todayKey, firstKey)}
+                record={byKey.get(key)}
+                plannedCount={plannedCounts[key] ?? 0}
+                isToday={key === todayKey}
+                onSelect={() => (key > todayKey ? setFutureDate(key) : setSelected(key))}
               />
             ) : (
               <span key={`pad-${i}`} className="cal__pad" />
-            ),
-          )}
+            );
+          })}
         </div>
       </motion.div>
 

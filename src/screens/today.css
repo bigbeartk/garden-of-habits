@@ -64,3 +64,12 @@
   font-size: 2rem; font-weight: 700; line-height: 1; color: var(--cocoa); cursor: pointer;
 }
 .fab:active { transform: translateY(3px) scale(0.95); box-shadow: 0 1px 0 rgba(91, 70, 54, 0.25); }
+/* Màn ngày tương lai */
+.future__back {
+  position: absolute; top: 12px; left: 12px; z-index: 3; display: inline-flex; align-items: center; gap: 4px;
+  min-height: 40px; padding: 0 14px 0 10px; border-radius: 999px; border: 2px solid var(--cocoa);
+  background: var(--white); box-shadow: var(--shadow-pop); font-weight: 700; cursor: pointer;
+}
+.future__back span { font-size: 1.4rem; line-height: 1; }
+.future__spacer { flex: none; height: 32px; }
+.future__title { font-size: 1.25rem; }

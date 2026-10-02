@@ -239,17 +239,21 @@ test('tab Hôm nay: cây đứng yên, chỉ danh sách việc cuộn', async ({
   expect(await list.evaluate((el) => el.scrollTop)).toBeGreaterThan(0);
 });
 
-test('lên lịch việc cho ngày tương lai trên Lịch; tới ngày đó việc hiện ở Hôm nay', async ({ page }) => {
+test('chạm ngày tương lai mở màn giống Hôm nay để lên lịch; tới ngày đó việc hiện ở Hôm nay', async ({ page }) => {
   await page.clock.setFixedTime(at('2026-10-02T10:00:00'));
   await page.goto('/');
   await goTab(page, 'Lịch');
   await page.getByTestId('day-2026-10-05').click();
-  const dialog = page.getByRole('dialog', { name: 'Thứ Hai, 05/10/2026' });
+  const future = page.getByTestId('future-day');
+  await expect(future.getByRole('heading', { name: 'Thứ Hai, 05/10/2026' })).toBeVisible();
+  await future.getByRole('button', { name: 'Thêm việc mới' }).click();
+  const dialog = page.getByRole('dialog', { name: 'Thêm việc cần làm' });
   await dialog.getByRole('radio', { name: /Tối/ }).click();
-  await dialog.getByLabel('Việc cho ngày này').fill('Gọi điện cho mẹ');
-  await dialog.getByRole('button', { name: 'Lên lịch' }).click();
-  await expect(dialog.getByText('Gọi điện cho mẹ')).toBeVisible();
+  await dialog.getByLabel('Nội dung việc').fill('Gọi điện cho mẹ');
+  await dialog.getByRole('button', { name: 'Thêm', exact: true }).click();
   await dialog.getByRole('button', { name: 'Đóng' }).click();
+  await expect(future.getByTestId('todo-section-evening').getByText('Gọi điện cho mẹ')).toBeVisible();
+  await future.getByRole('button', { name: 'Quay lại Lịch' }).click();
   await expect(page.getByTestId('day-2026-10-05').getByTestId('planned-count')).toHaveText('1');
 
   await page.clock.setFixedTime(at('2026-10-05T08:00:00'));

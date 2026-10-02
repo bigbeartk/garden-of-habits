@@ -1,4 +1,4 @@
-import { addPlanned, deletePlanned, listPlanned, plannedCountsInRange } from '../../../src/domain/plannedService';
+import { addPlanned, deletePlanned, editPlanned, listPlanned, plannedCountsInRange } from '../../../src/domain/plannedService';
 import { ensureToday } from '../../../src/domain/dayService';
 import { makeDeps } from '../helpers';
 
@@ -38,5 +38,15 @@ describe('việc đã lên lịch cho ngày tương lai', () => {
     expect(day.todos.map((t) => [t.text, t.period])).toEqual([['Tập thể dục', 'morning'], ['Khám răng', 'afternoon']]);
     expect(await listPlanned(deps.db, '2026-10-03')).toEqual([]);
     expect((await listPlanned(deps.db, '2026-10-04')).map((p) => p.text)).toEqual(['Để ngày sau']);
+  });
+});
+
+describe('sửa việc đã lên lịch', () => {
+  it('editPlanned cắt khoảng trắng, từ chối nội dung trống', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0));
+    const a = await addPlanned(deps, '2026-10-05', 'Khám răng', 'morning');
+    await editPlanned(deps.db, a.id, '  Khám răng lúc 9h ');
+    expect((await listPlanned(deps.db, '2026-10-05'))[0].text).toBe('Khám răng lúc 9h');
+    await expect(editPlanned(deps.db, a.id, '  ')).rejects.toThrow('không được để trống');
   });
 });

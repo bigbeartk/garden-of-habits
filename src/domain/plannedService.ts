@@ -35,3 +35,9 @@ export async function plannedCountsInRange(db: PlantDB, from: string, to: string
   }
   return counts;
 }
+
+export async function editPlanned(db: PlantDB, id: string, text: string): Promise<void> {
+  const clean = text.trim();
+  if (!clean) throw new Error('Nội dung việc cần làm không được để trống');
+  await db.planned.update(id, { text: clean });
+}
