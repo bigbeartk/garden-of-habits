@@ -1,3 +1,7 @@
+import type { ReactElement } from 'react';
+import { render } from '@testing-library/react';
+import { DepsProvider } from '../../src/app/deps';
+import { NavContext, type Tab } from '../../src/app/nav';
 import { PlantDB } from '../../src/db/db';
 import { mulberry32 } from '../../src/domain/random';
 import type { DayDeps } from '../../src/domain/dayService';
@@ -41,4 +45,12 @@ export function makeDeps(start = new Date(2026, 9, 2, 10, 0), catalog: Catalog =
     now: () => new Date(clock.current.getTime()),
   };
   return { deps, clock };
+}
+
+export function renderWithDeps(ui: ReactElement, deps: DayDeps, nav: (tab: Tab) => void = () => {}) {
+  return render(
+    <DepsProvider value={deps}>
+      <NavContext.Provider value={nav}>{ui}</NavContext.Provider>
+    </DepsProvider>,
+  );
 }
