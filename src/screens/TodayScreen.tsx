@@ -2,9 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import { useDeps } from '../app/deps';
 import { useNav } from '../app/nav';
 import { AddTodoSheet } from '../components/AddTodoSheet';
-import { DayTitleInput } from '../components/DayTitleInput';
+import { GoalInput } from '../components/GoalInput';
 import { IconButton } from '../components/IconButton';
-import { NoteIcon, PlantSwapIcon, PotIcon, SleepSeedIcon, SunIcon } from '../components/icons';
+import { BackIcon, NoteIcon, PlantSwapIcon, PotIcon, SleepSeedIcon, SunIcon } from '../components/icons';
 import { NoteSheet } from '../components/NoteSheet';
 import { PlantPickerSheet } from '../components/PlantPickerSheet';
 import { PlantScene } from '../components/PlantScene';
@@ -98,6 +98,9 @@ export function TodayScreen() {
     <section className="screen screen--today">
       <SkyBackground time={timeOfDay(now)}>
         <div className="today__stage">
+          <button type="button" className="back-btn" aria-label="Quay lại Lịch" onClick={() => nav('calendar')}>
+            <BackIcon size={34} />
+          </button>
           {speech?.kind === 'greeting' && special && (
             <div className="special-intro" data-testid="special-intro" role="status">
               <span className="special-intro__sparkles" aria-hidden="true">✨ ✨ ✨</span>
@@ -151,7 +154,12 @@ export function TodayScreen() {
               <h1 className="screen__title">Hôm nay</h1>
               <span className="pill">{doneCount}/{day.todos.length} việc</span>
             </header>
-            <DayTitleInput value={day.title ?? ''} onSave={(title) => run(setTitle(deps, day.date, title))} />
+            <GoalInput
+              value={day.title ?? ''}
+              label="Mục tiêu hôm nay"
+              placeholder="Đặt mục tiêu cho hôm nay…"
+              onSave={(goal) => run(setTitle(deps, day.date, goal))}
+            />
             <TodoList
               todos={day.todos}
               currentPeriod={currentPeriod}

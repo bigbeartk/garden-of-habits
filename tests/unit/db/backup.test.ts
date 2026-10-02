@@ -153,7 +153,7 @@ describe('file sao lưu phiên bản 1 (chưa có buổi)', () => {
   });
 
   it('file mới ghi schemaVersion hiện tại (3)', async () => {
-    expect((await createBackup(makeDb(), 1)).schemaVersion).toBe(3);
+    expect((await createBackup(makeDb(), 1)).schemaVersion).toBe(4);
   });
 });
 
@@ -164,7 +164,7 @@ describe('sao lưu việc đã lên lịch', () => {
     const src = makeDb();
     await src.planned.put(planned);
     const backup = await createBackup(src, 1);
-    expect(backup.schemaVersion).toBe(3);
+    expect(backup.schemaVersion).toBe(4);
     const r = parseBackup(serializeBackup(backup));
     expect(r.ok).toBe(true);
     if (!r.ok) return;
@@ -188,5 +188,19 @@ describe('sao lưu việc đã lên lịch', () => {
   it('file cũ không có việc đã lên lịch vẫn khôi phục được', () => {
     const r = parseBackup(JSON.stringify({ format: BACKUP_FORMAT, schemaVersion: 2, exportedAt: 1, days: [], templates: [], calendarBg: null }));
     expect(r.ok && r.backup.planned).toEqual([]);
+  });
+});
+
+describe('sao lưu mục tiêu ngày tương lai', () => {
+  it('khôi phục giữ mục tiêu; file cũ không có thì coi là rỗng', async () => {
+    const src = makeDb();
+    await src.plannedGoals.put({ date: '2026-10-09', title: 'Đi khám răng' });
+    const r = parseBackup(serializeBackup(await createBackup(src, 1)));
+    if (!r.ok) throw new Error(r.error);
+    const dst = makeDb();
+    await restoreBackup(dst, r.backup, 'replace');
+    expect(await dst.plannedGoals.toArray()).toEqual([{ date: '2026-10-09', title: 'Đi khám răng' }]);
+    const old = parseBackup(JSON.stringify({ format: BACKUP_FORMAT, schemaVersion: 3, exportedAt: 1, days: [], templates: [], planned: [], calendarBg: null }));
+    expect(old.ok && old.backup.plannedGoals).toEqual([]);
   });
 });

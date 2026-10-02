@@ -173,3 +173,12 @@ export function SunIcon({ size }: { size?: number }) {
     </Svg>
   );
 }
+
+/** Quay lại: mũi tên bo tròn, nét đậm */
+export function BackIcon({ size }: { size?: number }) {
+  return (
+    <Svg name="back" size={size}>
+      <path d="M19 7 L10 16 L19 25" fill="none" stroke={INK} strokeWidth={3.6} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}

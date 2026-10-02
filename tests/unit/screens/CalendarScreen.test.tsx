@@ -5,7 +5,7 @@ import { CalendarScreen } from '../../../src/screens/CalendarScreen';
 import { CATALOG } from '../../../src/content/catalog';
 import { makeDay, makeDeps, renderWithDeps } from '../helpers';
 import { setSetting } from '../../../src/db/settings';
-import { addPlanned } from '../../../src/domain/plannedService';
+import { addPlanned, getPlannedGoal } from '../../../src/domain/plannedService';
 
 async function setup() {
   const { deps } = makeDeps(new Date(2026, 9, 15, 10, 0), CATALOG);
@@ -102,7 +102,7 @@ describe('CalendarScreen tiêu đề ngày', () => {
     await user.click(screen.getByTestId('day-2026-10-02'));
     const dialog = await screen.findByRole('dialog', { name: 'Thứ Sáu, 02/10/2026' });
     expect(within(dialog).getByRole('heading', { name: 'Đi chơi công viên' })).toBeInTheDocument();
-    expect(within(dialog).queryByLabelText('Tiêu đề hôm nay')).not.toBeInTheDocument();
+    expect(within(dialog).queryByLabelText('Mục tiêu hôm nay')).not.toBeInTheDocument();
   });
 });
 
@@ -176,5 +176,32 @@ describe('CalendarScreen lên lịch việc cho ngày tương lai', () => {
     await user.click(screen.getByTestId('day-2026-10-02'));
     const dialog = await screen.findByRole('dialog', { name: 'Thứ Sáu, 02/10/2026' });
     expect(within(dialog).queryByLabelText('Việc cho ngày này')).not.toBeInTheDocument();
+  });
+});
+
+describe('màn ngày tương lai: nút quay lại và mục tiêu', () => {
+  it('nút quay lại chỉ có mũi tên', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 15, 10, 0), CATALOG);
+    const user = userEvent.setup();
+    renderWithDeps(<CalendarScreen />, deps);
+    await user.click(await screen.findByTestId('day-2026-10-20'));
+    const back = await screen.findByRole('button', { name: 'Quay lại Lịch' });
+    expect(back.querySelector('svg[data-icon="back"]')).not.toBeNull();
+    expect(back.textContent).toBe('');
+  });
+
+  it('đặt mục tiêu cho ngày tương lai, mở lại vẫn còn', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 15, 10, 0), CATALOG);
+    const user = userEvent.setup();
+    renderWithDeps(<CalendarScreen />, deps);
+    await user.click(await screen.findByTestId('day-2026-10-20'));
+    const input = await screen.findByLabelText('Mục tiêu ngày này');
+    expect(input).toHaveAttribute('placeholder', 'Đặt mục tiêu cho ngày này…');
+    await user.type(input, 'Đi khám răng{Enter}');
+    await waitFor(async () => expect(await getPlannedGoal(deps.db, '2026-10-20')).toBe('Đi khám răng'));
+    await user.click(screen.getByRole('button', { name: 'Quay lại Lịch' }));
+    await user.click(await screen.findByTestId('day-2026-10-20'));
+    const reopened = await screen.findByLabelText('Mục tiêu ngày này');
+    await waitFor(() => expect(reopened).toHaveValue('Đi khám răng'));
   });
 });

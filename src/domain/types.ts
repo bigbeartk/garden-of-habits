@@ -53,6 +53,12 @@ export interface PlannedTodo {
   createdAt: number;
 }
 
+/** Mục tiêu đặt trước cho một ngày tương lai; đến ngày đó thành `DayRecord.title`. */
+export interface PlannedGoal {
+  date: string;
+  title: string;
+}
+
 export interface CalendarBg {
   mime: string;
   data: ArrayBuffer;

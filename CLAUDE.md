@@ -58,8 +58,9 @@ src/
   - ≥ 50% → `bud` (ra chồi)
   - 100% → `bloom` (ra hoa)
 - **Ngày đã qua bị khoá** (`LockedDayError` cho todo). Trên giao diện ngày đã qua **chỉ để xem**, kể cả ghi chú (tầng domain `setNote` vẫn cho phép, nhưng UI không còn ô sửa).
-- **Chỉ hôm nay** mới được: thêm/sửa/xoá/tick/sắp xếp todo, đặt **tiêu đề ngày** (`setTitle`), đổi cây, đổi chậu, bật ngày tiết kiệm năng lượng.
-- **Tiêu đề ngày** (`title`): ô ở đầu danh sách màn Hôm nay, lưu khi rời ô hoặc Enter, tối đa 60 ký tự. Ngày đã qua chỉ xem được tiêu đề trong bảng chi tiết ngày ở Lịch.
+- **Chỉ hôm nay** mới được: thêm/sửa/xoá/tick/sắp xếp todo, đặt **mục tiêu ngày** (`setTitle`), đổi cây, đổi chậu, bật ngày tiết kiệm năng lượng.
+- **Mục tiêu ngày** (lưu ở trường `title`, giao diện gọi là "Mục tiêu"): ô ở đầu danh sách (`GoalInput`), lưu khi rời ô hoặc Enter, tối đa 60 ký tự. Ngày tương lai có mục tiêu đặt trước (bảng `plannedGoals`, `setPlannedGoal`/`getPlannedGoal`), đến 4:00 ngày đó `ensureToday` chuyển thành `title` rồi xoá. Ngày đã qua chỉ xem mục tiêu trong bảng chi tiết.
+- **Nút quay lại** (`back-btn`, icon `back`): góc trái trên màn Hôm nay và màn ngày tương lai, **chỉ mũi tên, không nền/viền** (trời tối thì mũi tên trắng), về màn Lịch.
 - **Buổi Sáng / Chiều / Tối** (`domain/period.ts`): mỗi todo và mỗi việc trong mẫu có `period`. Màn Hôm nay luôn hiện đủ 3 mục (mục trống ghi "Chưa có việc"); mỗi mục có số việc xong/tổng riêng; mục của buổi hiện tại (`periodOf`: 4–11h sáng, 11–18h chiều, còn lại tối) có viền đậm. Kéo thả chỉ sắp xếp trong cùng một buổi. Cây vẫn lớn theo tỉ lệ việc xong của **cả ngày**.
 - **Cây khen:** xong một việc thì cây cười và nói một câu khen khoảng 3,5 giây (`pickPraise`: câu chung `COMMON_PRAISES` + `species.praises`); xong việc cuối cùng (cây vừa ra hoa) thì dùng `BLOOM_PRAISES`. Câu chào đầu ngày và câu khen dùng chung một bong bóng thoại; khung ✨ cây đặc biệt chỉ hiện khi chào.
 - **Thêm việc:** nút ＋ nổi cố định ở góc phải dưới, ngay trên thanh tab (không cuộn theo danh sách), mở popup "Thêm việc cần làm" có 3 nút chọn buổi (mặc định là buổi hiện tại, giữ lựa chọn khi thêm liên tiếp). Popup không tự đóng sau mỗi lần thêm, để thêm liên tiếp. Nút bị ẩn trong ngày tiết kiệm năng lượng.
@@ -169,9 +170,10 @@ Các thuộc tính để test bám vào: `data-testid` (mặc định `plant-sce
 
 ## Cơ sở dữ liệu (IndexedDB qua Dexie)
 
-Tên DB: `chau-cay-chibi`, `SCHEMA_VERSION = 3` (`src/db/db.ts`).
+Tên DB: `chau-cay-chibi`, `SCHEMA_VERSION = 4` (`src/db/db.ts`).
 
 - **v1**: bản đầu tiên.
+- **v4**: thêm bảng `plannedGoals` (mục tiêu đặt trước cho ngày tương lai).
 - **v3**: thêm bảng `planned` (việc đã lên lịch cho ngày tương lai).
 - **v2**: thêm buổi. Bước `upgrade` gán `period: 'morning'` cho todo cũ và chuyển `items: string[]` của mẫu cũ thành `{ text, period: 'morning' }[]`.
 
@@ -181,6 +183,7 @@ Tên DB: `chau-cay-chibi`, `SCHEMA_VERSION = 3` (`src/db/db.ts`).
 | `templates` | `id`, index `createdAt` | `Template` |
 | `settings` | `key` | `{ key, value }` |
 | `planned` | `id`, index `date` | `PlannedTodo` (việc đã lên lịch) |
+| `plannedGoals` | `date` | `{ date, title }` (mục tiêu đặt trước) |
 
 ```ts
 // src/domain/types.ts
@@ -195,7 +198,7 @@ interface DayRecord {
   potId: string;
   specialId: string | null;
   isRestDay: boolean;
-  title?: string;            // tiêu đề ngày; bản ghi cũ không có → coi là ''
+  title?: string;            // MỤC TIÊU ngày (tên trường giữ là title); bản ghi cũ không có → coi là ''
   greetedAt: number | null;  // ms; null = chưa chào hôm nay
   note: string;
   todos: Todo[];             // luôn lưu theo order tăng dần, order = 0..n-1
@@ -223,16 +226,17 @@ Tên file: `chau-cay-backup-YYYY-MM-DD.json`. Khi lưu, app mở menu Chia sẻ 
 ```json
 {
   "format": "chau-cay-chibi-backup",
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "exportedAt": 1790000000000,
   "days": [DayRecord, ...],
   "templates": [Template, ...],
   "planned": [PlannedTodo, ...],
+  "plannedGoals": [{ "date": "YYYY-MM-DD", "title": "..." }, ...],
   "calendarBg": { "mime": "image/jpeg", "base64": "..." } | null
 }
 ```
 
-File thiếu `planned` (phiên bản 1–2) được coi là `[]`; khi gộp, việc đã lên lịch chỉ được thêm nếu chưa có `id`. File phiên bản 1 vẫn khôi phục được: todo thiếu `period` được gán `'morning'`, mẫu có `items` dạng chuỗi được chuyển thành `{ text, period: 'morning' }`.
+File thiếu `planned` (phiên bản 1–2) hoặc `plannedGoals` (phiên bản 1–3) được coi là `[]`; khi gộp, việc đã lên lịch chỉ được thêm nếu chưa có `id`. File phiên bản 1 vẫn khôi phục được: todo thiếu `period` được gán `'morning'`, mẫu có `items` dạng chuỗi được chuyển thành `{ text, period: 'morning' }`.
 
 `parseBackup` kiểm tra theo thứ tự sau; mọi thông báo lỗi đều bằng tiếng Việt và không ghi gì vào DB khi lỗi:
 1. JSON hợp lệ.
@@ -259,11 +263,11 @@ File thiếu `planned` (phiên bản 1–2) được coi là `[]`; khi gộp, vi
 - **Màn Hôm nay:** cao đúng bằng khung app (`overflow: hidden`); **trời + cây đứng yên, chỉ `.today__list` tự cuộn** (chừa `padding-bottom` cho nút ＋ và nút menu). Việc đã xong: chữ nhạt + dấu ✓, **không gạch ngang**. Nửa trên là bầu trời cao `46dvh`. `.sky__content` là khung flex dọc, `.today__stage` có `flex: 1 1 0; min-height: 0`, SVG cây được **định vị tuyệt đối** trong stage.
   - **Không dùng `height: 100%` + `width: auto` cho SVG**: Safari tính sai và đẩy hàng 4 nút ra khỏi khung.
 - **Điều hướng = menu nổi** (`app/TabBar.tsx`): không còn thanh tab ở đáy. Chỉ có một nút tròn (icon bông hoa) cố định ở góc phải dưới, nằm **ngay dưới nút ＋** và có mặt ở cả 4 màn. Bấm vào thì dải 4 tab (Lịch, Hôm nay, Mẫu, Cài đặt) **trượt từ nút ra bên trái** (`clipPath` + các tab hiện lần lượt, tab gần nút hiện trước), nút chuyển thành ✕; bấm lần nữa thì trượt ngược về. Mặc định thu gọn khi mở app. **Chọn tab không đóng dải tab.** `--tabbar-h` (60px) là cỡ nút menu và nút ＋.
-- **Icon:** không dùng emoji cho icon chức năng; dùng bộ SVG tự vẽ trong `components/icons.tsx` (khung 32×32, viền cocoa, màu pastel, `data-icon` để test). Hiện có: `calendar`, `sprout`, `clipboard`, `gear` (4 tab), `menu`, `close`, `plant-swap`, `pot`, `note`, `sleep-seed` (hạt giống đội mũ ngủ), `sun` (4 nút dưới chậu; ngày nghỉ đổi `sleep-seed` → `sun`). `IconButton` nhận `icon: ReactNode`.
+- **Icon:** không dùng emoji cho icon chức năng; dùng bộ SVG tự vẽ trong `components/icons.tsx` (khung 32×32, viền cocoa, màu pastel, `data-icon` để test). Hiện có: `calendar`, `sprout`, `clipboard`, `gear` (4 tab), `menu`, `close`, `back`, `plant-swap`, `pot`, `note`, `sleep-seed` (hạt giống đội mũ ngủ), `sun` (4 nút dưới chậu; ngày nghỉ đổi `sleep-seed` → `sun`). `IconButton` nhận `icon: ReactNode`.
 - **Màn Lịch:** căn giữa theo chiều dọc. Khi có ảnh nền, thẻ tháng và lưới ngày nhận class `is-glass` (kính mờ trong suốt, `backdrop-filter`), chữ có viền sáng để dễ đọc.
 - **Tôn trọng** `prefers-reduced-motion`, safe-area (`env(safe-area-inset-*)`) và chiều cao `100dvh`.
 - **Các label và `data-testid` mà test dựa vào, không đổi tuỳ tiện:**
-  - `Tiêu đề hôm nay`, `Thêm việc mới` (nút ＋), popup `Thêm việc cần làm` với radio `Sáng`/`Chiều`/`Tối`, ô `Nội dung việc` + nút `Thêm`, `Hoàn thành: <việc>`, `todo-section-morning|afternoon|evening`
+  - `Mục tiêu hôm nay` / `Mục tiêu ngày này` (placeholder `Đặt mục tiêu cho hôm nay…` / `…cho ngày này…`), `Quay lại Lịch`, `Thêm việc mới` (nút ＋), popup `Thêm việc cần làm` với radio `Sáng`/`Chiều`/`Tối`, ô `Nội dung việc` + nút `Thêm`, `Hoàn thành: <việc>`, `todo-section-morning|afternoon|evening`
   - Form mẫu: `Việc buổi Sáng|Chiều|Tối (mỗi dòng một việc)`
   - Menu nổi: nút `Mở menu` / `Đóng menu` (`aria-expanded`), dải `#fnav-tabs` với 4 nút tab (`aria-current="page"` cho tab hiện tại). Test E2E chuyển tab bằng helper `goTab(page, 'Lịch')`.
   - `Đổi cây`, `Đổi chậu`, `Ghi chú`, `Ngày tiết kiệm năng lượng` / `Thức dậy`

@@ -1,5 +1,6 @@
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { vi } from 'vitest';
 import { TodayScreen } from '../../../src/screens/TodayScreen';
 import { CATALOG } from '../../../src/content/catalog';
 import { BLOOM_PRAISES, COMMON_PRAISES } from '../../../src/content/praises';
@@ -16,8 +17,9 @@ async function addTodoViaPopup(user: ReturnType<typeof userEvent.setup>, text: s
 const setup = () => {
   const { deps, clock } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
   const user = userEvent.setup();
-  renderWithDeps(<TodayScreen />, deps);
-  return { deps, clock, user };
+  const nav = vi.fn();
+  renderWithDeps(<TodayScreen />, deps, nav);
+  return { deps, clock, user, nav };
 };
 
 describe('TodayScreen', () => {
@@ -44,7 +46,7 @@ describe('TodayScreen', () => {
     await user.click(screen.getByRole('button', { name: 'Ngày tiết kiệm năng lượng' }));
     expect(await screen.findByTestId('rest-message')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Thêm việc mới' })).not.toBeInTheDocument();
-    expect(screen.queryByLabelText('Tiêu đề hôm nay')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Mục tiêu hôm nay')).not.toBeInTheDocument();
     expect(screen.getByTestId('plant-scene')).toHaveAttribute('data-mode', 'sleeping');
     expect((await deps.db.days.get('2026-10-02'))!.todos).toHaveLength(1);
     await user.click(screen.getByRole('button', { name: 'Thức dậy' }));
@@ -84,8 +86,8 @@ describe('TodayScreen cây đặc biệt', () => {
 describe('TodayScreen tiêu đề ngày và nút thêm việc', () => {
   it('ô ở đầu danh sách là tiêu đề ngày, lưu khi Enter', async () => {
     const { deps, user } = setup();
-    const input = await screen.findByLabelText('Tiêu đề hôm nay');
-    expect(input).toHaveAttribute('placeholder', 'Đặt tiêu đề cho hôm nay…');
+    const input = await screen.findByLabelText('Mục tiêu hôm nay');
+    expect(input).toHaveAttribute('placeholder', 'Đặt mục tiêu cho hôm nay…');
     await user.type(input, 'Ngày dọn nhà{Enter}');
     await waitFor(async () => expect((await deps.db.days.get('2026-10-02'))!.title).toBe('Ngày dọn nhà'));
     expect((await deps.db.days.get('2026-10-02'))!.todos).toHaveLength(0);
@@ -93,7 +95,7 @@ describe('TodayScreen tiêu đề ngày và nút thêm việc', () => {
 
   it('tiêu đề lưu khi chạm ra ngoài ô và hiện lại khi mở màn hình', async () => {
     const { deps, user } = setup();
-    await user.type(await screen.findByLabelText('Tiêu đề hôm nay'), 'Thứ Sáu vui vẻ');
+    await user.type(await screen.findByLabelText('Mục tiêu hôm nay'), 'Thứ Sáu vui vẻ');
     await user.click(screen.getByRole('heading', { name: 'Hôm nay' }));
     await waitFor(async () => expect((await deps.db.days.get('2026-10-02'))!.title).toBe('Thứ Sáu vui vẻ'));
   });
@@ -183,5 +185,16 @@ describe('TodayScreen icon dưới chậu cây', () => {
     }
     await user.click(screen.getByRole('button', { name: 'Ngày tiết kiệm năng lượng' }));
     expect((await screen.findByRole('button', { name: 'Thức dậy' })).querySelector('svg[data-icon="sun"]')).not.toBeNull();
+  });
+});
+
+describe('TodayScreen nút quay lại', () => {
+  it('góc trái trên có nút mũi tên (không chữ) quay về Lịch', async () => {
+    const { user, nav } = setup();
+    const back = await screen.findByRole('button', { name: 'Quay lại Lịch' });
+    expect(back.querySelector('svg[data-icon="back"]')).not.toBeNull();
+    expect(back.textContent).toBe('');
+    await user.click(back);
+    expect(nav).toHaveBeenCalledWith('calendar');
   });
 });

@@ -38,3 +38,17 @@ describe('nâng cấp dữ liệu từ phiên bản 2', () => {
     expect(await db.planned.where('date').equals('2026-10-09').count()).toBe(1);
   });
 });
+
+describe('nâng cấp dữ liệu từ phiên bản 3', () => {
+  it('có bảng mục tiêu ngày tương lai, giữ việc đã lên lịch', async () => {
+    const name = `test-mig3-${crypto.randomUUID()}`;
+    const old = new Dexie(name);
+    old.version(3).stores({ days: 'date', templates: 'id, createdAt', settings: 'key', planned: 'id, date' });
+    await old.table('planned').put({ id: 'p', date: '2026-10-09', text: 'Cũ', period: 'morning', createdAt: 1 });
+    old.close();
+    const db = new PlantDB(name);
+    expect(await db.planned.count()).toBe(1);
+    await db.plannedGoals.put({ date: '2026-10-09', title: 'Mục tiêu' });
+    expect((await db.plannedGoals.get('2026-10-09'))!.title).toBe('Mục tiêu');
+  });
+});

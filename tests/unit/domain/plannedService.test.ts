@@ -1,4 +1,4 @@
-import { addPlanned, deletePlanned, editPlanned, listPlanned, plannedCountsInRange } from '../../../src/domain/plannedService';
+import { addPlanned, deletePlanned, editPlanned, getPlannedGoal, listPlanned, plannedCountsInRange, setPlannedGoal } from '../../../src/domain/plannedService';
 import { ensureToday } from '../../../src/domain/dayService';
 import { makeDeps } from '../helpers';
 
@@ -48,5 +48,24 @@ describe('sửa việc đã lên lịch', () => {
     await editPlanned(deps.db, a.id, '  Khám răng lúc 9h ');
     expect((await listPlanned(deps.db, '2026-10-05'))[0].text).toBe('Khám răng lúc 9h');
     await expect(editPlanned(deps.db, a.id, '  ')).rejects.toThrow('không được để trống');
+  });
+});
+
+describe('mục tiêu cho ngày tương lai', () => {
+  it('đặt, sửa, xoá trống; chỉ cho ngày sau hôm nay', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0));
+    await setPlannedGoal(deps, '2026-10-05', '  Đi khám răng ');
+    expect(await getPlannedGoal(deps.db, '2026-10-05')).toBe('Đi khám răng');
+    await setPlannedGoal(deps, '2026-10-05', '   ');
+    expect(await getPlannedGoal(deps.db, '2026-10-05')).toBe('');
+    await expect(setPlannedGoal(deps, '2026-10-02', 'A')).rejects.toThrow('Chỉ lên lịch được cho ngày sau hôm nay');
+  });
+
+  it('đến ngày đó: mục tiêu thành mục tiêu của ngày rồi được xoá khỏi danh sách chờ', async () => {
+    const { deps, clock } = makeDeps(new Date(2026, 9, 2, 10, 0));
+    await setPlannedGoal(deps, '2026-10-03', 'Ngày dọn nhà');
+    clock.current = new Date(2026, 9, 3, 8, 0);
+    expect((await ensureToday(deps)).title).toBe('Ngày dọn nhà');
+    expect(await getPlannedGoal(deps.db, '2026-10-03')).toBe('');
   });
 });

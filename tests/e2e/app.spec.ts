@@ -151,9 +151,9 @@ test('ô đầu danh sách là tiêu đề ngày và còn sau khi tải lại', 
   await page.clock.setFixedTime(at('2026-10-02T10:00:00'));
   await page.goto('/');
   await openToday(page);
-  await page.getByLabel('Tiêu đề hôm nay').fill('Ngày dọn nhà');
-  await page.getByLabel('Tiêu đề hôm nay').press('Enter');
-  await expect(page.getByLabel('Tiêu đề hôm nay')).not.toBeFocused();
+  await page.getByLabel('Mục tiêu hôm nay').fill('Ngày dọn nhà');
+  await page.getByLabel('Mục tiêu hôm nay').press('Enter');
+  await expect(page.getByLabel('Mục tiêu hôm nay')).not.toBeFocused();
   // chờ ghi xong vào IndexedDB rồi mới tải lại
   await expect
     .poll(() =>
@@ -171,7 +171,7 @@ test('ô đầu danh sách là tiêu đề ngày và còn sau khi tải lại', 
     .toBe('Ngày dọn nhà');
   await page.reload();
   await openToday(page);
-  await expect(page.getByLabel('Tiêu đề hôm nay')).toHaveValue('Ngày dọn nhà');
+  await expect(page.getByLabel('Mục tiêu hôm nay')).toHaveValue('Ngày dọn nhà');
 });
 
 test('việc chia 3 buổi; tick xong thì cây khen', async ({ page }) => {

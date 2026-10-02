@@ -41,3 +41,15 @@ export async function editPlanned(db: PlantDB, id: string, text: string): Promis
   if (!clean) throw new Error('Nội dung việc cần làm không được để trống');
   await db.planned.update(id, { text: clean });
 }
+
+/** Đặt mục tiêu cho ngày sau hôm nay; nội dung trống thì xoá mục tiêu. */
+export async function setPlannedGoal(deps: DayDeps, date: string, title: string): Promise<void> {
+  if (date <= dayKey(deps.now())) throw new Error('Chỉ lên lịch được cho ngày sau hôm nay');
+  const clean = title.trim();
+  if (clean) await deps.db.plannedGoals.put({ date, title: clean });
+  else await deps.db.plannedGoals.delete(date);
+}
+
+export async function getPlannedGoal(db: PlantDB, date: string): Promise<string> {
+  return (await db.plannedGoals.get(date))?.title ?? '';
+}

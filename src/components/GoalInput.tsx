@@ -1,7 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 
-/** Ô tiêu đề của ngày hôm nay: lưu khi rời ô (Enter cũng rời ô). */
-export function DayTitleInput({ value, onSave }: { value: string; onSave: (title: string) => void }) {
+/** Ô mục tiêu của một ngày: lưu khi rời ô (Enter cũng rời ô). */
+export function GoalInput({ value, label, placeholder, onSave }: {
+  value: string;
+  label: string;
+  placeholder: string;
+  onSave: (goal: string) => void;
+}) {
   const [draft, setDraft] = useState(value);
   const inputRef = useRef<HTMLInputElement>(null);
   useEffect(() => setDraft(value), [value]);
@@ -21,8 +26,8 @@ export function DayTitleInput({ value, onSave }: { value: string; onSave: (title
         onBlur={() => {
           if (draft.trim() !== value) onSave(draft);
         }}
-        placeholder="Đặt tiêu đề cho hôm nay…"
-        aria-label="Tiêu đề hôm nay"
+        placeholder={placeholder}
+        aria-label={label}
         maxLength={60}
         enterKeyHint="done"
       />

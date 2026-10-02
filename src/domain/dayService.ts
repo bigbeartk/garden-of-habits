@@ -23,12 +23,13 @@ export class LockedDayError extends Error {
 export async function ensureToday(deps: DayDeps): Promise<DayRecord> {
   const { db } = deps;
   const date = dayKey(deps.now());
-  return db.transaction('rw', db.days, db.templates, db.planned, async () => {
+  return db.transaction('rw', [db.days, db.templates, db.planned, db.plannedGoals], async () => {
     const existing = await db.days.get(date);
     if (existing) return existing;
     const template = (await db.templates.toArray()).find((t) => t.isDefault);
     // việc đã lên lịch cho hôm nay: vào sau việc của mẫu, rồi xoá khỏi danh sách chờ
     const planned = await db.planned.where('date').equals(date).sortBy('createdAt');
+    const goal = await db.plannedGoals.get(date);
     const plant = pickUniform(deps.catalog.plants, deps.rng);
     const ts = deps.now().getTime();
     const record: DayRecord = {
@@ -37,7 +38,7 @@ export async function ensureToday(deps: DayDeps): Promise<DayRecord> {
       potId: plant.defaultPotId,
       specialId: rollSpecial(deps.catalog.specials, deps.rng),
       isRestDay: false,
-      title: '',
+      title: goal?.title ?? '',
       greetedAt: null,
       note: '',
       todos: toTodos([...(template?.items ?? []), ...planned], 0),
@@ -47,6 +48,7 @@ export async function ensureToday(deps: DayDeps): Promise<DayRecord> {
     };
     await db.days.add(record);
     await db.planned.bulkDelete(planned.map((p) => p.id));
+    if (goal) await db.plannedGoals.delete(date);
     return record;
   });
 }
