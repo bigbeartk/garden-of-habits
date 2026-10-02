@@ -4,6 +4,13 @@ import { TodayScreen } from '../../../src/screens/TodayScreen';
 import { CATALOG } from '../../../src/content/catalog';
 import { makeDay, makeDeps, renderWithDeps } from '../helpers';
 
+async function addTodoViaPopup(user: ReturnType<typeof userEvent.setup>, text: string) {
+  await user.click(await screen.findByRole('button', { name: 'Thêm việc mới' }));
+  const dialog = await screen.findByRole('dialog', { name: 'Thêm việc cần làm' });
+  await user.type(within(dialog).getByLabelText('Nội dung việc'), `${text}{Enter}`);
+  return dialog;
+}
+
 const setup = () => {
   const { deps, clock } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
   const user = userEvent.setup();
@@ -14,7 +21,7 @@ const setup = () => {
 describe('TodayScreen', () => {
   it('thêm và tick việc làm cây lớn', async () => {
     const { user } = setup();
-    await user.type(await screen.findByLabelText('Thêm việc cần làm'), 'Uống nước{Enter}');
+    await addTodoViaPopup(user, 'Uống nước');
     const box = await screen.findByRole('checkbox', { name: 'Hoàn thành: Uống nước' });
     expect(screen.getByTestId('plant-scene')).toHaveAttribute('data-stage', 'seed');
     await user.click(box);
@@ -30,11 +37,12 @@ describe('TodayScreen', () => {
 
   it('ngày tiết kiệm năng lượng: ẩn danh sách, cây ngủ, giữ việc', async () => {
     const { deps, user } = setup();
-    await user.type(await screen.findByLabelText('Thêm việc cần làm'), 'Dọn nhà{Enter}');
+    await addTodoViaPopup(user, 'Dọn nhà');
     await screen.findByRole('checkbox', { name: 'Hoàn thành: Dọn nhà' });
     await user.click(screen.getByRole('button', { name: 'Ngày tiết kiệm năng lượng' }));
     expect(await screen.findByTestId('rest-message')).toBeInTheDocument();
-    expect(screen.queryByLabelText('Thêm việc cần làm')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Thêm việc mới' })).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Tiêu đề hôm nay')).not.toBeInTheDocument();
     expect(screen.getByTestId('plant-scene')).toHaveAttribute('data-mode', 'sleeping');
     expect((await deps.db.days.get('2026-10-02'))!.todos).toHaveLength(1);
     await user.click(screen.getByRole('button', { name: 'Thức dậy' }));
@@ -68,5 +76,39 @@ describe('TodayScreen cây đặc biệt', () => {
     await deps.db.days.put(makeDay({ date: '2026-10-02', plantId: 'cherry', potId: 'polka', specialId: 'glow' }));
     renderWithDeps(<TodayScreen />, deps);
     expect(await screen.findByTestId('special-intro')).toHaveTextContent('Phát sáng');
+  });
+});
+
+describe('TodayScreen tiêu đề ngày và nút thêm việc', () => {
+  it('ô ở đầu danh sách là tiêu đề ngày, lưu khi Enter', async () => {
+    const { deps, user } = setup();
+    const input = await screen.findByLabelText('Tiêu đề hôm nay');
+    expect(input).toHaveAttribute('placeholder', 'Đặt tiêu đề cho hôm nay…');
+    await user.type(input, 'Ngày dọn nhà{Enter}');
+    await waitFor(async () => expect((await deps.db.days.get('2026-10-02'))!.title).toBe('Ngày dọn nhà'));
+    expect((await deps.db.days.get('2026-10-02'))!.todos).toHaveLength(0);
+  });
+
+  it('tiêu đề lưu khi chạm ra ngoài ô và hiện lại khi mở màn hình', async () => {
+    const { deps, user } = setup();
+    await user.type(await screen.findByLabelText('Tiêu đề hôm nay'), 'Thứ Sáu vui vẻ');
+    await user.click(screen.getByRole('heading', { name: 'Hôm nay' }));
+    await waitFor(async () => expect((await deps.db.days.get('2026-10-02'))!.title).toBe('Thứ Sáu vui vẻ'));
+  });
+
+  it('popup thêm việc vẫn mở để thêm liên tiếp nhiều việc', async () => {
+    const { deps, user } = setup();
+    const dialog = await addTodoViaPopup(user, 'Việc một');
+    await user.type(within(dialog).getByLabelText('Nội dung việc'), 'Việc hai');
+    await user.click(within(dialog).getByRole('button', { name: 'Thêm' }));
+    await waitFor(async () => expect((await deps.db.days.get('2026-10-02'))!.todos.map((t) => t.text)).toEqual(['Việc một', 'Việc hai']));
+    expect(within(dialog).getByLabelText('Nội dung việc')).toHaveValue('');
+    expect(screen.getByRole('dialog', { name: 'Thêm việc cần làm' })).toBeInTheDocument();
+  });
+
+  it('nội dung trống thì không thêm việc', async () => {
+    const { deps, user } = setup();
+    await addTodoViaPopup(user, '   ');
+    expect((await deps.db.days.get('2026-10-02'))!.todos).toHaveLength(0);
   });
 });

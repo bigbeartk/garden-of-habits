@@ -6,44 +6,21 @@ import './todo.css';
 export interface TodoListProps {
   todos: Todo[];
   onToggle: (id: string) => void;
-  onAdd: (text: string) => void;
   onEdit: (id: string, text: string) => void;
   onDelete: (id: string) => void;
   onReorder: (ids: string[]) => void;
 }
 
-export function TodoList({ todos, onToggle, onAdd, onEdit, onDelete, onReorder }: TodoListProps) {
+export function TodoList({ todos, onToggle, onEdit, onDelete, onReorder }: TodoListProps) {
   const [items, setItems] = useState(todos);
   const itemsRef = useRef(items);
   itemsRef.current = items;
   useEffect(() => setItems(todos), [todos]);
-  const [draft, setDraft] = useState('');
 
   return (
     <div className="todo">
-      <form
-        className="todo__add"
-        onSubmit={(e) => {
-          e.preventDefault();
-          const text = draft.trim();
-          if (!text) return;
-          onAdd(text);
-          setDraft('');
-        }}
-      >
-        <input
-          className="input"
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          placeholder="Thêm việc cần làm…"
-          aria-label="Thêm việc cần làm"
-          maxLength={200}
-          enterKeyHint="done"
-        />
-        <button className="btn btn--primary btn--round" type="submit" aria-label="Thêm">＋</button>
-      </form>
       {items.length === 0 ? (
-        <p className="todo__empty muted">Chưa có việc nào. Thêm một việc nhỏ để tưới cây nhé 💧</p>
+        <p className="todo__empty muted">Chưa có việc nào. Bấm ＋ để thêm việc và tưới cây nhé 💧</p>
       ) : (
         <Reorder.Group axis="y" values={items} onReorder={setItems} className="todo__list" as="ul">
           {items.map((t) => (

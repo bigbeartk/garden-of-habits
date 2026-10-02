@@ -34,6 +34,7 @@ export async function ensureToday(deps: DayDeps): Promise<DayRecord> {
       potId: plant.defaultPotId,
       specialId: rollSpecial(deps.catalog.specials, deps.rng),
       isRestDay: false,
+      title: '',
       greetedAt: null,
       note: '',
       todos: toTodos(template?.items ?? [], 0),
@@ -166,5 +167,11 @@ export function setNote(deps: DayDeps, date: string, note: string): Promise<DayR
 export function markGreeted(deps: DayDeps, date: string): Promise<DayRecord> {
   return mutateDay(deps, date, 'today-only', (d) => {
     d.greetedAt = deps.now().getTime();
+  });
+}
+
+export function setTitle(deps: DayDeps, date: string, title: string): Promise<DayRecord> {
+  return mutateDay(deps, date, 'today-only', (d) => {
+    d.title = title.trim();
   });
 }

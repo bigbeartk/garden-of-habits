@@ -58,7 +58,9 @@ src/
   - ≥ 50% → `bud` (ra chồi)
   - 100% → `bloom` (ra hoa)
 - **Ngày đã qua bị khoá** (`LockedDayError`): chỉ sửa được ghi chú.
-- **Chỉ hôm nay** mới được: thêm/sửa/xoá/tick/sắp xếp todo, đổi cây, đổi chậu, bật ngày tiết kiệm năng lượng.
+- **Chỉ hôm nay** mới được: thêm/sửa/xoá/tick/sắp xếp todo, đặt **tiêu đề ngày** (`setTitle`), đổi cây, đổi chậu, bật ngày tiết kiệm năng lượng.
+- **Tiêu đề ngày** (`title`): ô ở đầu danh sách màn Hôm nay, lưu khi rời ô hoặc Enter, tối đa 60 ký tự. Ngày đã qua chỉ xem được tiêu đề trong bảng chi tiết ngày ở Lịch.
+- **Thêm việc:** nút ＋ nổi cố định ở góc phải dưới, ngay trên thanh tab (không cuộn theo danh sách), mở popup "Thêm việc cần làm". Popup không tự đóng sau mỗi lần thêm, để thêm liên tiếp. Nút bị ẩn trong ngày tiết kiệm năng lượng.
 - **Đổi cây:** nếu đang dùng chậu mặc định của cây cũ thì chậu đổi theo cây mới; nếu người dùng đã tự chọn chậu khác thì giữ chậu đó. Không đổi `specialId`.
 - **Ngày tiết kiệm năng lượng** (`isRestDay`): todo bị ẩn nhưng vẫn giữ, cây hiện hình hạt giống ôm gối ngủ.
 - **Chào hỏi:** lần đầu trong ngày (`greetedAt === null`), App tự chuyển sang tab Hôm nay, cây nói một câu ngẫu nhiên (câu chung + câu riêng của loài), rồi ghi `greetedAt`. Nếu là cây đặc biệt thì hiện thêm khung ✨ giới thiệu.
@@ -180,6 +182,7 @@ interface DayRecord {
   potId: string;
   specialId: string | null;
   isRestDay: boolean;
+  title?: string;            // tiêu đề ngày; bản ghi cũ không có → coi là ''
   greetedAt: number | null;  // ms; null = chưa chào hôm nay
   note: string;
   todos: Todo[];             // luôn lưu theo order tăng dần, order = 0..n-1
@@ -242,7 +245,7 @@ Tên file: `chau-cay-backup-YYYY-MM-DD.json`. Khi lưu, app mở menu Chia sẻ 
 - **Màn Lịch:** căn giữa theo chiều dọc. Khi có ảnh nền, thẻ tháng và lưới ngày nhận class `is-glass` (kính mờ trong suốt, `backdrop-filter`), chữ có viền sáng để dễ đọc.
 - **Tôn trọng** `prefers-reduced-motion`, safe-area (`env(safe-area-inset-*)`) và chiều cao `100dvh`.
 - **Các label và `data-testid` mà test dựa vào, không đổi tuỳ tiện:**
-  - `Thêm việc cần làm`, `Hoàn thành: <việc>`
+  - `Tiêu đề hôm nay`, `Thêm việc mới` (nút ＋), popup `Thêm việc cần làm` với ô `Nội dung việc` + nút `Thêm`, `Hoàn thành: <việc>`
   - `Đổi cây`, `Đổi chậu`, `Ghi chú`, `Ngày tiết kiệm năng lượng` / `Thức dậy`
   - `＋ Mẫu mới`, `Tên mẫu`, `Đặt làm mặc định: <tên>`
   - `💾 Sao lưu dữ liệu`

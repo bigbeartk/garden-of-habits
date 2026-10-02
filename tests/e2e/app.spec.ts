@@ -8,8 +8,12 @@ async function openToday(page: Page) {
 }
 
 async function addTodo(page: Page, text: string) {
-  await page.getByLabel('Thêm việc cần làm').fill(text);
-  await page.getByRole('button', { name: 'Thêm', exact: true }).click();
+  if (!(await page.getByRole('dialog', { name: 'Thêm việc cần làm' }).isVisible())) {
+    await page.getByRole('button', { name: 'Thêm việc mới' }).click();
+  }
+  const dialog = page.getByRole('dialog', { name: 'Thêm việc cần làm' });
+  await dialog.getByLabel('Nội dung việc').fill(text);
+  await dialog.getByRole('button', { name: 'Thêm', exact: true }).click();
   await expect(page.getByRole('checkbox', { name: `Hoàn thành: ${text}` })).toBeVisible();
 }
 
@@ -19,6 +23,8 @@ test('tick việc làm cây lớn và dữ liệu còn sau khi tải lại', asy
   await openToday(page);
   await addTodo(page, 'Uống nước');
   await addTodo(page, 'Đọc sách');
+  await page.getByRole('dialog', { name: 'Thêm việc cần làm' }).getByRole('button', { name: 'Đóng' }).click();
+  await expect(page.getByRole('dialog', { name: 'Thêm việc cần làm' })).toBeHidden();
   const scene = page.getByTestId('plant-scene');
   await expect(scene).toHaveAttribute('data-stage', 'seed');
   await page.getByRole('checkbox', { name: 'Hoàn thành: Uống nước' }).click();
@@ -110,4 +116,52 @@ test('lịch nằm giữa màn hình (theo chiều dọc, phía trên thanh tab)
   const topGap = head.y;
   const bottomGap = tabbar.y - (footer.y + footer.height);
   expect(Math.abs(topGap - bottomGap), `trên ${topGap}px, dưới ${bottomGap}px`).toBeLessThan(40);
+});
+
+test('nút ＋ đứng yên ở góc phải dưới khi cuộn danh sách dài', async ({ page }) => {
+  await page.clock.setFixedTime(at('2026-10-02T10:00:00'));
+  await page.goto('/');
+  await openToday(page);
+  for (let i = 1; i <= 12; i++) await addTodo(page, `Việc số ${i}`);
+  await page.getByRole('dialog', { name: 'Thêm việc cần làm' }).getByRole('button', { name: 'Đóng' }).click();
+  await expect(page.getByRole('dialog', { name: 'Thêm việc cần làm' })).toBeHidden();
+  const fab = page.getByRole('button', { name: 'Thêm việc mới' });
+  const before = (await fab.boundingBox())!;
+  const vp = page.viewportSize()!;
+  expect(before.x + before.width).toBeGreaterThan(vp.width - 40);
+  const tabbar = (await page.getByRole('navigation', { name: 'Điều hướng' }).boundingBox())!;
+  expect(before.y + before.height).toBeLessThanOrEqual(tabbar.y);
+  await page.locator('.app__main').evaluate((el) => el.scrollTo(0, el.scrollHeight));
+  await expect(page.getByRole('checkbox', { name: 'Hoàn thành: Việc số 12' })).toBeInViewport();
+  const after = (await fab.boundingBox())!;
+  expect(after.y).toBeCloseTo(before.y, 0);
+  await fab.click();
+  await expect(page.getByRole('dialog', { name: 'Thêm việc cần làm' })).toBeVisible();
+});
+
+test('ô đầu danh sách là tiêu đề ngày và còn sau khi tải lại', async ({ page }) => {
+  await page.clock.setFixedTime(at('2026-10-02T10:00:00'));
+  await page.goto('/');
+  await openToday(page);
+  await page.getByLabel('Tiêu đề hôm nay').fill('Ngày dọn nhà');
+  await page.getByLabel('Tiêu đề hôm nay').press('Enter');
+  await expect(page.getByLabel('Tiêu đề hôm nay')).not.toBeFocused();
+  // chờ ghi xong vào IndexedDB rồi mới tải lại
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          new Promise<string | undefined>((resolve) => {
+            const req = indexedDB.open('chau-cay-chibi');
+            req.onsuccess = () => {
+              const get = req.result.transaction('days').objectStore('days').get('2026-10-02');
+              get.onsuccess = () => resolve(get.result?.title);
+            };
+          }),
+      ),
+    )
+    .toBe('Ngày dọn nhà');
+  await page.reload();
+  await openToday(page);
+  await expect(page.getByLabel('Tiêu đề hôm nay')).toHaveValue('Ngày dọn nhà');
 });

@@ -1,6 +1,6 @@
 import {
   LockedDayError, addTodo, addTodos, changePlant, changePot, deleteTodo, editTodo,
-  ensureToday, markGreeted, reorderTodos, setNote, setRestDay, toggleTodo,
+  ensureToday, markGreeted, reorderTodos, setNote, setRestDay, setTitle, toggleTodo,
 } from '../../../src/domain/dayService';
 import { makeDay, makeDeps } from '../helpers';
 
@@ -153,5 +153,26 @@ describe('ngày nghỉ, đổi cây, đổi chậu, chào hỏi', () => {
     const { deps } = makeDeps();
     const { date } = await ensureToday(deps);
     expect((await markGreeted(deps, date)).greetedAt).toBe(deps.now().getTime());
+  });
+});
+
+describe('tiêu đề ngày', () => {
+  it('ngày mới có tiêu đề trống', async () => {
+    const { deps } = makeDeps();
+    expect((await ensureToday(deps)).title).toBe('');
+  });
+
+  it('setTitle cắt khoảng trắng, cho phép xoá trống', async () => {
+    const { deps } = makeDeps();
+    const { date } = await ensureToday(deps);
+    expect((await setTitle(deps, date, '  Ngày dọn nhà 🧹  ')).title).toBe('Ngày dọn nhà 🧹');
+    expect((await setTitle(deps, date, '   ')).title).toBe('');
+  });
+
+  it('ngày đã qua không sửa được tiêu đề', async () => {
+    const { deps, clock } = makeDeps();
+    const { date } = await ensureToday(deps);
+    clock.current = new Date(2026, 9, 3, 9, 0);
+    await expect(setTitle(deps, date, 'muộn')).rejects.toBeInstanceOf(LockedDayError);
   });
 });

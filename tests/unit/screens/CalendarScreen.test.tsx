@@ -88,3 +88,17 @@ describe('CalendarScreen trong suốt khi có ảnh nền', () => {
     expect(screen.getByTestId('calendar-head')).toHaveClass('is-glass');
   });
 });
+
+describe('CalendarScreen tiêu đề ngày', () => {
+  it('bảng chi tiết ngày cũ hiện tiêu đề (chỉ để xem)', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 15, 10, 0), CATALOG);
+    await deps.db.days.put(makeDay({ date: '2026-10-02', title: 'Đi chơi công viên' }));
+    const user = userEvent.setup();
+    renderWithDeps(<CalendarScreen />, deps);
+    await waitFor(() => expect(screen.getByTestId('day-2026-10-02')).toHaveAttribute('data-status', 'plant'));
+    await user.click(screen.getByTestId('day-2026-10-02'));
+    const dialog = await screen.findByRole('dialog', { name: 'Thứ Sáu, 02/10/2026' });
+    expect(within(dialog).getByRole('heading', { name: 'Đi chơi công viên' })).toBeInTheDocument();
+    expect(within(dialog).queryByLabelText('Tiêu đề hôm nay')).not.toBeInTheDocument();
+  });
+});

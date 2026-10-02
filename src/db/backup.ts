@@ -21,6 +21,7 @@ const DaySchema = z.object({
   potId: z.string(),
   specialId: z.string().nullable(),
   isRestDay: z.boolean(),
+  title: z.string().optional(),
   greetedAt: z.number().nullable(),
   note: z.string(),
   todos: z.array(TodoSchema),

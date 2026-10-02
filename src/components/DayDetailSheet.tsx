@@ -39,6 +39,7 @@ export function DayDetailSheet({ dateKey, todayKey, status, record, onClose, onG
     <BottomSheet open={open} title={dateKey ? longDateLabel(dateKey) : ''} onClose={onClose}>
       {open && (
         <div className="detail">
+          {record?.title && <h3 className="detail__title">{record.title}</h3>}
           <div className="detail__scene"><MiniPlant status={status!} record={record} /></div>
           {status === 'plant' && record && (
             <p className="detail__line">{getSpecies(record.plantId).name} · {STAGE_LABEL[record.finalStage]}</p>

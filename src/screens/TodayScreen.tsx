@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useDeps } from '../app/deps';
 import { useNav } from '../app/nav';
+import { AddTodoSheet } from '../components/AddTodoSheet';
+import { DayTitleInput } from '../components/DayTitleInput';
 import { IconButton } from '../components/IconButton';
 import { NoteSheet } from '../components/NoteSheet';
 import { PlantPickerSheet } from '../components/PlantPickerSheet';
@@ -16,7 +18,7 @@ import { pickGreeting } from '../content/greetings';
 import { getSpecies } from '../content/plants/registry';
 import { getSpecial } from '../content/specials/registry';
 import {
-  addTodo, changePlant, changePot, deleteTodo, editTodo, markGreeted, reorderTodos, setNote, setRestDay, toggleTodo,
+  addTodo, changePlant, changePot, deleteTodo, editTodo, markGreeted, reorderTodos, setNote, setRestDay, setTitle, toggleTodo,
 } from '../domain/dayService';
 import { stageIndex } from '../domain/growth';
 import { timeOfDay } from '../domain/timeOfDay';
@@ -24,7 +26,7 @@ import { useBackupReminder } from '../hooks/useBackupReminder';
 import { useToday } from '../hooks/useToday';
 import './today.css';
 
-type Sheet = null | 'plant' | 'pot' | 'note';
+type Sheet = null | 'plant' | 'pot' | 'note' | 'add';
 
 export function TodayScreen() {
   const deps = useDeps();
@@ -142,10 +144,10 @@ export function TodayScreen() {
               <h1 className="screen__title">Hôm nay</h1>
               <span className="pill">{doneCount}/{day.todos.length} việc</span>
             </header>
+            <DayTitleInput value={day.title ?? ''} onSave={(title) => run(setTitle(deps, day.date, title))} />
             <TodoList
               todos={day.todos}
               onToggle={handleToggle}
-              onAdd={(t) => run(addTodo(deps, day.date, t))}
               onEdit={(id, t) => run(editTodo(deps, day.date, id, t))}
               onDelete={(id) => run(deleteTodo(deps, day.date, id))}
               onReorder={(ids) => run(reorderTodos(deps, day.date, ids))}
@@ -154,6 +156,12 @@ export function TodayScreen() {
         )}
       </div>
 
+      {!day.isRestDay && (
+        <button type="button" className="fab" aria-label="Thêm việc mới" onClick={() => setSheet('add')}>
+          <span aria-hidden="true">＋</span>
+        </button>
+      )}
+      <AddTodoSheet open={sheet === 'add'} onClose={() => setSheet(null)} onAdd={(t) => run(addTodo(deps, day.date, t))} />
       <PlantPickerSheet
         open={sheet === 'plant'}
         currentId={day.plantId}

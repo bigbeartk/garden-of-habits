@@ -118,3 +118,23 @@ describe('parseBackup báo lỗi tiếng Việt', () => {
     if (!r.ok) expect(r.error).toBe('File sao lưu bị hỏng hoặc thiếu dữ liệu (ở "calendarBg.base64").');
   });
 });
+
+describe('tương thích file sao lưu cũ', () => {
+  it('ngày không có trường title (bản app cũ) vẫn khôi phục được', async () => {
+    const day = makeDay({ date: '2026-10-01', note: 'cũ' }) as unknown as Record<string, unknown>;
+    delete day.title;
+    const r = parseBackup(JSON.stringify({ format: BACKUP_FORMAT, schemaVersion: 1, exportedAt: 1, days: [day], templates: [], calendarBg: null }));
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    const db = makeDb();
+    await restoreBackup(db, r.backup, 'replace');
+    expect((await db.days.get('2026-10-01'))!.note).toBe('cũ');
+  });
+
+  it('tiêu đề được giữ khi sao lưu rồi khôi phục', async () => {
+    const src = makeDb();
+    await src.days.put(makeDay({ date: '2026-10-01', title: 'Ngày đẹp' }));
+    const r = parseBackup(serializeBackup(await createBackup(src, 1)));
+    expect(r.ok && r.backup.days[0].title).toBe('Ngày đẹp');
+  });
+});

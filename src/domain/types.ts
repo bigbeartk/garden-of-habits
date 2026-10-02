@@ -15,6 +15,8 @@ export interface DayRecord {
   potId: string;
   specialId: string | null;
   isRestDay: boolean;
+  /** tiêu đề do người dùng đặt cho ngày; bản ghi cũ (trước khi có tính năng) không có trường này */
+  title?: string;
   greetedAt: number | null;
   note: string;
   /** luôn được lưu theo thứ tự `order` tăng dần */
