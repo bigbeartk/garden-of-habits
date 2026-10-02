@@ -37,7 +37,7 @@ export function FutureDayScreen({ date, onBack }: { date: string; onBack: () => 
           <button type="button" className="future__back" aria-label="Quay lại Lịch" onClick={onBack}>
             <span aria-hidden="true">‹</span> Lịch
           </button>
-          <SpeechBubble text={`Hẹn gặp bạn vào ${weekday} nha! Chưa biết mình sẽ là cây gì đâu 🌱`} />
+          <SpeechBubble text={`Hẹn gặp bạn vào ${weekday} nha! 🌱`} />
           <PlantScene
             className="today__plant"
             plantId=""
