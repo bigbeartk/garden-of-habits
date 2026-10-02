@@ -60,7 +60,7 @@ export interface PlannedGoal {
 }
 
 /** Kiểu hình nền màn Lịch: mặc định, nền động (mèo vươn vai / cỏ nở) hoặc ảnh người dùng chọn. */
-export type CalendarTheme = 'default' | 'cat' | 'grass' | 'photo';
+export type CalendarTheme = 'default' | 'cat' | 'grass' | 'rain' | 'gamer' | 'photo';
 
 export interface CalendarBg {
   mime: string;

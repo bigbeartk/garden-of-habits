@@ -1,4 +1,4 @@
-# Chậu Cây Chibi 🌱
+# Garden of Habits 🌱
 
 App todo nuôi cây chibi cho iPhone — chạy offline, không cần tài khoản, không cần App Store.
 

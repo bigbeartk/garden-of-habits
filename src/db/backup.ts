@@ -63,7 +63,7 @@ const BackupSchema = z.object({
   planned: z.array(PlannedSchema).default([]), // file phiên bản 1–2 chưa có
   plannedGoals: z.array(z.object({ date: z.string(), title: z.string() })).default([]), // file phiên bản 1–3 chưa có
   calendarBg: z.object({ mime: z.string(), base64: z.string().regex(/^[A-Za-z0-9+/]*={0,2}$/) }).nullable(),
-  calendarTheme: z.enum(['default', 'cat', 'grass', 'photo']).optional(), // file cũ chưa có
+  calendarTheme: z.enum(['default', 'cat', 'grass', 'rain', 'gamer', 'photo']).optional(), // file cũ chưa có
 });
 
 export type BackupFile = z.infer<typeof BackupSchema>;
@@ -125,7 +125,7 @@ export function parseBackup(text: string): ParseResult {
     return { ok: false, error: 'File không phải JSON hợp lệ.' };
   }
   if (typeof raw !== 'object' || raw === null || (raw as { format?: unknown }).format !== BACKUP_FORMAT) {
-    return { ok: false, error: 'Đây không phải file sao lưu của Chậu Cây Chibi.' };
+    return { ok: false, error: 'Đây không phải file sao lưu của Garden of Habits.' };
   }
   const version = (raw as { schemaVersion?: unknown }).schemaVersion;
   if (typeof version === 'number' && version > SCHEMA_VERSION) {

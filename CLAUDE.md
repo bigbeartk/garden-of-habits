@@ -1,4 +1,4 @@
-# Chậu Cây Chibi (garden-of-habits)
+# Garden of Habits (trước đây: Chậu Cây Chibi)
 
 PWA todo cho iPhone, có phần "nuôi cây": mỗi việc làm xong là một lần tưới cây, cây lớn qua 4 giai đoạn, có lịch dễ thương lưu lại cây của từng ngày.
 - Chạy offline, không cần tài khoản, không lên App Store.
@@ -267,9 +267,11 @@ File thiếu `planned` (phiên bản 1–2) hoặc `plannedGoals` (phiên bản 
   - **Không dùng `height: 100%` + `width: auto` cho SVG**: Safari tính sai và đẩy hàng 4 nút ra khỏi khung.
 - **Điều hướng = menu nổi** (`app/TabBar.tsx`): không còn thanh tab ở đáy. Chỉ có một nút tròn (icon bông hoa) cố định ở góc phải dưới, nằm **ngay dưới nút ＋** và có mặt ở cả 4 màn. Bấm vào thì dải 4 tab (Lịch, Hôm nay, Mẫu, Cài đặt) **trượt từ nút ra bên trái** (`clipPath` + các tab hiện lần lượt, tab gần nút hiện trước), nút chuyển thành ✕; bấm lần nữa thì trượt ngược về. Mặc định thu gọn khi mở app. **Chọn tab không đóng dải tab.** `--tabbar-h` (60px) là cỡ nút menu và nút ＋.
 - **Icon:** không dùng emoji cho icon chức năng; dùng bộ SVG tự vẽ trong `components/icons.tsx` (khung 32×32, viền cocoa, màu pastel, `data-icon` để test). Hiện có: `calendar`, `sprout`, `clipboard`, `gear` (4 tab), `menu`, `close`, `back`, `plant-swap`, `pot`, `note`, `sleep-seed` (hạt giống đội mũ ngủ), `sun` (4 nút dưới chậu; ngày nghỉ đổi `sleep-seed` → `sun`), `period-morning` / `period-afternoon` / `period-evening` (dùng qua `<PeriodIcon period>` ở mọi chỗ hiện buổi: Hôm nay, ngày tương lai, popup chọn buổi, thẻ mẫu, bảng chi tiết). Ô đánh dấu việc trong bảng chi tiết là `.detail__check` tự vẽ, không dùng emoji ✅/⬜. `IconButton` nhận `icon: ReactNode`.
-- **Hình nền Lịch** (`BackgroundPicker`, radiogroup `Hình nền lịch`, setting `calendarTheme`: `default | cat | grass | photo`):
+- **Hình nền Lịch** (`BackgroundPicker`, radiogroup `Hình nền lịch`, setting `calendarTheme`: `default | cat | grass | rain | gamer | photo`). Trên màn Lịch chỉ có **một nút tròn icon xem trước** (không chữ, nhãn `Đổi hình nền lịch (đang dùng: …)`) mở BottomSheet 6 lựa chọn (lưới 3 cột), chọn xong tự đóng; cùng bộ chọn có trong Cài đặt:
   - `cat` = **Mèo vươn vai** (`components/backgrounds/CatStretchScene.tsx`): nền pastel, mèo chibi duỗi người ở góc trái dưới, đuôi ve vẩy, tim bay lên.
-  - `grass` = **Cỏ nở** (`GrassBloomScene.tsx`): nền xanh, cỏ mọc lên rồi đung đưa, hoa nhỏ nở dần.
+  - `grass` = **Cỏ nở** (`GrassBloomScene.tsx`): nền xanh, **chu kỳ 10s**: cỏ mọc lên, đung đưa, hoa nở, thu lại, mọc lại.
+  - `rain` = **Mưa chill** (`RainChillScene.tsx`): cửa sổ đêm mưa xanh tím, giọt nước chảy trên kính, nến + tách trà bốc khói.
+  - `gamer` = **Gaming neon** (`NeonGamerScene.tsx`): phòng tím than, đèn neon, cô gái đeo tai nghe neon trước PC, bàn phím RGB, nốt nhạc bay.
   - Nền động vẽ bằng SVG khung 390×844 (`preserveAspectRatio="xMidYMax slice"`) + keyframes trong `backgrounds.css`; tắt chuyển động khi `prefers-reduced-motion`.
   - `photo` = ảnh người dùng (`calendarBg`). Bản cũ chưa có `calendarTheme`: có ảnh → `photo`, không → `default` (`useCalendarTheme`). Đổi sang kiểu khác **không xoá ảnh**. `calendarTheme` có trong file sao lưu (tuỳ chọn).
 - **Màn Lịch:** căn giữa theo chiều dọc. Khi hình nền khác `default`, thẻ tháng và lưới ngày nhận class `is-glass` (kính mờ trong suốt, `backdrop-filter`), chữ có viền sáng để dễ đọc.
@@ -292,3 +294,4 @@ File thiếu `planned` (phiên bản 1–2) hoặc `plannedGoals` (phiên bản 
 - `setDefaultTemplate` / `deleteTemplate` / `file.text()` thiếu `.catch`, nên lỗi không hiện thông báo.
 - Trợ năng: sửa todo bằng cách chạm vào `<span>`; BottomSheet chưa giữ focus và chưa xử lý Escape; `user-scalable=no`; chưa có cách sắp xếp lại không cần kéo thả.
 - Regex ngày trong file backup chấp nhận cả ngày không tồn tại.
+- Tên hiển thị của app là **Garden of Habits** (`<title>`, manifest `name`/`short_name`, `apple-mobile-web-app-title`). Giữ nguyên tên DB `chau-cay-chibi` và mã định dạng sao lưu `chau-cay-chibi-backup` để không mất dữ liệu cũ.

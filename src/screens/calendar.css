@@ -75,7 +75,7 @@
 .screen--calendar { position: relative; isolation: isolate; }
 .screen--calendar > :not(.bg-scene) { position: relative; z-index: 1; }
 .bg-picker { flex-direction: column; width: 100%; }
-.bg-picker__options { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; width: 100%; }
+.bg-picker__options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; width: 100%; }
 .bg-swatch {
   display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 5px 4px 6px;
   border-radius: var(--radius-sm); border: 2px solid transparent; background: rgba(255, 253, 251, 0.85);
@@ -87,5 +87,17 @@
 .bg-swatch--cat .bg-swatch__preview { background: linear-gradient(180deg, #FFD6DE, #E3D9FF); }
 .bg-swatch--grass .bg-swatch__preview { background: linear-gradient(180deg, #D4F1F9, #9ED9A0); }
 .bg-swatch--photo .bg-swatch__preview { background: var(--sky); }
+.bg-swatch--rain .bg-swatch__preview { background: linear-gradient(180deg, #4A5A8C, #8FA3D6); }
+.bg-swatch--gamer .bg-swatch__preview { background: linear-gradient(180deg, #1A1033, #3B1C66); }
 .bg-swatch__art { width: 80%; height: auto; }
 .bg-swatch__label { text-align: center; }
+/* nút đổi hình nền: chỉ một hình xem trước tròn nhỏ, không chữ */
+.bg-picker__toggle {
+  width: 52px; height: 52px; padding: 3px; display: grid; place-items: center;
+  border-radius: 50%; border: 2.5px solid var(--cocoa); background: var(--white);
+  box-shadow: var(--shadow-pop); cursor: pointer;
+}
+.bg-picker__toggle:active { transform: scale(0.94); }
+.bg-picker__mini { width: 100%; height: 100%; }
+.bg-picker__mini .bg-swatch__preview { width: 100%; height: 100%; aspect-ratio: auto; border-radius: 50%; }
+.bg-picker { align-items: center; }

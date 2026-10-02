@@ -11,8 +11,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'favicon.ico', 'apple-touch-icon-180x180.png'],
       manifest: {
-        name: 'Chậu Cây Chibi',
-        short_name: 'Chậu Cây',
+        name: 'Garden of Habits',
+        short_name: 'Garden of Habits',
         description: 'Làm việc nhỏ mỗi ngày, tưới cây cùng nhau',
         lang: 'vi',
         display: 'standalone',

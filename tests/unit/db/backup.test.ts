@@ -216,3 +216,14 @@ describe('sao lưu kiểu hình nền lịch', () => {
     expect(await getSetting(dst, 'calendarTheme')).toBe('cat');
   });
 });
+
+describe('sao lưu nền mới', () => {
+  it('nhận calendarTheme rain và gamer', async () => {
+    for (const theme of ['rain', 'gamer'] as const) {
+      const src = makeDb();
+      await setSetting(src, 'calendarTheme', theme);
+      const r = parseBackup(serializeBackup(await createBackup(src, 1)));
+      expect(r.ok && r.backup.calendarTheme).toBe(theme);
+    }
+  });
+});

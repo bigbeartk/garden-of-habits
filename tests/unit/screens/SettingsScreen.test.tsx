@@ -1,9 +1,9 @@
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { vi } from 'vitest';
 import { SettingsScreen } from '../../../src/screens/SettingsScreen';
 import { createBackup, serializeBackup } from '../../../src/db/backup';
-import { getSetting } from '../../../src/db/settings';
+import { getSetting, setSetting } from '../../../src/db/settings';
 import { CATALOG } from '../../../src/content/catalog';
 import { makeDay, makeDb, makeDeps, renderWithDeps } from '../helpers';
 
@@ -71,5 +71,45 @@ describe('SettingsScreen nút quay lại', () => {
     expect(back.querySelector('svg[data-icon="back"]')).not.toBeNull();
     await user.click(back);
     expect(nav).toHaveBeenCalledWith('calendar');
+  });
+});
+
+describe('SettingsScreen chọn hình nền lịch', () => {
+  beforeEach(() => {
+    Object.defineProperty(URL, 'createObjectURL', { configurable: true, value: () => 'blob:bg' });
+    Object.defineProperty(URL, 'revokeObjectURL', { configurable: true, value: () => {} });
+  });
+
+  async function openPicker(user: ReturnType<typeof userEvent.setup>) {
+    await user.click(await screen.findByRole('button', { name: /Đổi hình nền lịch/ }));
+    return screen.findByRole('radiogroup', { name: 'Hình nền lịch' });
+  }
+
+  it('có 6 lựa chọn; chọn nền thì lưu và bảng tự đóng', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
+    const user = userEvent.setup();
+    renderWithDeps(<SettingsScreen />, deps);
+    let picker = await openPicker(user);
+    expect(within(picker).getAllByRole('radio')).toHaveLength(6);
+    expect(within(picker).getByRole('radio', { name: /Mặc định/ })).toHaveAttribute('aria-checked', 'true');
+    for (const [name, id] of [[/Mèo vươn vai/, 'cat'], [/Cỏ nở/, 'grass'], [/Mưa chill/, 'rain'], [/Gaming neon/, 'gamer'], [/Mặc định/, 'default']] as const) {
+      await user.click(within(picker).getByRole('radio', { name }));
+      await waitFor(async () => expect(await getSetting(deps.db, 'calendarTheme')).toBe(id));
+      await waitFor(() => expect(screen.queryByRole('radiogroup', { name: 'Hình nền lịch' })).not.toBeInTheDocument());
+      picker = await openPicker(user);
+      expect(within(picker).getByRole('radio', { name })).toHaveAttribute('aria-checked', 'true');
+    }
+  });
+
+  it('đã có ảnh (bản cũ) thì đang chọn Ảnh của bạn; đổi sang nền động vẫn giữ ảnh', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
+    await setSetting(deps.db, 'calendarBg', { mime: 'image/jpeg', data: new Uint8Array([1]).buffer });
+    const user = userEvent.setup();
+    renderWithDeps(<SettingsScreen />, deps);
+    const picker = await openPicker(user);
+    await waitFor(() => expect(within(picker).getByRole('radio', { name: /Ảnh của bạn/ })).toHaveAttribute('aria-checked', 'true'));
+    await user.click(within(picker).getByRole('radio', { name: /Cỏ nở/ }));
+    await waitFor(async () => expect(await getSetting(deps.db, 'calendarTheme')).toBe('grass'));
+    expect(await getSetting(deps.db, 'calendarBg')).toBeDefined();
   });
 });

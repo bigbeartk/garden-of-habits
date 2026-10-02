@@ -16,6 +16,8 @@ import { dayKey, formatDate, parseDayKey } from '../domain/dayKey';
 import { useCalendarBgUrl, useCalendarTheme } from '../hooks/useCalendarBg';
 import { CatStretchScene } from '../components/backgrounds/CatStretchScene';
 import { GrassBloomScene } from '../components/backgrounds/GrassBloomScene';
+import { NeonGamerScene } from '../components/backgrounds/NeonGamerScene';
+import { RainChillScene } from '../components/backgrounds/RainChillScene';
 import { useNow } from '../hooks/useNow';
 import './calendar.css';
 
@@ -69,6 +71,8 @@ export function CalendarScreen() {
     >
       {theme === 'cat' && <CatStretchScene />}
       {theme === 'grass' && <GrassBloomScene />}
+      {theme === 'rain' && <RainChillScene />}
+      {theme === 'gamer' && <NeonGamerScene />}
       <header className={`cal__head card${glass}`} data-testid="calendar-head">
         <button type="button" className="btn btn--round" aria-label="Tháng trước" onClick={() => go(-1)}>‹</button>
         <h1 className="screen__title" aria-live="polite">{monthLabel(view.year, view.month)}</h1>

@@ -4,8 +4,9 @@ import { vi } from 'vitest';
 import { CalendarScreen } from '../../../src/screens/CalendarScreen';
 import { CATALOG } from '../../../src/content/catalog';
 import { makeDay, makeDeps, renderWithDeps } from '../helpers';
-import { getSetting, setSetting } from '../../../src/db/settings';
+import { setSetting } from '../../../src/db/settings';
 import { addPlanned, getPlannedGoal } from '../../../src/domain/plannedService';
+
 
 async function setup() {
   const { deps } = makeDeps(new Date(2026, 9, 15, 10, 0), CATALOG);
@@ -212,43 +213,37 @@ describe('màn ngày tương lai: nút quay lại và mục tiêu', () => {
   });
 });
 
-describe('CalendarScreen hình nền động', () => {
+describe('CalendarScreen hình nền', () => {
   beforeEach(() => {
     Object.defineProperty(URL, 'createObjectURL', { configurable: true, value: () => 'blob:bg' });
     Object.defineProperty(URL, 'revokeObjectURL', { configurable: true, value: () => {} });
   });
 
-  it('chọn Mèo vươn vai rồi Cỏ nở rồi Mặc định', async () => {
+  it('màn Lịch có nút đổi hình nền chỉ là icon (không chữ), bấm mở bảng chọn', async () => {
     const { deps } = makeDeps(new Date(2026, 9, 15, 10, 0), CATALOG);
     const user = userEvent.setup();
     renderWithDeps(<CalendarScreen />, deps);
-    const picker = await screen.findByRole('radiogroup', { name: 'Hình nền lịch' });
-    expect(within(picker).getByRole('radio', { name: /Mặc định/ })).toHaveAttribute('aria-checked', 'true');
-    expect(screen.queryByTestId('calendar-theme-cat')).not.toBeInTheDocument();
-
-    await user.click(within(picker).getByRole('radio', { name: /Mèo vươn vai/ }));
-    expect(await screen.findByTestId('calendar-theme-cat')).toBeInTheDocument();
-    expect(await getSetting(deps.db, 'calendarTheme')).toBe('cat');
-    await waitFor(() => expect(screen.getByTestId('calendar-card')).toHaveClass('is-glass'));
-
-    await user.click(within(picker).getByRole('radio', { name: /Cỏ nở/ }));
-    expect(await screen.findByTestId('calendar-theme-grass')).toBeInTheDocument();
-    expect(screen.queryByTestId('calendar-theme-cat')).not.toBeInTheDocument();
-
-    await user.click(within(picker).getByRole('radio', { name: /Mặc định/ }));
-    await waitFor(() => expect(screen.queryByTestId('calendar-theme-grass')).not.toBeInTheDocument());
-    expect(screen.getByTestId('calendar-card')).not.toHaveClass('is-glass');
+    const toggle = await screen.findByRole('button', { name: /Đổi hình nền lịch/ });
+    expect(toggle.textContent).toBe('');
+    expect(screen.queryByRole('radiogroup', { name: 'Hình nền lịch' })).not.toBeInTheDocument();
+    await user.click(toggle);
+    expect(await screen.findByRole('radiogroup', { name: 'Hình nền lịch' })).toBeInTheDocument();
   });
 
-  it('đã có ảnh nền (bản cũ, chưa chọn kiểu) thì dùng ảnh; chọn nền động thì ảnh vẫn được giữ lại', async () => {
+  it.each(['cat', 'grass', 'rain', 'gamer'] as const)('nền động %s hiện sau lịch, thẻ lịch kính mờ', async (theme) => {
     const { deps } = makeDeps(new Date(2026, 9, 15, 10, 0), CATALOG);
-    await setSetting(deps.db, 'calendarBg', { mime: 'image/jpeg', data: new Uint8Array([1]).buffer });
-    const user = userEvent.setup();
+    await setSetting(deps.db, 'calendarTheme', theme);
     renderWithDeps(<CalendarScreen />, deps);
-    const picker = await screen.findByRole('radiogroup', { name: 'Hình nền lịch' });
-    await waitFor(() => expect(within(picker).getByRole('radio', { name: /Ảnh của bạn/ })).toHaveAttribute('aria-checked', 'true'));
-    await user.click(within(picker).getByRole('radio', { name: /Cỏ nở/ }));
-    expect(await screen.findByTestId('calendar-theme-grass')).toBeInTheDocument();
-    expect(await getSetting(deps.db, 'calendarBg')).toBeDefined();
+    expect(await screen.findByTestId(`calendar-theme-${theme}`)).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByTestId('calendar-card')).toHaveClass('is-glass'));
+  });
+
+  it('mặc định: không có nền động, thẻ lịch trắng', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 15, 10, 0), CATALOG);
+    await setSetting(deps.db, 'calendarTheme', 'default');
+    renderWithDeps(<CalendarScreen />, deps);
+    await screen.findByTestId('calendar-card');
+    expect(screen.queryByTestId(/calendar-theme-/)).not.toBeInTheDocument();
+    expect(screen.getByTestId('calendar-card')).not.toHaveClass('is-glass');
   });
 });

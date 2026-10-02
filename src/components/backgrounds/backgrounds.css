@@ -33,21 +33,89 @@
 @keyframes cat-twinkle { 0%, 100% { opacity: 0.25; } 50% { opacity: 1; } }
 @keyframes cat-cloud { from { transform: translateX(-8px); } to { transform: translateX(14px); } }
 
-/* --- Cỏ nở --- */
+/* --- Cỏ nở: chu kỳ 10s — mọc lên, đung đưa, hoa nở, thu lại, mọc lại --- */
 .grass-blade, .grass-flower { transform-box: fill-box; }
 .grass-blade {
   transform-origin: 50% 100%;
   transform: scaleY(0);
-  animation: grass-grow 1.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, grass-sway 3.2s ease-in-out infinite alternate;
+  animation: grass-cycle 10s cubic-bezier(0.34, 1.2, 0.64, 1) infinite;
 }
-.grass-flower { transform-origin: 50% 50%; transform: scale(0); animation: flower-pop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+.grass-flower { transform-origin: 50% 50%; transform: scale(0); animation: flower-cycle 10s ease-in-out infinite; }
 .grass-sun { animation: sun-glow 4s ease-in-out infinite alternate; }
-@keyframes grass-grow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
-@keyframes grass-sway { from { transform: scaleY(1) skewX(-4deg); } to { transform: scaleY(1) skewX(5deg); } }
-@keyframes flower-pop { from { transform: scale(0) rotate(-40deg); } to { transform: scale(1) rotate(0); } }
+@keyframes grass-cycle {
+  0% { transform: scaleY(0) skewX(0); }
+  14% { transform: scaleY(1.04) skewX(-3deg); }
+  22% { transform: scaleY(1) skewX(4deg); }
+  34% { transform: scaleY(1) skewX(-4deg); }
+  46% { transform: scaleY(1) skewX(4deg); }
+  58% { transform: scaleY(1) skewX(-4deg); }
+  70% { transform: scaleY(1) skewX(3deg); }
+  80% { transform: scaleY(1) skewX(0); }
+  92%, 100% { transform: scaleY(0) skewX(0); }
+}
+@keyframes flower-cycle {
+  0%, 18% { transform: scale(0) rotate(-40deg); }
+  26% { transform: scale(1.15) rotate(0); }
+  30%, 72% { transform: scale(1) rotate(0); }
+  50% { transform: scale(1.06) rotate(6deg); }
+  82%, 100% { transform: scale(0) rotate(30deg); }
+}
 @keyframes sun-glow { from { opacity: 0.75; } to { opacity: 1; } }
 
+/* --- Mưa chill --- */
+.rain-drop { animation: rain-fall 1.2s linear infinite; }
+.rain-glass { animation: rain-glass 7s ease-in infinite; opacity: 0; }
+.rain-steam { animation: rain-steam 3.2s ease-out infinite; opacity: 0; }
+.rain-flame { transform-box: fill-box; transform-origin: 50% 100%; animation: rain-flame 1.6s ease-in-out infinite alternate; }
+.rain-lamp { animation: rain-lamp 3s ease-in-out infinite alternate; }
+.rain-window-light { animation: rain-window 6s ease-in-out infinite; }
+@keyframes rain-fall { from { transform: translate(0, 0); } to { transform: translate(-26px, 900px); } }
+@keyframes rain-glass {
+  0% { opacity: 0; transform: translateY(0); }
+  10% { opacity: 0.9; }
+  80% { opacity: 0.8; transform: translateY(140px); }
+  100% { opacity: 0; transform: translateY(170px); }
+}
+@keyframes rain-steam {
+  0% { opacity: 0; transform: translateY(6px); }
+  30% { opacity: 0.8; }
+  100% { opacity: 0; transform: translateY(-18px); }
+}
+@keyframes rain-flame { from { transform: scale(1, 1); } to { transform: scale(0.9, 1.12) rotate(4deg); } }
+@keyframes rain-lamp { from { opacity: 0.7; } to { opacity: 1; } }
+@keyframes rain-window { 0%, 100% { opacity: 0.35; } 50% { opacity: 0.85; } }
+
+/* --- Gaming neon --- */
+.neon-strip { animation: neon-flicker 3.4s steps(1) infinite; }
+.neon-strip--b { animation-delay: 1.1s; }
+.neon-particle { animation: neon-float 5s ease-in-out infinite; }
+.neon-glow { animation: neon-pulse 2.6s ease-in-out infinite alternate; }
+.neon-screen { animation: neon-screen 4s ease-in-out infinite; }
+.neon-screen-art { animation: neon-hue 6s linear infinite; }
+.neon-keyboard { animation: neon-hue 3s linear infinite; }
+.neon-headphone { animation: neon-hue 4s linear infinite; }
+.neon-head { transform-box: fill-box; transform-origin: 40% 100%; animation: neon-bob 0.9s ease-in-out infinite alternate; }
+.neon-note { animation: neon-note 3.9s ease-out infinite; opacity: 0; }
+@keyframes neon-flicker { 0%, 100% { opacity: 1; } 47% { opacity: 0.55; } 50% { opacity: 1; } 52% { opacity: 0.7; } }
+@keyframes neon-float {
+  0%, 100% { transform: translateY(0); opacity: 0.4; }
+  50% { transform: translateY(-16px); opacity: 1; }
+}
+@keyframes neon-pulse { from { opacity: 0.6; } to { opacity: 1; } }
+@keyframes neon-screen { 0%, 100% { fill: #1F3A7A; } 50% { fill: #2C2A8C; } }
+@keyframes neon-hue { from { filter: hue-rotate(0deg); } to { filter: hue-rotate(360deg); } }
+@keyframes neon-bob { from { transform: rotate(-2deg) translateY(0); } to { transform: rotate(3deg) translateY(1.5px); } }
+@keyframes neon-note {
+  0% { opacity: 0; transform: translate(0, 0) scale(0.7); }
+  20% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-14px, -60px) scale(1.1); }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .cat-body, .cat-paws, .cat-head, .cat-tail, .cat-heart, .cat-twinkle, .cat-cloud, .grass-sun { animation: none; }
+  .cat-body, .cat-paws, .cat-head, .cat-tail, .cat-heart, .cat-twinkle, .cat-cloud, .grass-sun,
+  .rain-drop, .rain-glass, .rain-steam, .rain-flame, .rain-lamp, .rain-window-light,
+  .neon-strip, .neon-particle, .neon-glow, .neon-screen, .neon-screen-art, .neon-keyboard,
+  .neon-headphone, .neon-head, .neon-note { animation: none; }
   .grass-blade, .grass-flower { animation: none; transform: none; }
+  .rain-drop { opacity: 0.3; }
 }
