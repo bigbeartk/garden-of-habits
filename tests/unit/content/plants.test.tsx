@@ -9,9 +9,9 @@ import { GROWTH_STAGES } from '../../../src/domain/growth';
 import { mulberry32 } from '../../../src/domain/random';
 
 describe('plants', () => {
-  it('có 8 loài theo thứ tự', () => {
-    expect(PLANTS.map((p) => p.id)).toEqual(['sunflower', 'corn', 'cactus', 'pothos', 'orange', 'cherry', 'rose', 'watermelon']);
-    expect(PLANTS.map((p) => p.name)).toEqual(['Hướng dương', 'Ngô', 'Xương rồng', 'Trầu bà', 'Cây cam', 'Cherry', 'Hoa hồng', 'Dưa hấu']);
+  it('có 9 loài theo thứ tự', () => {
+    expect(PLANTS.map((p) => p.id)).toEqual(['sunflower', 'corn', 'cactus', 'pothos', 'orange', 'cherry', 'rose', 'watermelon', 'hydrangea']);
+    expect(PLANTS.map((p) => p.name)).toEqual(['Hướng dương', 'Ngô', 'Xương rồng', 'Trầu bà', 'Cây cam', 'Cherry', 'Hoa hồng', 'Dưa hấu', 'Cẩm tú cầu']);
   });
 
   it('mỗi loài có đủ 4 giai đoạn, toạ độ mặt và chậu mặc định hợp lệ', () => {

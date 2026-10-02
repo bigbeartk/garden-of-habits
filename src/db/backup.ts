@@ -63,6 +63,7 @@ const BackupSchema = z.object({
   planned: z.array(PlannedSchema).default([]), // file phiên bản 1–2 chưa có
   plannedGoals: z.array(z.object({ date: z.string(), title: z.string() })).default([]), // file phiên bản 1–3 chưa có
   calendarBg: z.object({ mime: z.string(), base64: z.string().regex(/^[A-Za-z0-9+/]*={0,2}$/) }).nullable(),
+  calendarTheme: z.enum(['default', 'cat', 'grass', 'photo']).optional(), // file cũ chưa có
 });
 
 export type BackupFile = z.infer<typeof BackupSchema>;
@@ -93,6 +94,7 @@ export async function createBackup(db: PlantDB, now: number): Promise<BackupFile
     const planned = await db.planned.orderBy('date').toArray();
     const plannedGoals = await db.plannedGoals.toArray();
     const bg = await getSetting(db, 'calendarBg');
+    const calendarTheme = await getSetting(db, 'calendarTheme');
     return {
       format: BACKUP_FORMAT,
       schemaVersion: SCHEMA_VERSION,
@@ -102,6 +104,7 @@ export async function createBackup(db: PlantDB, now: number): Promise<BackupFile
       planned,
       plannedGoals,
       calendarBg: bg ? { mime: bg.mime, base64: bytesToBase64(bg.data) } : null,
+      ...(calendarTheme ? { calendarTheme } : {}),
     };
   });
 }
@@ -152,6 +155,8 @@ export async function restoreBackup(db: PlantDB, backup: BackupFile, mode: Resto
       await db.plannedGoals.bulkPut(backup.plannedGoals);
       if (bg) await setSetting(db, 'calendarBg', bg);
       else await deleteSetting(db, 'calendarBg');
+      if (backup.calendarTheme) await setSetting(db, 'calendarTheme', backup.calendarTheme);
+      else await deleteSetting(db, 'calendarTheme');
       days = backup.days.length;
       templates = backup.templates.length;
     } else {
@@ -176,6 +181,7 @@ export async function restoreBackup(db: PlantDB, backup: BackupFile, mode: Resto
         if (!(await db.plannedGoals.get(g.date))) await db.plannedGoals.put(g);
       }
       if (bg && !(await getSetting(db, 'calendarBg'))) await setSetting(db, 'calendarBg', bg);
+      if (backup.calendarTheme && !(await getSetting(db, 'calendarTheme'))) await setSetting(db, 'calendarTheme', backup.calendarTheme);
     }
     const defaults = (await db.templates.toArray())
       .filter((t) => t.isDefault)

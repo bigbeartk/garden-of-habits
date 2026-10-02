@@ -16,7 +16,7 @@ describe('praises', () => {
   });
 
   it('mỗi loài có ít nhất một câu khen riêng', () => {
-    for (const id of ['sunflower', 'corn', 'cactus', 'pothos', 'orange', 'cherry', 'rose', 'watermelon']) {
+    for (const id of ['sunflower', 'corn', 'cactus', 'pothos', 'orange', 'cherry', 'rose', 'watermelon', 'hydrangea']) {
       expect(getSpecies(id).praises?.length ?? 0).toBeGreaterThan(0);
     }
   });

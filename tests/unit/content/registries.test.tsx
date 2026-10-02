@@ -22,6 +22,7 @@ describe('chậu mới cho hoa hồng và dưa hấu', () => {
   it('có chậu Sứ hoa hồng và Xô thiếc làm chậu mặc định', () => {
     expect(getPot('rose-porcelain').name).toBe('Sứ hoa hồng');
     expect(getPot('tin-bucket').name).toBe('Xô thiếc');
+    expect(getPot('blue-ceramic').name).toBe('Gốm xanh lam');
   });
 });
 

@@ -84,6 +84,19 @@ export function RosePorcelainPot() {
   );
 }
 
+export function BlueCeramicPot() {
+  return (
+    <BasicPot body="#A9C8F0" rim="#8FB4E6">
+      <path d="M52 186 q12 -8 24 0 t24 0 t24 0 t22 0" stroke="#FFFDFB" strokeWidth={3.5} fill="none" strokeLinecap="round" />
+      <g fill="#FFFDFB">
+        <circle cx={70} cy={208} r={3.2} />
+        <circle cx={100} cy={214} r={3.2} />
+        <circle cx={130} cy={208} r={3.2} />
+      </g>
+    </BasicPot>
+  );
+}
+
 export function TinBucketPot() {
   return (
     <g data-part="pot">

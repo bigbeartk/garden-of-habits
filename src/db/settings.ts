@@ -1,8 +1,9 @@
 import type { PlantDB } from './db';
-import type { CalendarBg } from '../domain/types';
+import type { CalendarBg, CalendarTheme } from '../domain/types';
 
 export interface SettingsShape {
   calendarBg: CalendarBg;
+  calendarTheme: CalendarTheme;
   lastBackupAt: number;
 }
 

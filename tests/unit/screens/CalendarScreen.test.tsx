@@ -4,7 +4,7 @@ import { vi } from 'vitest';
 import { CalendarScreen } from '../../../src/screens/CalendarScreen';
 import { CATALOG } from '../../../src/content/catalog';
 import { makeDay, makeDeps, renderWithDeps } from '../helpers';
-import { setSetting } from '../../../src/db/settings';
+import { getSetting, setSetting } from '../../../src/db/settings';
 import { addPlanned, getPlannedGoal } from '../../../src/domain/plannedService';
 
 async function setup() {
@@ -209,5 +209,46 @@ describe('màn ngày tương lai: nút quay lại và mục tiêu', () => {
     await user.click(await screen.findByTestId('day-2026-10-20'));
     const reopened = await screen.findByLabelText('Mục tiêu ngày này');
     await waitFor(() => expect(reopened).toHaveValue('Đi khám răng'));
+  });
+});
+
+describe('CalendarScreen hình nền động', () => {
+  beforeEach(() => {
+    Object.defineProperty(URL, 'createObjectURL', { configurable: true, value: () => 'blob:bg' });
+    Object.defineProperty(URL, 'revokeObjectURL', { configurable: true, value: () => {} });
+  });
+
+  it('chọn Mèo vươn vai rồi Cỏ nở rồi Mặc định', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 15, 10, 0), CATALOG);
+    const user = userEvent.setup();
+    renderWithDeps(<CalendarScreen />, deps);
+    const picker = await screen.findByRole('radiogroup', { name: 'Hình nền lịch' });
+    expect(within(picker).getByRole('radio', { name: /Mặc định/ })).toHaveAttribute('aria-checked', 'true');
+    expect(screen.queryByTestId('calendar-theme-cat')).not.toBeInTheDocument();
+
+    await user.click(within(picker).getByRole('radio', { name: /Mèo vươn vai/ }));
+    expect(await screen.findByTestId('calendar-theme-cat')).toBeInTheDocument();
+    expect(await getSetting(deps.db, 'calendarTheme')).toBe('cat');
+    await waitFor(() => expect(screen.getByTestId('calendar-card')).toHaveClass('is-glass'));
+
+    await user.click(within(picker).getByRole('radio', { name: /Cỏ nở/ }));
+    expect(await screen.findByTestId('calendar-theme-grass')).toBeInTheDocument();
+    expect(screen.queryByTestId('calendar-theme-cat')).not.toBeInTheDocument();
+
+    await user.click(within(picker).getByRole('radio', { name: /Mặc định/ }));
+    await waitFor(() => expect(screen.queryByTestId('calendar-theme-grass')).not.toBeInTheDocument());
+    expect(screen.getByTestId('calendar-card')).not.toHaveClass('is-glass');
+  });
+
+  it('đã có ảnh nền (bản cũ, chưa chọn kiểu) thì dùng ảnh; chọn nền động thì ảnh vẫn được giữ lại', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 15, 10, 0), CATALOG);
+    await setSetting(deps.db, 'calendarBg', { mime: 'image/jpeg', data: new Uint8Array([1]).buffer });
+    const user = userEvent.setup();
+    renderWithDeps(<CalendarScreen />, deps);
+    const picker = await screen.findByRole('radiogroup', { name: 'Hình nền lịch' });
+    await waitFor(() => expect(within(picker).getByRole('radio', { name: /Ảnh của bạn/ })).toHaveAttribute('aria-checked', 'true'));
+    await user.click(within(picker).getByRole('radio', { name: /Cỏ nở/ }));
+    expect(await screen.findByTestId('calendar-theme-grass')).toBeInTheDocument();
+    expect(await getSetting(deps.db, 'calendarBg')).toBeDefined();
   });
 });

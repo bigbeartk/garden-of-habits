@@ -204,3 +204,15 @@ describe('sao lưu mục tiêu ngày tương lai', () => {
     expect(old.ok && old.backup.plannedGoals).toEqual([]);
   });
 });
+
+describe('sao lưu kiểu hình nền lịch', () => {
+  it('giữ calendarTheme khi khôi phục', async () => {
+    const src = makeDb();
+    await setSetting(src, 'calendarTheme', 'cat');
+    const r = parseBackup(serializeBackup(await createBackup(src, 1)));
+    if (!r.ok) throw new Error(r.error);
+    const dst = makeDb();
+    await restoreBackup(dst, r.backup, 'replace');
+    expect(await getSetting(dst, 'calendarTheme')).toBe('cat');
+  });
+});

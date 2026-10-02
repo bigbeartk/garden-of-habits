@@ -1,0 +1,53 @@
+/* Nền động của màn Lịch: phủ kín sau nội dung */
+.bg-scene { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+.bg-scene__svg { width: 100%; height: 100%; display: block; }
+
+/* --- Mèo vươn vai --- */
+.cat-body, .cat-paws, .cat-head, .cat-tail { transform-box: fill-box; }
+.cat-body { transform-origin: 85% 100%; animation: cat-stretch 4.2s ease-in-out infinite; }
+.cat-paws { transform-origin: 100% 50%; animation: cat-paws 4.2s ease-in-out infinite; }
+.cat-head { transform-origin: 50% 90%; animation: cat-head 4.2s ease-in-out infinite; }
+.cat-tail { transform-origin: 0% 100%; animation: cat-tail 1.8s ease-in-out infinite alternate; }
+.cat-heart { animation: cat-heart 4.2s ease-out infinite; opacity: 0; }
+.cat-twinkle { animation: cat-twinkle 3s ease-in-out infinite; }
+.cat-cloud { animation: cat-cloud 9s ease-in-out infinite alternate; }
+.cat-cloud--b { animation-duration: 12s; }
+@keyframes cat-stretch {
+  0%, 15%, 100% { transform: scale(1, 1); }
+  45%, 65% { transform: scale(1.12, 0.94) translateY(3px); }
+}
+@keyframes cat-paws {
+  0%, 15%, 100% { transform: translateX(0); }
+  45%, 65% { transform: translateX(-14px); }
+}
+@keyframes cat-head {
+  0%, 15%, 100% { transform: translate(0, 0) rotate(0); }
+  45%, 65% { transform: translate(-12px, 4px) rotate(-6deg); }
+}
+@keyframes cat-tail { from { transform: rotate(-8deg); } to { transform: rotate(10deg); } }
+@keyframes cat-heart {
+  0%, 40% { opacity: 0; transform: translateY(0) scale(0.6); }
+  55% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-46px) scale(1.1); }
+}
+@keyframes cat-twinkle { 0%, 100% { opacity: 0.25; } 50% { opacity: 1; } }
+@keyframes cat-cloud { from { transform: translateX(-8px); } to { transform: translateX(14px); } }
+
+/* --- Cỏ nở --- */
+.grass-blade, .grass-flower { transform-box: fill-box; }
+.grass-blade {
+  transform-origin: 50% 100%;
+  transform: scaleY(0);
+  animation: grass-grow 1.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, grass-sway 3.2s ease-in-out infinite alternate;
+}
+.grass-flower { transform-origin: 50% 50%; transform: scale(0); animation: flower-pop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+.grass-sun { animation: sun-glow 4s ease-in-out infinite alternate; }
+@keyframes grass-grow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+@keyframes grass-sway { from { transform: scaleY(1) skewX(-4deg); } to { transform: scaleY(1) skewX(5deg); } }
+@keyframes flower-pop { from { transform: scale(0) rotate(-40deg); } to { transform: scale(1) rotate(0); } }
+@keyframes sun-glow { from { opacity: 0.75; } to { opacity: 1; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .cat-body, .cat-paws, .cat-head, .cat-tail, .cat-heart, .cat-twinkle, .cat-cloud, .grass-sun { animation: none; }
+  .grass-blade, .grass-flower { animation: none; transform: none; }
+}

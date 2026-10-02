@@ -13,7 +13,9 @@ import { FutureDayScreen } from './FutureDayScreen';
 const MAX_MONTHS_AHEAD = 12;
 import { WEEKDAY_SHORT, buildMonthGrid, dayCellStatus, monthLabel, shiftMonth } from '../domain/calendar';
 import { dayKey, formatDate, parseDayKey } from '../domain/dayKey';
-import { useCalendarBgUrl } from '../hooks/useCalendarBg';
+import { useCalendarBgUrl, useCalendarTheme } from '../hooks/useCalendarBg';
+import { CatStretchScene } from '../components/backgrounds/CatStretchScene';
+import { GrassBloomScene } from '../components/backgrounds/GrassBloomScene';
 import { useNow } from '../hooks/useNow';
 import './calendar.css';
 
@@ -35,6 +37,9 @@ export function CalendarScreen() {
   const plannedCounts = useLiveQuery(() => plannedCountsInRange(deps.db, from, to), [deps.db, from, to]) ?? {};
   const firstKey = useLiveQuery(() => firstDayKey(deps.db), [deps.db]) ?? null;
   const bgUrl = useCalendarBgUrl();
+  const theme = useCalendarTheme();
+  const photoUrl = theme === 'photo' ? bgUrl : null;
+  const glass = theme !== 'default' ? ' is-glass' : '';
 
   const byKey = new Map(days.map((d) => [d.date, d]));
   // Đi tới tối đa 12 tháng sau để lên lịch việc tương lai
@@ -58,17 +63,20 @@ export function CalendarScreen() {
   return (
     <section
       className="screen screen--calendar"
-      style={bgUrl ? { backgroundImage: `url(${bgUrl})` } : undefined}
-      data-has-bg={bgUrl ? 'true' : 'false'}
+      style={photoUrl ? { backgroundImage: `url(${photoUrl})` } : undefined}
+      data-has-bg={theme !== 'default' ? 'true' : 'false'}
+      data-theme={theme}
     >
-      <header className={`cal__head card${bgUrl ? ' is-glass' : ''}`} data-testid="calendar-head">
+      {theme === 'cat' && <CatStretchScene />}
+      {theme === 'grass' && <GrassBloomScene />}
+      <header className={`cal__head card${glass}`} data-testid="calendar-head">
         <button type="button" className="btn btn--round" aria-label="Tháng trước" onClick={() => go(-1)}>‹</button>
         <h1 className="screen__title" aria-live="polite">{monthLabel(view.year, view.month)}</h1>
         <button type="button" className="btn btn--round" aria-label="Tháng sau" onClick={() => go(1)} disabled={atLastMonth}>›</button>
       </header>
 
       <motion.div
-        className={`cal card${bgUrl ? ' is-glass' : ''}`}
+        className={`cal card${glass}`}
         data-testid="calendar-card"
         drag="x"
         dragConstraints={{ left: 0, right: 0 }}

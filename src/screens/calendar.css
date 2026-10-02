@@ -71,3 +71,21 @@
 }
 .detail__check.is-done { background: var(--leaf); }
 .detail__check svg { width: 12px; height: 12px; }
+/* nền động nằm sau mọi nội dung lịch */
+.screen--calendar { position: relative; isolation: isolate; }
+.screen--calendar > :not(.bg-scene) { position: relative; z-index: 1; }
+.bg-picker { flex-direction: column; width: 100%; }
+.bg-picker__options { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; width: 100%; }
+.bg-swatch {
+  display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 5px 4px 6px;
+  border-radius: var(--radius-sm); border: 2px solid transparent; background: rgba(255, 253, 251, 0.85);
+  font-size: 0.72rem; font-weight: 700; cursor: pointer; line-height: 1.15;
+}
+.bg-swatch.is-selected { border-color: var(--cocoa); box-shadow: var(--shadow-pop); }
+.bg-swatch__preview { width: 100%; aspect-ratio: 16 / 10; border-radius: 10px; display: grid; place-items: center; overflow: hidden; }
+.bg-swatch--default .bg-swatch__preview { background: linear-gradient(180deg, var(--peach), var(--butter), var(--mint)); }
+.bg-swatch--cat .bg-swatch__preview { background: linear-gradient(180deg, #FFD6DE, #E3D9FF); }
+.bg-swatch--grass .bg-swatch__preview { background: linear-gradient(180deg, #D4F1F9, #9ED9A0); }
+.bg-swatch--photo .bg-swatch__preview { background: var(--sky); }
+.bg-swatch__art { width: 80%; height: auto; }
+.bg-swatch__label { text-align: center; }
