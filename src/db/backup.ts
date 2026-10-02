@@ -44,7 +44,7 @@ const BackupSchema = z.object({
   exportedAt: z.number(),
   days: z.array(DaySchema),
   templates: z.array(TemplateSchema),
-  calendarBg: z.object({ mime: z.string(), base64: z.string() }).nullable(),
+  calendarBg: z.object({ mime: z.string(), base64: z.string().regex(/^[A-Za-z0-9+/]*={0,2}$/) }).nullable(),
 });
 
 export type BackupFile = z.infer<typeof BackupSchema>;
@@ -109,7 +109,7 @@ export function parseBackup(text: string): ParseResult {
   const result = BackupSchema.safeParse(raw);
   if (!result.success) {
     const issue = result.error.issues[0];
-    return { ok: false, error: `File sao lưu bị lỗi ở "${issue.path.join('.')}": ${issue.message}` };
+    return { ok: false, error: `File sao lưu bị hỏng hoặc thiếu dữ liệu (ở "${issue.path.join(".")}").` };
   }
   return { ok: true, backup: result.data };
 }

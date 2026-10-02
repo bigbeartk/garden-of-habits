@@ -102,3 +102,19 @@ describe('backup', () => {
     expect(needsBackupReminder(now - BACKUP_REMIND_AFTER_MS - 1, 0, now)).toBe(true);
   });
 });
+
+describe('parseBackup báo lỗi tiếng Việt', () => {
+  it('trường sai kiểu không lộ thông báo tiếng Anh của zod', () => {
+    const r = parseBackup(JSON.stringify({ format: BACKUP_FORMAT, schemaVersion: 1, exportedAt: 1, days: 'x', templates: [], calendarBg: null }));
+    expect(r.ok).toBe(false);
+    if (!r.ok) {
+      expect(r.error).toBe('File sao lưu bị hỏng hoặc thiếu dữ liệu (ở "days").');
+    }
+  });
+
+  it('ảnh nền hỏng bị phát hiện ngay khi đọc file', () => {
+    const r = parseBackup(JSON.stringify({ format: BACKUP_FORMAT, schemaVersion: 1, exportedAt: 1, days: [], templates: [], calendarBg: { mime: 'image/jpeg', base64: '%%%không phải base64%%%' } }));
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.error).toBe('File sao lưu bị hỏng hoặc thiếu dữ liệu (ở "calendarBg.base64").');
+  });
+});

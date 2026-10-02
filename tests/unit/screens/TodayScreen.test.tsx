@@ -2,7 +2,7 @@ import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { TodayScreen } from '../../../src/screens/TodayScreen';
 import { CATALOG } from '../../../src/content/catalog';
-import { makeDeps, renderWithDeps } from '../helpers';
+import { makeDay, makeDeps, renderWithDeps } from '../helpers';
 
 const setup = () => {
   const { deps, clock } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
@@ -59,5 +59,14 @@ describe('TodayScreen', () => {
     await user.type(within(dialog).getByLabelText('Nội dung ghi chú'), 'Trời đẹp');
     await user.click(within(dialog).getByRole('button', { name: 'Lưu' }));
     await waitFor(async () => expect((await deps.db.days.get('2026-10-02'))!.note).toBe('Trời đẹp'));
+  });
+});
+
+describe('TodayScreen cây đặc biệt', () => {
+  it('lần đầu mở ngày có cây đặc biệt thì có hiệu ứng ✨ chào', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
+    await deps.db.days.put(makeDay({ date: '2026-10-02', plantId: 'cherry', potId: 'polka', specialId: 'glow' }));
+    renderWithDeps(<TodayScreen />, deps);
+    expect(await screen.findByTestId('special-intro')).toHaveTextContent('Phát sáng');
   });
 });

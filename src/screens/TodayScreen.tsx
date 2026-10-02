@@ -89,6 +89,12 @@ export function TodayScreen() {
     <section className="screen screen--today">
       <SkyBackground time={timeOfDay(now)}>
         <div className="today__stage">
+          {greeting && special && (
+            <div className="special-intro" data-testid="special-intro" role="status">
+              <span className="special-intro__sparkles" aria-hidden="true">✨ ✨ ✨</span>
+              Hôm nay mình là cây đặc biệt: {special.name}!
+            </div>
+          )}
           <SpeechBubble text={greeting} />
           <PlantScene
             className="today__plant"

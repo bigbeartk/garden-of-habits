@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { act, screen } from '@testing-library/react';
 import { App } from '../../../src/app/App';
 import { CATALOG } from '../../../src/content/catalog';
 import { markGreeted, ensureToday } from '../../../src/domain/dayService';
@@ -18,5 +18,22 @@ describe('App', () => {
     await markGreeted(deps, day.date);
     renderWithDeps(<App />, deps);
     expect(await screen.findByRole('button', { name: 'Lịch' })).toHaveAttribute('aria-current', 'page');
+  });
+});
+
+describe('App qua 4:00 sáng', () => {
+  it('đang ở tab Lịch, quay lại app sau 4:00 thì tạo ngày mới và chuyển sang Hôm nay để chào', async () => {
+    const { deps, clock } = makeDeps(new Date(2026, 9, 2, 22, 0), CATALOG);
+    const day = await ensureToday(deps);
+    await markGreeted(deps, day.date);
+    renderWithDeps(<App />, deps);
+    expect(await screen.findByRole('button', { name: 'Lịch' })).toHaveAttribute('aria-current', 'page');
+    clock.current = new Date(2026, 9, 3, 8, 0);
+    act(() => {
+      document.dispatchEvent(new Event('visibilitychange'));
+    });
+    expect(await screen.findByTestId('speech-bubble')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Hôm nay' })).toHaveAttribute('aria-current', 'page');
+    expect(await deps.db.days.get('2026-10-03')).toBeDefined();
   });
 });
