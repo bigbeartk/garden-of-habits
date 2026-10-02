@@ -11,7 +11,7 @@
 }
 .todo__row.is-done .todo__check { background: var(--leaf); }
 .todo__text { flex: 1; overflow-wrap: anywhere; cursor: text; }
-.todo__row.is-done .todo__text { text-decoration: line-through; color: var(--cocoa-soft); }
+.todo__row.is-done .todo__text { color: var(--cocoa-soft); } /* xong: chữ nhạt, không gạch ngang */
 .todo__edit { flex: 1; }
 .todo__delete { flex: none; border: none; background: none; font-size: 1.4rem; color: var(--cocoa-soft); cursor: pointer; width: 32px; height: 32px; }
 .todo__handle { flex: none; touch-action: none; cursor: grab; color: var(--cocoa-soft); letter-spacing: -3px; padding: 6px 2px; }

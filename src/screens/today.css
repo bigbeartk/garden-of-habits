@@ -1,4 +1,6 @@
-.screen--today { padding: 0 0 calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 100px); }
+/* Màn Hôm nay cao đúng bằng khung app: trời + cây đứng yên, chỉ thẻ danh sách việc tự cuộn */
+.screen--today { height: 100%; min-height: 0; padding: 0; display: flex; flex-direction: column; overflow: hidden; }
+.screen--today .sky { flex: none; }
 .screen--today .sky { height: 46dvh; min-height: 300px; }
 .screen--today .sky__content { display: flex; flex-direction: column; height: 100%; }
 .today__stage { position: relative; flex: 1 1 0; min-height: 0; }
@@ -16,7 +18,14 @@
 .icon-btn:disabled { opacity: 0.4; }
 .icon-btn.is-pressed { background: var(--lavender); }
 .icon-btn__badge { position: absolute; top: 4px; right: 4px; width: 9px; height: 9px; border-radius: 50%; background: var(--berry); }
-.today__list { margin: -18px 12px 0; position: relative; display: flex; flex-direction: column; gap: 12px; }
+.today__list {
+  margin: -18px 12px 0; position: relative; display: flex; flex-direction: column; gap: 12px;
+  flex: 1 1 0; min-height: 0; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  /* chừa chỗ cho nút ＋ và nút menu nổi */
+  padding-bottom: calc(var(--tabbar-h) * 2 + 48px + env(safe-area-inset-bottom));
+}
+.today__list > * { flex: none; }
 .today__head { display: flex; align-items: center; justify-content: space-between; }
 .reminder { border: 2px dashed var(--leaf); background: var(--mint); border-radius: var(--radius-md); padding: 10px 12px; text-align: left; font-weight: 600; cursor: pointer; }
 .rest { text-align: center; padding: 16px 0; }

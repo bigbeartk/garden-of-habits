@@ -139,7 +139,7 @@ test('nút ＋ đứng yên ở góc phải dưới khi cuộn danh sách dài',
   expect(before.x + before.width).toBeGreaterThan(vp.width - 40);
   const tabbar = (await page.getByRole('navigation', { name: 'Điều hướng' }).boundingBox())!;
   expect(before.y + before.height).toBeLessThanOrEqual(tabbar.y);
-  await page.locator('.app__main').evaluate((el) => el.scrollTo(0, el.scrollHeight));
+  await page.locator('.today__list').evaluate((el) => el.scrollTo(0, el.scrollHeight));
   await expect(page.getByRole('checkbox', { name: 'Hoàn thành: Việc số 12' })).toBeInViewport();
   const after = (await fab.boundingBox())!;
   expect(after.y).toBeCloseTo(before.y, 0);
@@ -208,4 +208,33 @@ test('menu nổi: nút nằm dưới nút ＋, dải tab trượt ra bên trái 
   const vp = page.viewportSize()!;
   expect(menu.x + menu.width).toBeGreaterThan(vp.width - 24);
   expect(menu.y + menu.height).toBeGreaterThan(vp.height - 90);
+});
+
+test('việc đã xong không bị gạch ngang chữ', async ({ page }) => {
+  await page.clock.setFixedTime(at('2026-10-02T10:00:00'));
+  await page.goto('/');
+  await openToday(page);
+  await addTodo(page, 'Uống nước');
+  await page.getByRole('dialog', { name: 'Thêm việc cần làm' }).getByRole('button', { name: 'Đóng' }).click();
+  await page.getByRole('checkbox', { name: 'Hoàn thành: Uống nước' }).click();
+  const text = page.locator('.todo__row.is-done .todo__text');
+  await expect(text).toHaveText('Uống nước');
+  expect(await text.evaluate((el) => getComputedStyle(el).textDecorationLine)).toBe('none');
+});
+
+test('tab Hôm nay: cây đứng yên, chỉ danh sách việc cuộn', async ({ page }) => {
+  await page.clock.setFixedTime(at('2026-10-02T10:00:00'));
+  await page.goto('/');
+  await openToday(page);
+  for (let i = 1; i <= 10; i++) await addTodo(page, `Việc số ${i}`);
+  await page.getByRole('dialog', { name: 'Thêm việc cần làm' }).getByRole('button', { name: 'Đóng' }).click();
+  const sky = page.getByTestId('sky');
+  const before = (await sky.boundingBox())!;
+  const list = page.locator('.today__list');
+  // cuộn tới việc cuối: trình duyệt tự cuộn khung chứa nó
+  await page.getByRole('checkbox', { name: 'Hoàn thành: Việc số 10' }).scrollIntoViewIfNeeded();
+  await expect(page.getByRole('checkbox', { name: 'Hoàn thành: Việc số 10' })).toBeInViewport();
+  const after = (await sky.boundingBox())!;
+  expect(after.y).toBe(before.y);
+  expect(await list.evaluate((el) => el.scrollTop)).toBeGreaterThan(0);
 });
