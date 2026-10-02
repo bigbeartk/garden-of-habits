@@ -22,9 +22,12 @@ async function setup() {
 describe('CalendarScreen', () => {
   it('hiển thị trạng thái từng ngày', async () => {
     await setup();
-    await waitFor(() => expect(screen.getByTestId('day-2026-10-02')).toHaveAttribute('data-status', 'plant'));
+    // danh sách ngày và "ngày đầu tiên" là hai truy vấn riêng, có thể về lệch nhau
+    await waitFor(() => {
+      expect(screen.getByTestId('day-2026-10-02')).toHaveAttribute('data-status', 'plant');
+      expect(screen.getByTestId('day-2026-10-04')).toHaveAttribute('data-status', 'missed');
+    });
     expect(screen.getByTestId('day-2026-10-03')).toHaveAttribute('data-status', 'rest');
-    expect(screen.getByTestId('day-2026-10-04')).toHaveAttribute('data-status', 'missed');
     expect(screen.getByTestId('day-2026-10-01')).toHaveAttribute('data-status', 'before-start');
     expect(screen.getByTestId('day-2026-10-15')).toHaveAttribute('data-status', 'today-pending');
     expect(screen.getByTestId('day-2026-10-20')).toHaveAttribute('data-status', 'future');
