@@ -33,8 +33,6 @@ body {
 button, input, textarea { font: inherit; color: inherit; }
 .app { display: flex; flex-direction: column; height: 100dvh; padding-top: env(safe-area-inset-top); }
 .app__main { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
-/* khung chuyển cảnh giữa các tab: cao bằng khung app để màn Hôm nay giữ bố cục cố định */
-.tab-screen { min-height: 100%; height: 100%; }
 .screen { min-height: 100%; padding: 16px 16px calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 24px); }
 .screen__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
 .tpl-page__head { display: flex; align-items: center; gap: 4px; }

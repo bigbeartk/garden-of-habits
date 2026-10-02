@@ -113,3 +113,11 @@ describe('SettingsScreen chọn hình nền lịch', () => {
     expect(await getSetting(deps.db, 'calendarBg')).toBeDefined();
   });
 });
+
+describe('SettingsScreen phiên bản app', () => {
+  it('hiện mã phiên bản đang chạy', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
+    renderWithDeps(<SettingsScreen />, deps);
+    expect(await screen.findByTestId('app-version')).toHaveTextContent(/^Phiên bản \S+/);
+  });
+});

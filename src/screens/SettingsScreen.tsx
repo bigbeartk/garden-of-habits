@@ -127,6 +127,9 @@ export function SettingsScreen() {
           {persisted === false && 'Hãy cài app lên màn hình chính để dữ liệu không bị Safari tự xoá.'}
         </p>
       </div>
+      <p className="muted settings__version" data-testid="app-version">
+        Phiên bản {__APP_VERSION__} · {new Date(__BUILD_TIME__).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+      </p>
     </section>
   );
 }

@@ -1,4 +1,4 @@
-import { act, fireEvent, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, screen } from '@testing-library/react';
 import { App } from '../../../src/app/App';
 import { CATALOG } from '../../../src/content/catalog';
 import { markGreeted, ensureToday } from '../../../src/domain/dayService';
@@ -47,20 +47,18 @@ describe('App qua 4:00 sáng', () => {
   });
 });
 
-describe('App hiệu ứng chuyển tab', () => {
-  it('màn hình nằm trong khung chuyển cảnh, đổi đúng tab và hướng trượt theo thứ tự tab', async () => {
+describe('App chuyển tab không có hiệu ứng', () => {
+  it('đổi màn ngay, không có khung chuyển cảnh', async () => {
     const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
     const day = await ensureToday(deps);
     await markGreeted(deps, day.date);
     renderWithDeps(<App />, deps);
-    const first = await screen.findByTestId('tab-screen');
-    expect(first).toHaveAttribute('data-tab', 'calendar');
+    await screen.findByTestId('calendar-card');
+    expect(screen.queryByTestId('tab-screen')).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Mở menu' }));
     fireEvent.click(await screen.findByRole('button', { name: 'Mẫu' }));
-    await waitFor(() => expect(screen.getByTestId('tab-screen')).toHaveAttribute('data-tab', 'templates'));
-    expect(screen.getByTestId('tab-screen')).toHaveAttribute('data-direction', 'forward');
-    fireEvent.click(screen.getByRole('button', { name: 'Lịch' }));
-    await waitFor(() => expect(screen.getByTestId('tab-screen')).toHaveAttribute('data-tab', 'calendar'));
-    expect(screen.getByTestId('tab-screen')).toHaveAttribute('data-direction', 'back');
+    // không chờ hiệu ứng: màn Mẫu có ngay, màn Lịch biến mất ngay
+    expect(screen.getByRole('heading', { name: 'Mẫu việc cần làm' })).toBeInTheDocument();
+    expect(screen.queryByTestId('calendar-card')).not.toBeInTheDocument();
   });
 });
