@@ -18,6 +18,13 @@ describe('pots', () => {
   });
 });
 
+describe('chậu mới cho hoa hồng và dưa hấu', () => {
+  it('có chậu Sứ hoa hồng và Xô thiếc làm chậu mặc định', () => {
+    expect(getPot('rose-porcelain').name).toBe('Sứ hoa hồng');
+    expect(getPot('tin-bucket').name).toBe('Xô thiếc');
+  });
+});
+
 describe('specials', () => {
   it('có 5 hiệu ứng, trọng số dương, id duy nhất', () => {
     expect(SPECIALS.map((s) => s.id)).toEqual(['glow', 'sparkle', 'rainbow', 'gold', 'crystal']);

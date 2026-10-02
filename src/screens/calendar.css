@@ -57,3 +57,10 @@
   font-size: 0.7rem; font-weight: 700; line-height: 15px; text-align: center;
 }
 .cal__cell--future { cursor: pointer; }
+.detail__periods { display: flex; flex-direction: column; gap: 8px; }
+.detail__period { padding: 8px 12px; border-radius: var(--radius-sm); }
+.detail__period-title { display: flex; align-items: center; gap: 6px; margin: 0 0 4px; font-size: 0.95rem; }
+.detail__period-count { margin-left: auto; font-size: 0.8rem; padding: 1px 8px; border-radius: 999px; background: rgba(255, 253, 251, 0.85); }
+.detail__period-empty { margin: 0; font-size: 0.85rem; }
+.detail__note-box { padding: 10px 12px; border-radius: var(--radius-sm); background: var(--cream); }
+.detail__note { margin: 4px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; }

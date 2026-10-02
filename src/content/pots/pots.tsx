@@ -62,3 +62,45 @@ export function PinkCupPot() {
     </g>
   );
 }
+
+function SmallRose({ x, y, s }: { x: number; y: number; s: number }) {
+  return (
+    <g transform={`translate(${x} ${y}) scale(${s})`}>
+      <path d="M-9 4 q-6 -2 -8 3 q5 3 8 -3 Z M9 4 q6 -2 8 3 q-5 3 -8 -3 Z" fill="#8FCB84" stroke={INK} strokeWidth={1.4} />
+      <circle r={7} fill="#F27A93" stroke={INK} strokeWidth={1.6} />
+      <path d="M-3 -1 q3 -4 6 0 q-3 4 -6 0" fill="none" stroke="#C94F6D" strokeWidth={1.4} />
+    </g>
+  );
+}
+
+export function RosePorcelainPot() {
+  return (
+    <BasicPot body="#FFFDF8" rim="#F7A8B8">
+      <path d="M50 182 L150 182" stroke="#F7A8B8" strokeWidth={3} />
+      <SmallRose x={100} y={205} s={1} />
+      <SmallRose x={72} y={210} s={0.7} />
+      <SmallRose x={128} y={210} s={0.7} />
+    </BasicPot>
+  );
+}
+
+export function TinBucketPot() {
+  return (
+    <g data-part="pot">
+      <path d="M38 168 q-12 2 -10 16" fill="none" stroke={INK} strokeWidth={6} strokeLinecap="round" />
+      <path d="M162 168 q12 2 10 16" fill="none" stroke={INK} strokeWidth={6} strokeLinecap="round" />
+      <path d="M38 168 q-12 2 -10 16" fill="none" stroke="#C9E6DF" strokeWidth={3} strokeLinecap="round" />
+      <path d="M162 168 q12 2 10 16" fill="none" stroke="#C9E6DF" strokeWidth={3} strokeLinecap="round" />
+      <BasicPot body="#A9D6CB" rim="#8CC4B7">
+        <g stroke="#7FB5A8" strokeWidth={3}>
+          <path d="M51 190 L149 190" />
+          <path d="M55 212 L145 212" />
+        </g>
+        <g fill="#7FB5A8">
+          <circle cx={62} cy={178} r={2.2} />
+          <circle cx={138} cy={178} r={2.2} />
+        </g>
+      </BasicPot>
+    </g>
+  );
+}

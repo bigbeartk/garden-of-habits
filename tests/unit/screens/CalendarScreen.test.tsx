@@ -11,7 +11,7 @@ async function setup() {
   const { deps } = makeDeps(new Date(2026, 9, 15, 10, 0), CATALOG);
   await deps.db.days.bulkPut([
     makeDay({ date: '2026-10-02', plantId: 'cherry', potId: 'polka', finalStage: 'bloom', specialId: 'glow', note: 'vui',
-      todos: [{ id: 'a', text: 'Tập yoga', done: true, doneAt: 1, order: 0, period: 'morning' }] }),
+      todos: [{ id: 'a', text: 'Tập yoga', done: true, doneAt: 1, order: 0, period: 'morning' }, { id: 'b', text: 'Đọc sách', done: false, doneAt: null, order: 1, period: 'evening' }] }),
     makeDay({ date: '2026-10-03', isRestDay: true }),
   ]);
   const nav = vi.fn();
@@ -46,27 +46,27 @@ describe('CalendarScreen', () => {
     expect(screen.getByRole('button', { name: 'Tháng sau' })).toBeDisabled();
   });
 
-  it('xem chi tiết ngày cũ: việc chỉ đọc, ghi chú sửa được', async () => {
-    const { deps, user } = await setup();
+  it('ngày đã qua: chỉ xem, việc chia theo Sáng/Chiều/Tối, ghi chú không sửa được', async () => {
+    const { user } = await setup();
     await waitFor(() => expect(screen.getByTestId('day-2026-10-02')).toHaveAttribute('data-status', 'plant'));
     await user.click(screen.getByTestId('day-2026-10-02'));
     const dialog = await screen.findByRole('dialog', { name: 'Thứ Sáu, 02/10/2026' });
-    expect(within(dialog).getByText('Tập yoga')).toBeInTheDocument();
     expect(within(dialog).getByText(/Cherry · Ra hoa/)).toBeInTheDocument();
     expect(within(dialog).getByText(/Phát sáng/)).toBeInTheDocument();
+    expect(within(within(dialog).getByTestId('detail-section-morning')).getByText('Tập yoga')).toBeInTheDocument();
+    expect(within(within(dialog).getByTestId('detail-section-evening')).getByText('Đọc sách')).toBeInTheDocument();
+    expect(within(within(dialog).getByTestId('detail-section-afternoon')).getByText('Chưa có việc')).toBeInTheDocument();
     expect(within(dialog).queryByRole('checkbox')).not.toBeInTheDocument();
-    const note = within(dialog).getByLabelText('Ghi chú ngày này');
-    await user.clear(note);
-    await user.type(note, 'vui lắm');
-    await user.click(within(dialog).getByRole('button', { name: 'Lưu ghi chú' }));
-    await waitFor(async () => expect((await deps.db.days.get('2026-10-02'))!.note).toBe('vui lắm'));
+    expect(within(dialog).queryByRole('textbox')).not.toBeInTheDocument();
+    expect(within(dialog).queryByRole('button', { name: 'Lưu ghi chú' })).not.toBeInTheDocument();
+    expect(within(dialog).getByTestId('detail-note')).toHaveTextContent('vui');
   });
 
-  it('chạm vào hôm nay thì có nút đi tới màn Hôm nay', async () => {
+  it('chạm vào hôm nay thì chuyển thẳng sang màn Hôm nay (không mở bảng)', async () => {
     const { nav, user } = await setup();
     await user.click(await screen.findByTestId('day-2026-10-15'));
-    await user.click(await screen.findByRole('button', { name: 'Đi tới Hôm nay 🌱' }));
     expect(nav).toHaveBeenCalledWith('today');
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 });
 

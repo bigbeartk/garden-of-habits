@@ -175,7 +175,7 @@ describe('TodayScreen icon dưới chậu cây', () => {
   it('4 nút dùng icon SVG tự vẽ, không dùng emoji', async () => {
     const { user } = setup();
     await screen.findByTestId('plant-scene');
-    const expected: [string, string][] = [['Đổi cây', 'plant-swap'], ['Đổi chậu', 'pot'], ['Ghi chú', 'note'], ['Ngày tiết kiệm năng lượng', 'moon']];
+    const expected: [string, string][] = [['Đổi cây', 'plant-swap'], ['Đổi chậu', 'pot'], ['Ghi chú', 'note'], ['Ngày tiết kiệm năng lượng', 'sleep-seed']];
     for (const [name, icon] of expected) {
       const btn = screen.getByRole('button', { name });
       expect(btn.querySelector(`svg[data-icon="${icon}"]`)).not.toBeNull();

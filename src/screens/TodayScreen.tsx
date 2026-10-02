@@ -4,7 +4,7 @@ import { useNav } from '../app/nav';
 import { AddTodoSheet } from '../components/AddTodoSheet';
 import { DayTitleInput } from '../components/DayTitleInput';
 import { IconButton } from '../components/IconButton';
-import { MoonIcon, NoteIcon, PlantSwapIcon, PotIcon, SunIcon } from '../components/icons';
+import { NoteIcon, PlantSwapIcon, PotIcon, SleepSeedIcon, SunIcon } from '../components/icons';
 import { NoteSheet } from '../components/NoteSheet';
 import { PlantPickerSheet } from '../components/PlantPickerSheet';
 import { PlantScene } from '../components/PlantScene';
@@ -126,7 +126,7 @@ export function TodayScreen() {
           <IconButton label="Ghi chú" icon={<NoteIcon size={30} />} onClick={() => setSheet('note')} badge={day.note.length > 0} />
           <IconButton
             label={day.isRestDay ? 'Thức dậy' : 'Ngày tiết kiệm năng lượng'}
-            icon={day.isRestDay ? <SunIcon size={30} /> : <MoonIcon size={30} />}
+            icon={day.isRestDay ? <SunIcon size={34} /> : <SleepSeedIcon size={38} />}
             pressed={day.isRestDay}
             onClick={() => run(setRestDay(deps, day.date, !day.isRestDay))}
           />

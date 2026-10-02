@@ -46,6 +46,13 @@ export function CalendarScreen() {
   };
   const selectedStatus = selected ? dayCellStatus(selected, byKey.get(selected), todayKey, firstKey) : null;
 
+  /** Ngày đã qua: xem chi tiết (chỉ xem). Hôm nay: sang tab Hôm nay. Tương lai: màn lên lịch. */
+  const selectDay = (key: string) => {
+    if (key === todayKey) nav('today');
+    else if (key > todayKey) setFutureDate(key);
+    else setSelected(key);
+  };
+
   if (futureDate) return <FutureDayScreen date={futureDate} onBack={() => setFutureDate(null)} />;
 
   return (
@@ -86,7 +93,7 @@ export function CalendarScreen() {
                 record={byKey.get(key)}
                 plannedCount={plannedCounts[key] ?? 0}
                 isToday={key === todayKey}
-                onSelect={() => (key > todayKey ? setFutureDate(key) : setSelected(key))}
+                onSelect={() => selectDay(key)}
               />
             ) : (
               <span key={`pad-${i}`} className="cal__pad" />
@@ -101,14 +108,9 @@ export function CalendarScreen() {
 
       <DayDetailSheet
         dateKey={selected}
-        todayKey={todayKey}
         status={selectedStatus}
         record={selected ? byKey.get(selected) : undefined}
         onClose={() => setSelected(null)}
-        onGoToday={() => {
-          setSelected(null);
-          nav('today');
-        }}
       />
     </section>
   );

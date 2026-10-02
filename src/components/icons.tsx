@@ -143,15 +143,18 @@ export function NoteIcon({ size }: { size?: number }) {
   );
 }
 
-/** Ngày tiết kiệm năng lượng: mặt trăng ngủ zzz */
-export function MoonIcon({ size }: { size?: number }) {
+/** Ngày tiết kiệm năng lượng: hạt giống đội mũ ngủ, mắt nhắm, chữ Z to */
+export function SleepSeedIcon({ size }: { size?: number }) {
   return (
-    <Svg name="moon" size={size}>
-      <path d="M19 27 A11 11 0 1 1 15 6 A8.5 8.5 0 0 0 19 27 Z" fill="#E3D9FF" {...STROKE} />
-      <path d="M8.5 16.5 q1.3 1.2 2.6 0 M13.2 18.5 q1.3 1.2 2.6 0" fill="none" {...STROKE} strokeWidth={1.6} />
-      <ellipse cx={9.2} cy={20} rx={1.4} ry={0.9} fill="#FF9FB2" />
-      <path d="M21 6 h4 l-4 4 h4" fill="none" {...STROKE} strokeWidth={1.7} />
-      <path d="M25.5 12.5 h3 l-3 3 h3" fill="none" {...STROKE} strokeWidth={1.5} />
+    <Svg name="sleep-seed" size={size}>
+      <ellipse cx={14} cy={20} rx={9.5} ry={8.5} fill="#D9A877" {...STROKE} strokeWidth={2.2} />
+      <path d="M5.2 17.6 Q 6 8.5 15 9.2 Q 20.5 9.8 22.8 15.6 Q 14 13.2 5.2 17.6 Z" fill="#B9A7F0" {...STROKE} strokeWidth={2.2} />
+      <path d="M22.8 15.6 Q 25.5 17.4 26.2 21" fill="none" {...STROKE} strokeWidth={2.2} />
+      <circle cx={26.4} cy={22.6} r={2.3} fill="#FFE58A" {...STROKE} strokeWidth={1.8} />
+      <path d="M9 21 q1.7 1.6 3.4 0 M15.6 21 q1.7 1.6 3.4 0" fill="none" {...STROKE} strokeWidth={2} />
+      <ellipse cx={8.6} cy={24} rx={1.8} ry={1.1} fill="#FF9FB2" />
+      <ellipse cx={19.4} cy={24} rx={1.8} ry={1.1} fill="#FF9FB2" />
+      <path d="M22 3.5 h6 l-6 6.5 h6" fill="none" {...STROKE} strokeWidth={2.4} />
     </Svg>
   );
 }
