@@ -14,13 +14,13 @@ function Stalk({ top }: { top: number }) {
   return <path d={`M100 ${SOIL_Y} C98 ${(SOIL_Y + top) / 2 + 10} 102 ${(SOIL_Y + top) / 2 - 10} 100 ${top}`} stroke={STEM} strokeWidth={7} fill="none" strokeLinecap="round" />;
 }
 
-/** Lá tulip to bản mọc từ gốc, xoè ra, mũi bo tròn; nửa trong tô đậm như lá gập. `side` -1 trái, 1 phải */
+/** Lá tulip to bản mọc từ gốc, xoè ra rồi vểnh mũi; nửa trong tô đậm như lá gập. `side` -1 trái, 1 phải */
 function BroadLeaf({ side, tipX, tipY }: { side: 1 | -1; tipX: number; tipY: number }) {
   const dx = tipX - 100;
   const base = SOIL_Y - 2;
-  const outer = `M${100 + side * 2} ${base} C${100 + dx * 0.9} ${base - 4} ${tipX + side * 10} ${tipY + 6} ${tipX} ${tipY}`;
-  const inner = `C${tipX - side * 10} ${tipY - 2} ${100 + dx * 0.25} ${base - 30} ${100 + side * 2} ${base}`;
-  const mid = `M${100 + side * 2} ${base} C${100 + dx * 0.55} ${base - 12} ${tipX + side * 2} ${tipY + 16} ${tipX} ${tipY}`;
+  const outer = `M${100 + side * 2} ${base} C${100 + dx * 0.9} ${base - 4} ${tipX + side * 6} ${tipY + 34} ${tipX} ${tipY}`;
+  const inner = `C${tipX - side * 4} ${tipY + 26} ${100 + dx * 0.25} ${base - 30} ${100 + side * 2} ${base}`;
+  const mid = `M${100 + side * 2} ${base} C${100 + dx * 0.55} ${base - 12} ${tipX + side * 2} ${tipY + 30} ${tipX} ${tipY}`;
   return (
     <g strokeLinejoin="round">
       <path d={`${outer} ${inner} Z`} fill={LEAF} stroke={INK} strokeWidth={2} />
