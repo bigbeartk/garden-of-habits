@@ -148,7 +148,7 @@ Các loài hiện có:
 | `sunflower` | Hướng dương | `terracotta` | thân cao, một bông tròn cánh vàng ở đỉnh |
 | `corn` | Ngô | `rattan` | thân thẳng, lá dài xoè hai bên, bắp ở giữa |
 | `cactus` | Xương rồng | `pink-cup` | cột mập có hai tay, hoa nhỏ trên đỉnh |
-| `pothos` | Trầu bà | `mint` | dây leo lá tim rủ xuống mép chậu |
+| `pothos` | Monstera (trước là Trầu bà; giữ id `pothos` để không mất dữ liệu cũ) | `mint` | bụi lá to xẻ thuỳ có lỗ trên cuống dài, xoè hình quạt |
 | `orange` | Cây cam | `wood` | cây kẹo mút: thân thẳng mảnh + một khối cầu lá đậm, mép lá nhọn |
 | `cherry` | Cherry | `polka` | cây dù rộng và thấp: thân chẻ đôi, vòm bông cong, quả đôi treo cuống dài |
 | `rose` | Hoa hồng | `rose-porcelain` | một bông hồng trên cành có lá |
