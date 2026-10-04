@@ -27,6 +27,18 @@ async function openGarden() {
 const countOf = (garden: HTMLElement, id: string) => within(garden).getByTestId(`garden-plant-${id}`).querySelector('.garden__count')!.textContent;
 
 describe('Khu vườn (báo cáo từ ngày tới ngày)', () => {
+  it('luống > 0 ngày (kể cả cây héo, ngày nghỉ) đứng trên mọi luống 0 ngày', async () => {
+    const { garden } = await openGarden();
+    await waitFor(() => expect(countOf(garden, 'corn')).toBe('3'));
+    const ids = within(garden).getAllByRole('listitem').map((li) => li.dataset.testid);
+    // 01–15/10: Ngô 3, Xương rồng 1, héo (03, 04, 07–09, 11–14) 9, nghỉ 1; các loài khác 0
+    expect(ids.slice(0, 4)).toEqual(['garden-plant-corn', 'garden-plant-cactus', 'garden-wilted', 'garden-rest']);
+    expect(ids.slice(4).every((id) => id!.startsWith('garden-plant-'))).toBe(true);
+    const empty = within(garden).getAllByRole('listitem').map((li) => li.classList.contains('is-empty'));
+    expect(empty.indexOf(true)).toBe(4);
+    expect(empty.slice(4).every(Boolean)).toBe(true);
+  });
+
   it('nút Khu vườn ở màn Lịch mở báo cáo; mặc định từ đầu tháng tới hôm nay', async () => {
     const { garden } = await openGarden();
     expect(within(garden).getByRole('heading', { name: 'Khu vườn' })).toBeInTheDocument();
@@ -51,7 +63,7 @@ describe('Khu vườn (báo cáo từ ngày tới ngày)', () => {
     expect(within(garden).getByTestId('garden-summary')).toHaveTextContent('1 ngày ra hoa');
   });
 
-  it('có luống Cây héo (ngày bỏ lỡ) và Ngày nghỉ ở cuối vườn, ngày nghỉ không tính cho cây', async () => {
+  it('có luống Cây héo (ngày bỏ lỡ) và Ngày nghỉ, ngày nghỉ không tính cho cây', async () => {
     const { garden } = await openGarden();
     // 01/10 → 15/10 (hôm nay): bỏ lỡ 03, 04, 07, 08, 09, 11, 12, 13, 14 = 9 ngày; nghỉ 06/10
     const wilted = await within(garden).findByTestId('garden-wilted');
@@ -63,9 +75,10 @@ describe('Khu vườn (báo cáo từ ngày tới ngày)', () => {
     expect(within(rest).getByText('Ngày nghỉ')).toBeInTheDocument();
     expect(within(rest).getByTestId('plant-scene')).toHaveAttribute('data-mode', 'sleeping');
     expect(countOf(garden, 'corn')).toBe('3'); // 01, 02, 10/10; ngày nghỉ 06/10 không tính
-    // hai luống đặc biệt đứng sau mọi loài cây
-    const beds = within(garden).getAllByRole('listitem');
-    expect(beds.slice(-2).map((b) => b.getAttribute('data-testid'))).toEqual(['garden-wilted', 'garden-rest']);
+    // hai luống riêng đứng sau các loài đã trồng (thứ tự đầy đủ: test "luống > 0 ngày…")
+    const ids = within(garden).getAllByRole('listitem').map((b) => b.getAttribute('data-testid'));
+    expect(ids.indexOf('garden-wilted')).toBeGreaterThan(ids.indexOf('garden-plant-cactus'));
+    expect(ids.indexOf('garden-rest')).toBe(ids.indexOf('garden-wilted') + 1);
   });
 
   it('đổi ngày hoặc bấm nút nhanh thì báo cáo đổi theo', async () => {

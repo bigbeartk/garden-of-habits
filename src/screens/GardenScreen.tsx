@@ -32,11 +32,9 @@ export function GardenScreen({ onBack }: { onBack: () => void }) {
   const onlyPlanted = useLiveQuery(async () => (await getSetting(deps.db, 'gardenOnlyPlanted')) ?? false, [deps.db], false);
   const separateSpecial = useLiveQuery(async () => (await getSetting(deps.db, 'gardenSeparateSpecial')) ?? false, [deps.db], false);
   const report = gardenReport(records ?? [], PLANT_IDS, lo, hi, { todayKey, firstKey, separateSpecial });
-  // bật "Chỉ hiện cây đã trồng" thì bỏ mọi luống 0 ngày (kể cả Cây héo / Ngày nghỉ)
-  const entries = onlyPlanted ? report.entries.filter((e) => e.count > 0) : report.entries;
-  const showWilted = !onlyPlanted || report.wiltedDays > 0;
-  const showRest = !onlyPlanted || report.restDays > 0;
-  const nothing = entries.length === 0 && report.specials.length === 0 && !showWilted && !showRest;
+  // luống > 0 ngày đứng trên; bật "Chỉ hiện cây đã trồng" thì bỏ mọi luống 0 ngày (kể cả Cây héo / Ngày nghỉ)
+  const beds = onlyPlanted ? report.beds.filter((b) => b.count > 0) : report.beds;
+  const nothing = beds.length === 0;
 
   const preset = (start: string) => {
     setFrom(start);
@@ -76,7 +74,24 @@ export function GardenScreen({ onBack }: { onBack: () => void }) {
 
       {nothing && <p className="garden__empty">Chưa có cây nào trong khoảng này</p>}
       <ul className="garden__beds">
-        {entries.map(({ plantId, count }) => {
+        {beds.map((bed) => {
+          if (bed.kind === 'wilted') return <SpecialBed key="wilted" testId="garden-wilted" mode="wilted" label="Cây héo" count={bed.count} />;
+          if (bed.kind === 'rest') return <SpecialBed key="rest" testId="garden-rest" mode="sleeping" label="Ngày nghỉ" count={bed.count} />;
+          if (bed.kind === 'special') {
+            const { plantId, specialId, count } = bed;
+            const species = getSpecies(plantId);
+            const special = getSpecial(specialId);
+            return (
+              <li key={`${plantId}-${specialId}`} className="garden__bed garden__bed--special" data-testid={`garden-special-${plantId}-${specialId}`}>
+                <PlantScene className="garden__plant" plantId={plantId} potId={species.defaultPotId} stage="bloom" specialId={specialId} mood="smile" />
+                <span className="garden__name">{special ? `${species.name} · ${special.name}` : species.name}</span>
+                <span className="garden__tally">
+                  <span className="garden__count">{count}</span> ngày
+                </span>
+              </li>
+            );
+          }
+          const { plantId, count } = bed;
           const species = getSpecies(plantId);
           return (
             <li key={plantId} className={`garden__bed${count === 0 ? ' is-empty' : ''}`} data-testid={`garden-plant-${plantId}`}>
@@ -95,27 +110,12 @@ export function GardenScreen({ onBack }: { onBack: () => void }) {
             </li>
           );
         })}
-        {report.specials.map(({ plantId, specialId, count }) => {
-          const species = getSpecies(plantId);
-          const special = getSpecial(specialId);
-          return (
-            <li key={`${plantId}-${specialId}`} className="garden__bed garden__bed--special" data-testid={`garden-special-${plantId}-${specialId}`}>
-              <PlantScene className="garden__plant" plantId={plantId} potId={species.defaultPotId} stage="bloom" specialId={specialId} mood="smile" />
-              <span className="garden__name">{special ? `${species.name} · ${special.name}` : species.name}</span>
-              <span className="garden__tally">
-                <span className="garden__count">{count}</span> ngày
-              </span>
-            </li>
-          );
-        })}
-        {showWilted && <SpecialBed testId="garden-wilted" mode="wilted" label="Cây héo" count={report.wiltedDays} />}
-        {showRest && <SpecialBed testId="garden-rest" mode="sleeping" label="Ngày nghỉ" count={report.restDays} />}
       </ul>
     </section>
   );
 }
 
-/** Luống riêng cho ngày bỏ lỡ (cây héo) và ngày tiết kiệm năng lượng (hạt giống ngủ), đứng sau mọi loài cây. */
+/** Luống riêng cho ngày bỏ lỡ (cây héo) và ngày tiết kiệm năng lượng (hạt giống ngủ), đứng sau các cây thật cùng nhóm. */
 function SpecialBed({ testId, mode, label, count }: { testId: string; mode: 'wilted' | 'sleeping'; label: string; count: number }) {
   return (
     <li className={`garden__bed garden__bed--${mode}${count === 0 ? ' is-empty' : ''}`} data-testid={testId}>

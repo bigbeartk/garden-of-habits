@@ -88,3 +88,29 @@ describe('gardenReport với cây đặc biệt', () => {
     expect(r.restDays).toBe(1);
   });
 });
+
+describe('gardenReport: thứ tự luống trong vườn', () => {
+  const key = (b: { kind: string; plantId?: string; specialId?: string }) =>
+    b.kind === 'plant' ? b.plantId : b.kind === 'special' ? `${b.plantId}|${b.specialId}` : b.kind;
+
+  it('mọi luống > 0 ngày đứng trên luống 0 ngày; mỗi nhóm theo thứ tự loài → đặc biệt → héo → nghỉ', () => {
+    const recs = [
+      makeDay({ date: '2026-10-01', plantId: 'corn', specialId: 'glow' }),
+      makeDay({ date: '2026-10-02', plantId: 'cactus' }),
+      makeDay({ date: '2026-10-03', plantId: 'cactus' }),
+      // 04, 05: héo
+      makeDay({ date: '2026-10-06', plantId: 'corn' }),
+    ];
+    const r = gardenReport(recs, IDS, '2026-10-01', '2026-10-06', { ...CTX, separateSpecial: true });
+    expect(r.beds.map((b) => [key(b), b.count])).toEqual([
+      ['cactus', 2], ['corn', 1], ['corn|glow', 1], ['wilted', 2], // > 0 ngày
+      ['sunflower', 0], ['rest', 0], // 0 ngày, hiện mờ phía dưới
+    ]);
+  });
+
+  it('cây héo / ngày nghỉ có ngày thì đứng trên loài chưa trồng', () => {
+    const recs = [makeDay({ date: '2026-10-01', plantId: 'corn', isRestDay: true })];
+    const r = gardenReport(recs, IDS, '2026-10-01', '2026-10-03', CTX);
+    expect(r.beds.map(key)).toEqual(['wilted', 'rest', 'sunflower', 'corn', 'cactus']);
+  });
+});

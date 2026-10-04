@@ -568,3 +568,27 @@ test('chọn lại cây đặc biệt đã mở khoá trong bảng Đổi cây',
   await expect(scene).toHaveAttribute('data-special', 'gold');
   await expect(scene).toHaveAttribute('data-plant', 'orange');
 });
+
+test('Khu vườn: luống có ngày (kể cả Cây héo) đứng trên các loài 0 ngày', async ({ page }) => {
+  await page.clock.setFixedTime(at('2026-10-02T10:00:00'));
+  await page.goto('/');
+  await openToday(page);
+  // bỏ 03, 04/10 → 2 ngày cây héo
+  await page.clock.setFixedTime(at('2026-10-05T10:00:00'));
+  await page.reload();
+  await openToday(page);
+  await goTab(page, 'Lịch');
+  await closeMenu(page);
+  await page.getByRole('button', { name: 'Khu vườn' }).click();
+  const garden = page.getByTestId('garden');
+  await expect(garden.getByTestId('garden-wilted').locator('.garden__count')).toHaveText('2');
+  const beds = await garden.locator('.garden__bed').evaluateAll((els) =>
+    els.map((e) => ({ id: e.getAttribute('data-testid'), empty: e.classList.contains('is-empty') })),
+  );
+  const firstEmpty = beds.findIndex((b) => b.empty);
+  expect(firstEmpty).toBeGreaterThan(0);
+  expect(beds.slice(firstEmpty).every((b) => b.empty)).toBe(true);
+  expect(beds.slice(0, firstEmpty).map((b) => b.id)).toContain('garden-wilted');
+  await garden.getByTestId('garden-summary').scrollIntoViewIfNeeded();
+  await page.screenshot({ path: 'test-results/garden-order.png' });
+});

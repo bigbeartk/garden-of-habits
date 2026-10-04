@@ -15,7 +15,19 @@ export interface GardenSpecialEntry {
   count: number;
 }
 
+/** Một luống trong vườn: loài thường, cây đặc biệt (loài + hiệu ứng), cây héo hoặc ngày nghỉ. */
+export type GardenBed =
+  | { kind: 'plant'; plantId: string; count: number }
+  | { kind: 'special'; plantId: string; specialId: string; count: number }
+  | { kind: 'wilted'; count: number }
+  | { kind: 'rest'; count: number };
+
 export interface GardenReport {
+  /**
+   * Mọi luống theo thứ tự hiển thị: luống > 0 ngày trước, luống 0 ngày (mờ) sau;
+   * trong mỗi nhóm: loài thường → cây đặc biệt → cây héo → ngày nghỉ (cây thật luôn ở trên).
+   */
+  beds: GardenBed[];
   /** mọi loài trong `plantIds`, nhiều ngày nhất đứng trước (bằng nhau thì giữ thứ tự của `plantIds`) */
   entries: GardenEntry[];
   /** chỉ có khi `separateSpecial`: luống riêng cho từng cặp loài + hiệu ứng, nhiều nhất đứng trước */
@@ -86,11 +98,21 @@ export function gardenReport(
     }
   }
 
+  const restDays = inRange.filter((r) => r.isRestDay).length;
+  const all: GardenBed[] = [
+    ...entries.map((e): GardenBed => ({ kind: 'plant', ...e })),
+    ...specials.map((e): GardenBed => ({ kind: 'special', ...e })),
+    { kind: 'wilted', count: wiltedDays },
+    { kind: 'rest', count: restDays },
+  ];
+  const beds = [...all.filter((b) => b.count > 0), ...all.filter((b) => b.count === 0)];
+
   return {
+    beds,
     entries,
     specials,
     specialDays,
-    restDays: inRange.filter((r) => r.isRestDay).length,
+    restDays,
     wiltedDays,
     days: inRange.length,
     bloomDays: inRange.filter((r) => r.finalStage === 'bloom').length,
