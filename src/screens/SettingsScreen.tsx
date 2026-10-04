@@ -12,6 +12,8 @@ import {
 } from '../db/backup';
 import { getSetting, setSetting } from '../db/settings';
 import { shareOrDownload } from '../db/share';
+import { listTemplates } from '../domain/templateService';
+import { TemplatesScreen } from './TemplatesScreen';
 import './settings.css';
 
 const formatDateTime = (ms: number) =>
@@ -25,6 +27,9 @@ export function SettingsScreen() {
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState<BackupFile | null>(null);
   const [persisted, setPersisted] = useState<boolean | null>(null);
+  /** đang mở màn Mẫu (nằm trong tab Cài đặt) */
+  const [showTemplates, setShowTemplates] = useState(false);
+  const defaultTemplate = useLiveQuery(async () => (await listTemplates(deps.db)).find((t) => t.isDefault) ?? null, [deps.db]);
 
   useEffect(() => {
     navigator.storage?.persisted?.().then(setPersisted).catch(() => setPersisted(null));
@@ -72,6 +77,8 @@ export function SettingsScreen() {
     }
   }
 
+  if (showTemplates) return <TemplatesScreen onBack={() => setShowTemplates(false)} />;
+
   return (
     <section className="screen screen--settings">
       <header className="tpl-page__head">
@@ -80,6 +87,14 @@ export function SettingsScreen() {
       </header>
       {status && <p role="status" className="toast">{status}</p>}
       {error && <p role="alert" className="error">{error}</p>}
+
+      <div className="card settings__section">
+        <h2>Mẫu việc</h2>
+        {defaultTemplate !== undefined && (
+          <p className="muted">{defaultTemplate ? `⭐ Đang dùng: ${defaultTemplate.name}` : 'Chưa có mẫu mặc định'}</p>
+        )}
+        <button type="button" className="btn btn--primary" onClick={() => setShowTemplates(true)}>Quản lý mẫu</button>
+      </div>
 
       <div className="card settings__section">
         <h2>Sao lưu & khôi phục</h2>

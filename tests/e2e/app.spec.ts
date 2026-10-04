@@ -3,7 +3,7 @@ import { expect, test, type Page } from '@playwright/test';
 const at = (iso: string) => new Date(`${iso}+07:00`);
 
 /** Chuyển tab qua menu nổi: mở menu nếu đang thu gọn rồi bấm tab. */
-async function goTab(page: Page, name: 'Lịch' | 'Hôm nay' | 'Mẫu' | 'Cài đặt') {
+async function goTab(page: Page, name: 'Lịch' | 'Hôm nay' | 'Khu vườn' | 'Cài đặt') {
   const open = page.getByRole('button', { name: 'Mở menu' });
   if (await open.isVisible()) await open.click();
   await page.getByRole('button', { name, exact: true }).click();
@@ -14,6 +14,14 @@ async function closeMenu(page: Page) {
   const close = page.getByRole('button', { name: 'Đóng menu' });
   if (await close.isVisible()) await close.click();
   await expect(page.locator('#fnav-tabs')).toHaveCount(0);
+}
+
+/** Màn Mẫu nằm trong Cài đặt: thẻ "Mẫu việc" → Quản lý mẫu. */
+async function openTemplates(page: Page) {
+  await goTab(page, 'Cài đặt');
+  await closeMenu(page);
+  await page.getByRole('button', { name: 'Quản lý mẫu' }).click();
+  await expect(page.getByRole('heading', { name: 'Mẫu việc cần làm' })).toBeVisible();
 }
 
 async function openToday(page: Page) {
@@ -57,7 +65,7 @@ test('tick việc làm cây lớn và dữ liệu còn sau khi tải lại', asy
 test('sang ngày mới: mẫu mặc định tự lên và cây chào', async ({ page }) => {
   await page.clock.setFixedTime(at('2026-10-02T10:00:00'));
   await page.goto('/');
-  await goTab(page, 'Mẫu');
+  await openTemplates(page);
   await page.getByRole('button', { name: '＋ Mẫu mới' }).click();
   await page.getByLabel('Tên mẫu').fill('Buổi sáng');
   await page.getByLabel('Việc buổi Sáng (mỗi dòng một việc)').fill('Tập thể dục');
@@ -357,21 +365,20 @@ test('kéo việc sang buổi khác và sắp xếp trong buổi; còn nguyên s
   await expect(page.getByTestId('todo-section-afternoon').locator('.todo__text')).toHaveText(['Uống nước', 'Tưới cây']);
 });
 
-test('Khu vườn: mở từ Lịch, đếm cây hôm nay, bố cục vừa khổ iPhone', async ({ page }) => {
+test('Khu vườn: là một tab, đếm cây hôm nay, bố cục vừa khổ iPhone', async ({ page }) => {
   await page.clock.setFixedTime(at('2026-10-02T10:00:00'));
   await page.goto('/');
   await openToday(page);
   const plant = await page.getByTestId('plant-scene').getAttribute('data-plant');
   await goTab(page, 'Lịch');
   await closeMenu(page);
-  // nút Khu vườn đứng cạnh nút đổi hình nền, cả cụm căn giữa
-  const gBtn = (await page.getByRole('button', { name: 'Khu vườn' }).boundingBox())!;
+  // màn Lịch không còn nút Khu vườn; nút đổi hình nền đứng giữa
+  await expect(page.getByTestId('calendar-card')).toBeVisible();
+  await expect(page.locator('.cal__footer').getByRole('button', { name: 'Khu vườn' })).toHaveCount(0);
   const bgBtn = (await page.getByRole('button', { name: /Đổi hình nền lịch/ }).boundingBox())!;
-  expect(Math.abs(gBtn.y - bgBtn.y)).toBeLessThan(2);
-  expect(bgBtn.x - (gBtn.x + gBtn.width)).toBeLessThan(24);
-  const mid = (gBtn.x + bgBtn.x + bgBtn.width) / 2;
-  expect(Math.abs(mid - page.viewportSize()!.width / 2)).toBeLessThan(4);
-  await page.getByRole('button', { name: 'Khu vườn' }).click();
+  expect(Math.abs(bgBtn.x + bgBtn.width / 2 - page.viewportSize()!.width / 2)).toBeLessThan(4);
+  await goTab(page, 'Khu vườn');
+  await closeMenu(page);
   const garden = page.getByTestId('garden');
   await expect(garden.getByRole('heading', { name: 'Khu vườn' })).toBeVisible();
   await expect(garden.getByTestId(`garden-plant-${plant}`).locator('.garden__count')).toHaveText('1');
@@ -483,7 +490,7 @@ test('nền Mèo vươn vai: mèo nằm trên mép dưới (không sát thanh Ho
   const vh = page.viewportSize()!.height;
   const rug = (await scene.locator('ellipse').first().boundingBox())!;
   expect(vh - (rug.y + rug.height), 'thảm cách mép dưới').toBeGreaterThan(40);
-  const footer = (await page.getByRole('button', { name: 'Khu vườn' }).boundingBox())!;
+  const footer = (await page.getByRole('button', { name: /Đổi hình nền lịch/ }).boundingBox())!;
   const cat = (await scene.locator('.cat-head').boundingBox())!;
   expect(cat.y, 'mèo nằm dưới hàng nút').toBeGreaterThan(footer.y + footer.height);
 });
@@ -505,9 +512,8 @@ test('hiệu ứng Vàng ròng đổi màu cây thật trên WebKit (Safari)', a
         };
       }),
   );
-  await goTab(page, 'Lịch');
+  await goTab(page, 'Khu vườn');
   await closeMenu(page);
-  await page.getByRole('button', { name: 'Khu vườn' }).click();
   const scene = page.getByTestId('garden-special-cherry-gold').getByTestId('plant-scene');
   await expect(scene).toBeVisible();
   // vẽ đúng SVG đó lên canvas (WebKit dựng hình) rồi lấy màu trung bình một dải giữa tán cây
@@ -529,6 +535,24 @@ test('hiệu ứng Vàng ròng đổi màu cây thật trên WebKit (Safari)', a
   // tán cherry gốc hồng (#FFC9DA, xanh dương ~218); vàng ròng thì xanh dương phải thấp hẳn
   expect(avg.b, JSON.stringify(avg)).toBeLessThan(170);
   expect(avg.r).toBeGreaterThan(avg.b + 60);
+});
+
+test('menu nổi: 4 tab Lịch, Hôm nay, Khu vườn, Cài đặt; Mẫu nằm trong Cài đặt', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Mở menu' }).click();
+  const tabs = page.locator('#fnav-tabs').getByRole('button');
+  await expect(tabs).toHaveText(['Lịch', 'Hôm nay', 'Khu vườn', 'Cài đặt']);
+  await page.waitForTimeout(400); // chờ dải tab trượt ra hết rồi chụp
+  await page.screenshot({ path: 'test-results/menu-tabs.png' });
+  // dải tab nằm gọn trong khổ màn hình
+  for (const left of await tabs.evaluateAll((els) => els.map((e) => e.getBoundingClientRect().left))) expect(left).toBeGreaterThanOrEqual(0);
+  await page.getByRole('button', { name: 'Cài đặt', exact: true }).click();
+  await closeMenu(page);
+  await page.screenshot({ path: 'test-results/settings-templates-card.png' });
+  await page.getByRole('button', { name: 'Quản lý mẫu' }).click();
+  await expect(page.getByRole('heading', { name: 'Mẫu việc cần làm' })).toBeVisible();
+  await page.getByRole('button', { name: 'Quay lại Cài đặt' }).click();
+  await expect(page.getByRole('heading', { name: 'Cài đặt' })).toBeVisible();
 });
 
 test('chọn lại cây đặc biệt đã mở khoá trong bảng Đổi cây', async ({ page }) => {
@@ -577,9 +601,8 @@ test('Khu vườn: luống có ngày (kể cả Cây héo) đứng trên các lo
   await page.clock.setFixedTime(at('2026-10-05T10:00:00'));
   await page.reload();
   await openToday(page);
-  await goTab(page, 'Lịch');
+  await goTab(page, 'Khu vườn');
   await closeMenu(page);
-  await page.getByRole('button', { name: 'Khu vườn' }).click();
   const garden = page.getByTestId('garden');
   await expect(garden.getByTestId('garden-wilted').locator('.garden__count')).toHaveText('2');
   const beds = await garden.locator('.garden__bed').evaluateAll((els) =>

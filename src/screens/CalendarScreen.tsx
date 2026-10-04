@@ -10,8 +10,6 @@ import { firstDayKey, listDaysInRange } from '../db/queries';
 import { getSetting } from '../db/settings';
 import { plannedCountsInRange } from '../domain/plannedService';
 import { FutureDayScreen } from './FutureDayScreen';
-import { GardenScreen } from './GardenScreen';
-import { GardenIcon } from '../components/icons';
 
 const MAX_MONTHS_AHEAD = 12;
 import { WEEKDAY_SHORT, buildMonthGrid, dayCellStatus, monthLabel, shiftMonth } from '../domain/calendar';
@@ -35,8 +33,6 @@ export function CalendarScreen() {
   const [selected, setSelected] = useState<string | null>(null);
   /** ngày tương lai đang mở (màn giống Hôm nay để lên lịch việc) */
   const [futureDate, setFutureDate] = useState<string | null>(null);
-  /** đang xem báo cáo Khu vườn */
-  const [showGarden, setShowGarden] = useState(false);
 
   const cells = useMemo(() => buildMonthGrid(view.year, view.month), [view]);
   const from = formatDate(new Date(view.year, view.month, 1));
@@ -73,7 +69,6 @@ export function CalendarScreen() {
   };
 
   if (futureDate) return <FutureDayScreen date={futureDate} onBack={() => setFutureDate(null)} />;
-  if (showGarden) return <GardenScreen onBack={() => setShowGarden(false)} />;
 
   return (
     <section
@@ -144,9 +139,6 @@ export function CalendarScreen() {
       </motion.div>
 
       <div className="cal__footer">
-        <button type="button" className="cal__garden-btn" aria-label="Khu vườn" onClick={() => setShowGarden(true)}>
-          <GardenIcon size={34} />
-        </button>
         {showBgButton && <BackgroundPicker />}
       </div>
 

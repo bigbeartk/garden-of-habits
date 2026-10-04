@@ -12,7 +12,8 @@ import { PeriodIcon, StarIcon } from '../components/icons';
 import type { Template } from '../domain/types';
 import './templates.css';
 
-export function TemplatesScreen() {
+/** Màn Mẫu, mở từ thẻ "Mẫu việc" trong Cài đặt; `onBack` quay về Cài đặt. */
+export function TemplatesScreen({ onBack }: { onBack: () => void }) {
   const deps = useDeps();
   const nav = useNav();
   const templates = useLiveQuery(() => listTemplates(deps.db), [deps.db]) ?? [];
@@ -34,7 +35,7 @@ export function TemplatesScreen() {
   return (
     <section className="screen screen--templates">
       <header className="tpl-page__head">
-        <BackButton inline onClick={() => nav('calendar')} />
+        <BackButton inline label="Quay lại Cài đặt" onClick={onBack} />
         <h1 className="screen__title">Mẫu việc cần làm</h1>
       </header>
       <p className="muted tpl-page__hint">

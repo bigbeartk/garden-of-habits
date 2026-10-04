@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useDeps } from '../app/deps';
+import { useNav } from '../app/nav';
 import { BackButton } from '../components/BackButton';
 import { PlantScene } from '../components/PlantScene';
 import { PLANTS, getSpecies } from '../content/plants/registry';
@@ -20,8 +21,9 @@ const PLANT_IDS = PLANTS.map((p) => p.id);
  * Báo cáo "Khu vườn": chọn từ ngày tới ngày, mỗi loài cây đứng trong vườn cỏ (dạng ra hoa, chậu mặc định)
  * với số ngày được chọn ở bên dưới. Loài chưa trồng ngày nào hiện mờ.
  */
-export function GardenScreen({ onBack }: { onBack: () => void }) {
+export function GardenScreen() {
   const deps = useDeps();
+  const nav = useNav();
   const todayKey = dayKey(useNow());
   const monthStart = `${todayKey.slice(0, 8)}01`;
   const [from, setFrom] = useState(monthStart);
@@ -44,7 +46,7 @@ export function GardenScreen({ onBack }: { onBack: () => void }) {
   return (
     <section className="screen screen--garden" data-testid="garden">
       <header className="garden__head">
-        <BackButton inline onClick={onBack} />
+        <BackButton inline onClick={() => nav('calendar')} />
         <h1 className="screen__title">Khu vườn</h1>
       </header>
 

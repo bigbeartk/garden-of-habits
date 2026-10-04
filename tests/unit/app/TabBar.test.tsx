@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { vi } from 'vitest';
 import { TabBar } from '../../../src/app/TabBar';
 
-const TAB_NAMES = ['Lịch', 'Hôm nay', 'Mẫu', 'Cài đặt'];
+const TAB_NAMES = ['Lịch', 'Hôm nay', 'Khu vườn', 'Cài đặt'];
 
 describe('TabBar (menu nổi thu gọn)', () => {
   it('mặc định chỉ hiện nút menu, chưa hiện 4 tab', () => {
@@ -30,8 +30,8 @@ describe('TabBar (menu nổi thu gọn)', () => {
     const user = userEvent.setup();
     render(<TabBar current="calendar" onChange={onChange} />);
     await user.click(screen.getByRole('button', { name: 'Mở menu' }));
-    await user.click(screen.getByRole('button', { name: 'Mẫu' }));
-    expect(onChange).toHaveBeenCalledWith('templates');
+    await user.click(screen.getByRole('button', { name: 'Khu vườn' }));
+    expect(onChange).toHaveBeenCalledWith('garden');
     expect(screen.getByRole('button', { name: 'Cài đặt' })).toBeInTheDocument();
   });
 
@@ -44,7 +44,7 @@ describe('TabBar (menu nổi thu gọn)', () => {
       </>,
     );
     await user.click(screen.getByRole('button', { name: 'Mở menu' }));
-    await user.click(screen.getByRole('button', { name: 'Mẫu' }));
+    await user.click(screen.getByRole('button', { name: 'Khu vườn' }));
     expect(screen.getByRole('button', { name: 'Đóng menu' })).toBeInTheDocument();
     await user.click(screen.getByText('nội dung màn hình'));
     await waitFor(() => expect(screen.queryByRole('button', { name: 'Lịch' })).not.toBeInTheDocument());
@@ -56,7 +56,7 @@ describe('TabBar (menu nổi thu gọn)', () => {
     render(<TabBar current="calendar" onChange={() => {}} />);
     expect(screen.getByRole('button', { name: 'Mở menu' }).querySelector('svg[data-icon="menu"]')).not.toBeNull();
     await user.click(screen.getByRole('button', { name: 'Mở menu' }));
-    for (const [name, icon] of [['Lịch', 'calendar'], ['Hôm nay', 'sprout'], ['Mẫu', 'clipboard'], ['Cài đặt', 'gear']]) {
+    for (const [name, icon] of [['Lịch', 'calendar'], ['Hôm nay', 'sprout'], ['Khu vườn', 'garden'], ['Cài đặt', 'gear']]) {
       const btn = screen.getByRole('button', { name });
       expect(btn.querySelector(`svg[data-icon="${icon}"]`)).not.toBeNull();
       expect(btn.textContent).toBe(name);

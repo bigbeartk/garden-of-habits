@@ -74,6 +74,28 @@ describe('SettingsScreen nút quay lại', () => {
   });
 });
 
+describe('SettingsScreen thẻ Mẫu việc', () => {
+  it('thẻ đầu trang ghi mẫu mặc định; Quản lý mẫu mở màn Mẫu, nút quay lại về Cài đặt', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
+    await deps.db.templates.put({ id: 't', name: 'Sáng sớm', items: [], isDefault: true, createdAt: 1, updatedAt: 1 });
+    const user = userEvent.setup();
+    renderWithDeps(<SettingsScreen />, deps);
+    const card = (await screen.findByRole('heading', { name: 'Mẫu việc' })).closest('.card') as HTMLElement;
+    expect(await within(card).findByText(/Đang dùng: Sáng sớm/)).toBeInTheDocument();
+    expect(document.querySelector('.settings__section')).toBe(card); // đứng đầu trang
+    await user.click(within(card).getByRole('button', { name: 'Quản lý mẫu' }));
+    expect(await screen.findByRole('heading', { name: 'Mẫu việc cần làm' })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Quay lại Cài đặt' }));
+    expect(await screen.findByRole('heading', { name: 'Mẫu việc' })).toBeInTheDocument();
+  });
+
+  it('chưa có mẫu mặc định thì ghi rõ', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
+    renderWithDeps(<SettingsScreen />, deps);
+    expect(await screen.findByText('Chưa có mẫu mặc định')).toBeInTheDocument();
+  });
+});
+
 describe('SettingsScreen chọn hình nền lịch', () => {
   beforeEach(() => {
     Object.defineProperty(URL, 'createObjectURL', { configurable: true, value: () => 'blob:bg' });

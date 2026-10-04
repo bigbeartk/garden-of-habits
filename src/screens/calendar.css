@@ -24,13 +24,7 @@
 .cal__note-dot { position: absolute; bottom: 4px; right: 5px; width: 6px; height: 6px; border-radius: 50%; background: var(--berry); }
 .cal__pad { aspect-ratio: 0.78; }
 .cal__footer { display: flex; justify-content: center; align-items: center; gap: 12px; }
-/* nút mở báo cáo Khu vườn: tròn, cùng cỡ nút đổi hình nền */
-.cal__garden-btn {
-  width: 52px; height: 52px; padding: 0; display: grid; place-items: center; cursor: pointer;
-  border-radius: 50%; border: none; background: #DFF3D8; box-shadow: var(--shadow-soft);
-}
-.cal__garden-btn:active { transform: scale(0.94); }
-/* ở hàng dưới Lịch, nút hình nền chỉ chiếm đúng cỡ của nó để đứng cạnh nút Khu vườn */
+/* ở hàng dưới Lịch, nút hình nền chỉ chiếm đúng cỡ của nó, căn giữa */
 .cal__footer .bg-picker { width: auto; }
 .bg-picker { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; align-items: center; }
 .detail { display: flex; flex-direction: column; gap: 10px; }

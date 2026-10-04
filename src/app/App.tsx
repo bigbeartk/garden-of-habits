@@ -7,7 +7,7 @@ import { ensureToday } from '../domain/dayService';
 import { useNow } from '../hooks/useNow';
 import { CalendarScreen } from '../screens/CalendarScreen';
 import { TodayScreen } from '../screens/TodayScreen';
-import { TemplatesScreen } from '../screens/TemplatesScreen';
+import { GardenScreen } from '../screens/GardenScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
 
 export function App() {
@@ -34,7 +34,7 @@ export function App() {
         <main className="app__main">
           {tab === 'calendar' && <CalendarScreen />}
           {tab === 'today' && <TodayScreen />}
-          {tab === 'templates' && <TemplatesScreen />}
+          {tab === 'garden' && <GardenScreen />}
           {tab === 'settings' && <SettingsScreen />}
         </main>
         <TabBar current={tab} onChange={setTab} />

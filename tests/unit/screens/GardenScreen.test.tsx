@@ -1,6 +1,8 @@
 import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { vi } from 'vitest';
 import { CalendarScreen } from '../../../src/screens/CalendarScreen';
+import { GardenScreen } from '../../../src/screens/GardenScreen';
 import { CATALOG } from '../../../src/content/catalog';
 import { makeDay, makeDeps, renderWithDeps } from '../helpers';
 import { getSetting } from '../../../src/db/settings';
@@ -16,12 +18,10 @@ async function openGarden() {
     makeDay({ date: '2026-10-10', plantId: 'corn' }),
   ]);
   const user = userEvent.setup();
-  renderWithDeps(<CalendarScreen />, deps);
-  const btn = await screen.findByRole('button', { name: 'Khu vườn' });
-  expect(btn.querySelector('svg[data-icon="garden"]')).not.toBeNull();
-  await user.click(btn);
+  const nav = vi.fn();
+  renderWithDeps(<GardenScreen />, deps, nav);
   const garden = await screen.findByTestId('garden');
-  return { deps, user, garden };
+  return { deps, user, garden, nav };
 }
 
 const countOf = (garden: HTMLElement, id: string) => within(garden).getByTestId(`garden-plant-${id}`).querySelector('.garden__count')!.textContent;
@@ -39,12 +39,18 @@ describe('Khu vườn (báo cáo từ ngày tới ngày)', () => {
     expect(empty.slice(4).every(Boolean)).toBe(true);
   });
 
-  it('nút Khu vườn ở màn Lịch mở báo cáo; mặc định từ đầu tháng tới hôm nay', async () => {
+  it('mặc định từ đầu tháng tới hôm nay', async () => {
     const { garden } = await openGarden();
     expect(within(garden).getByRole('heading', { name: 'Khu vườn' })).toBeInTheDocument();
     expect(within(garden).getByLabelText('Từ ngày')).toHaveValue('2026-10-01');
     expect(within(garden).getByLabelText('Đến ngày')).toHaveValue('2026-10-15');
-    expect(screen.queryByTestId('calendar-card')).not.toBeInTheDocument();
+  });
+
+  it('Khu vườn là một tab: màn Lịch không còn nút Khu vườn', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 15, 10, 0), CATALOG);
+    renderWithDeps(<CalendarScreen />, deps);
+    await screen.findByTestId('calendar-card');
+    expect(screen.queryByRole('button', { name: 'Khu vườn' })).not.toBeInTheDocument();
   });
 
   it('mỗi loài cây có số lần được chọn ở bên dưới; loài chưa trồng hiện mờ với số 0', async () => {
@@ -114,10 +120,10 @@ describe('Khu vườn (báo cáo từ ngày tới ngày)', () => {
     expect(within(garden).queryAllByRole('listitem')).toHaveLength(0);
   });
 
-  it('nút Quay lại Lịch trở về lưới lịch', async () => {
-    const { user, garden } = await openGarden();
+  it('nút Quay lại Lịch chuyển về tab Lịch', async () => {
+    const { user, garden, nav } = await openGarden();
     await user.click(within(garden).getByRole('button', { name: 'Quay lại Lịch' }));
-    expect(await screen.findByTestId('calendar-card')).toBeInTheDocument();
+    expect(nav).toHaveBeenCalledWith('calendar');
   });
 });
 
@@ -130,8 +136,7 @@ describe('Khu vườn và cây đặc biệt', () => {
       makeDay({ date: '2026-10-03', plantId: 'cherry', specialId: 'gold' }),
     ]);
     const user = userEvent.setup();
-    renderWithDeps(<CalendarScreen />, deps);
-    await user.click(await screen.findByRole('button', { name: 'Khu vườn' }));
+    renderWithDeps(<GardenScreen />, deps);
     const garden = await screen.findByTestId('garden');
     await waitFor(() => expect(within(garden).getByTestId('garden-summary')).toHaveTextContent('2 ngày cây đặc biệt'));
     expect(countOf(garden, 'corn')).toBe('2');

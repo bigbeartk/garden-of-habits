@@ -17,7 +17,7 @@ describe('TemplatesScreen', () => {
   it('tạo mẫu, đặt mặc định, chuyển mặc định sang mẫu khác', async () => {
     const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
     const user = userEvent.setup();
-    renderWithDeps(<TemplatesScreen />, deps);
+    renderWithDeps(<TemplatesScreen onBack={() => {}} />, deps);
     await createViaForm(user, 'Buổi sáng', 'Tập thể dục{Enter}Ăn sáng');
     await createViaForm(user, 'Cuối tuần', 'Dọn nhà');
     expect(await screen.findByRole('heading', { name: 'Buổi sáng' })).toBeInTheDocument();
@@ -33,7 +33,7 @@ describe('TemplatesScreen', () => {
   it('tên trống thì báo lỗi', async () => {
     const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
     const user = userEvent.setup();
-    renderWithDeps(<TemplatesScreen />, deps);
+    renderWithDeps(<TemplatesScreen onBack={() => {}} />, deps);
     await user.click(screen.getByRole('button', { name: '＋ Mẫu mới' }));
     await user.click(screen.getByRole('button', { name: 'Lưu mẫu' }));
     expect(await screen.findByRole('alert')).toHaveTextContent('Tên mẫu không được để trống');
@@ -42,7 +42,7 @@ describe('TemplatesScreen', () => {
   it('thêm mẫu vào hôm nay', async () => {
     const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
     const user = userEvent.setup();
-    renderWithDeps(<TemplatesScreen />, deps);
+    renderWithDeps(<TemplatesScreen onBack={() => {}} />, deps);
     await createViaForm(user, 'Buổi sáng', 'Tập thể dục{Enter}Ăn sáng');
     const card = (await screen.findByRole('heading', { name: 'Buổi sáng' })).closest('li')!;
     await user.click(within(card).getByRole('button', { name: 'Thêm vào hôm nay' }));
@@ -53,7 +53,7 @@ describe('TemplatesScreen', () => {
   it('xoá mẫu cần xác nhận', async () => {
     const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
     const user = userEvent.setup();
-    renderWithDeps(<TemplatesScreen />, deps);
+    renderWithDeps(<TemplatesScreen onBack={() => {}} />, deps);
     await createViaForm(user, 'Tạm', 'x');
     const card = (await screen.findByRole('heading', { name: 'Tạm' })).closest('li')!;
     await user.click(within(card).getByRole('button', { name: 'Xoá' }));
@@ -66,7 +66,7 @@ describe('TemplatesScreen mẫu theo buổi', () => {
   it('mẫu có 3 ô Sáng/Chiều/Tối; áp dụng thì việc vào đúng buổi', async () => {
     const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
     const user = userEvent.setup();
-    renderWithDeps(<TemplatesScreen />, deps);
+    renderWithDeps(<TemplatesScreen onBack={() => {}} />, deps);
     await user.click(screen.getByRole('button', { name: '＋ Mẫu mới' }));
     await user.type(screen.getByLabelText('Tên mẫu'), 'Cả ngày');
     await user.type(screen.getByLabelText('Việc buổi Sáng (mỗi dòng một việc)'), 'Tập thể dục');
@@ -86,7 +86,7 @@ describe('TemplatesScreen mẫu theo buổi', () => {
     const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
     await createTemplate(deps.db, 'Mẫu', [{ text: 'A', period: 'morning' }, { text: 'B', period: 'evening' }], 1);
     const user = userEvent.setup();
-    renderWithDeps(<TemplatesScreen />, deps);
+    renderWithDeps(<TemplatesScreen onBack={() => {}} />, deps);
     const card = (await screen.findByRole('heading', { name: 'Mẫu' })).closest('li')!;
     await user.click(within(card).getByRole('button', { name: 'Sửa' }));
     expect(screen.getByLabelText('Việc buổi Sáng (mỗi dòng một việc)')).toHaveValue('A');
@@ -96,22 +96,22 @@ describe('TemplatesScreen mẫu theo buổi', () => {
 });
 
 describe('TemplatesScreen nút quay lại và ngôi sao tự vẽ', () => {
-  it('nút mũi tên quay về Lịch', async () => {
+  it('nút mũi tên quay về Cài đặt', async () => {
     const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
-    const nav = vi.fn();
+    const onBack = vi.fn();
     const user = userEvent.setup();
-    renderWithDeps(<TemplatesScreen />, deps, nav);
-    const back = screen.getByRole('button', { name: 'Quay lại Lịch' });
+    renderWithDeps(<TemplatesScreen onBack={onBack} />, deps);
+    const back = screen.getByRole('button', { name: 'Quay lại Cài đặt' });
     expect(back.querySelector('svg[data-icon="back"]')).not.toBeNull();
     expect(back.textContent).toBe('');
     await user.click(back);
-    expect(nav).toHaveBeenCalledWith('calendar');
+    expect(onBack).toHaveBeenCalled();
   });
 
   it('nút mặc định dùng ngôi sao SVG, không dùng ký tự ☆/⭐', async () => {
     const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
     await createTemplate(deps.db, 'Mẫu A', [{ text: 'x', period: 'morning' }], 1);
-    renderWithDeps(<TemplatesScreen />, deps);
+    renderWithDeps(<TemplatesScreen onBack={() => {}} />, deps);
     const star = await screen.findByRole('button', { name: 'Đặt làm mặc định: Mẫu A' });
     expect(star.querySelector('svg[data-icon="star"]')).not.toBeNull();
     expect(star.textContent ?? '').not.toMatch(/[☆⭐★]/);

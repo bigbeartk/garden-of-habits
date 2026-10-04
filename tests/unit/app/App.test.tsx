@@ -56,9 +56,25 @@ describe('App chuyển tab không có hiệu ứng', () => {
     await screen.findByTestId('calendar-card');
     expect(screen.queryByTestId('tab-screen')).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Mở menu' }));
-    fireEvent.click(await screen.findByRole('button', { name: 'Mẫu' }));
-    // không chờ hiệu ứng: màn Mẫu có ngay, màn Lịch biến mất ngay
-    expect(screen.getByRole('heading', { name: 'Mẫu việc cần làm' })).toBeInTheDocument();
+    fireEvent.click(await screen.findByRole('button', { name: 'Khu vườn' }));
+    // không chờ hiệu ứng: màn Khu vườn có ngay, màn Lịch biến mất ngay
+    expect(screen.getByTestId('garden')).toBeInTheDocument();
     expect(screen.queryByTestId('calendar-card')).not.toBeInTheDocument();
+  });
+
+  it('không còn tab Mẫu; Mẫu mở từ Cài đặt và quay lại Cài đặt', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
+    const day = await ensureToday(deps);
+    await markGreeted(deps, day.date);
+    renderWithDeps(<App />, deps);
+    await screen.findByTestId('calendar-card');
+    fireEvent.click(screen.getByRole('button', { name: 'Mở menu' }));
+    expect(screen.queryByRole('button', { name: 'Mẫu' })).not.toBeInTheDocument();
+    fireEvent.click(await screen.findByRole('button', { name: 'Cài đặt' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Quản lý mẫu' }));
+    expect(await screen.findByRole('heading', { name: 'Mẫu việc cần làm' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Quay lại Cài đặt' }));
+    expect(await screen.findByRole('heading', { name: 'Cài đặt' })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Mẫu việc cần làm' })).not.toBeInTheDocument();
   });
 });
