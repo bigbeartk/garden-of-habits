@@ -448,3 +448,17 @@ test('nền Lịch động: chọn GIF thì giữ nguyên tệp làm ảnh nền
   expect(vb.width).toBeGreaterThanOrEqual(page.viewportSize()!.width - 1);
   await expect(page.getByTestId('calendar-card')).toBeVisible();
 });
+
+test('Cài đặt: mục Ủng hộ tôi có mã QR tải được và nút PayPal', async ({ page }) => {
+  await page.goto('/');
+  await goTab(page, 'Cài đặt');
+  await closeMenu(page);
+  const qr = page.getByRole('img', { name: 'Mã QR chuyển khoản TPBank' });
+  await qr.scrollIntoViewIfNeeded();
+  await expect(qr).toBeVisible();
+  await expect.poll(() => qr.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth)).toBe(890);
+  await expect(page.getByRole('link', { name: 'Ủng hộ qua PayPal' })).toHaveAttribute('href', 'https://paypal.me/dattruong92');
+  await expect(page.getByRole('button', { name: 'Lưu mã QR' })).toBeVisible();
+  const vw = page.viewportSize()!.width;
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(vw);
+});

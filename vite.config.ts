@@ -44,7 +44,7 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,png,ico,woff,woff2}'],
+        globPatterns: ['**/*.{js,css,html,svg,png,jpg,ico,woff,woff2}'], // jpg: mã QR ủng hộ, xem được khi offline
         navigateFallback: 'index.html',
       },
     }),

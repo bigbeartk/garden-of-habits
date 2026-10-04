@@ -6,6 +6,7 @@ import { BackButton } from '../components/BackButton';
 import { BackgroundPicker } from '../components/BackgroundPicker';
 import { ConfirmButton } from '../components/ConfirmButton';
 import { SettingSwitch } from '../components/SettingSwitch';
+import { SupportCard } from '../components/SupportCard';
 import {
   backupFileName, createBackup, parseBackup, restoreBackup, serializeBackup, type BackupFile, type RestoreMode,
 } from '../db/backup';
@@ -130,6 +131,8 @@ export function SettingsScreen() {
           {persisted === false && 'Hãy cài app lên màn hình chính để dữ liệu không bị Safari tự xoá.'}
         </p>
       </div>
+      <SupportCard />
+
       <p className="muted settings__version" data-testid="app-version">
         Phiên bản {__APP_VERSION__} · {new Date(__BUILD_TIME__).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
       </p>

@@ -6,3 +6,11 @@
 .settings__row { display: flex; flex-wrap: wrap; gap: 8px; }
 .settings__steps { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 4px; }
 .settings__version { text-align: center; font-size: 0.8rem; margin: 4px 0 0; }
+/* Ủng hộ tôi: mã QR chuyển khoản + PayPal */
+.support { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; }
+.support h2 { align-self: flex-start; }
+.support__text, .support__hint { margin: 0; }
+.support__hint { font-size: 0.85rem; }
+.support__qr { width: 100%; max-width: 280px; height: auto; border-radius: var(--radius-md); border: 2px solid var(--cocoa); box-shadow: var(--shadow-pop); background: #fff; }
+.support__actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.support__paypal { text-decoration: none; color: inherit; display: inline-flex; align-items: center; }

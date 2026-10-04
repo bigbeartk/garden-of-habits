@@ -153,3 +153,30 @@ describe('SettingsScreen công tắc chấm đỏ ngày có ghi chú', () => {
     await waitFor(async () => expect(await getSetting(deps.db, 'showNoteDot')).toBe(true));
   });
 });
+
+describe('SettingsScreen mục Ủng hộ tôi', () => {
+  it('có mã QR chuyển khoản, nút lưu mã QR và nút PayPal', async () => {
+    const { shareOrDownload } = await import('../../../src/db/share');
+    vi.mocked(shareOrDownload).mockClear();
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(new Blob([new Uint8Array([1, 2, 3])], { type: 'image/jpeg' })));
+    try {
+      const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
+      const user = userEvent.setup();
+      renderWithDeps(<SettingsScreen />, deps);
+      const section = (await screen.findByRole('heading', { name: 'Ủng hộ tôi' })).closest('section')!;
+      const qr = within(section).getByRole('img', { name: 'Mã QR chuyển khoản TPBank' });
+      expect(qr.getAttribute('src')).toMatch(/support\/qr-tpbank\.jpg$/);
+      const paypal = within(section).getByRole('link', { name: /PayPal/ });
+      expect(paypal).toHaveAttribute('href', 'https://paypal.me/dattruong92');
+      expect(paypal).toHaveAttribute('target', '_blank');
+      expect(paypal.getAttribute('rel')).toContain('noopener');
+      await user.click(within(section).getByRole('button', { name: 'Lưu mã QR' }));
+      await waitFor(() => expect(shareOrDownload).toHaveBeenCalledTimes(1));
+      const file = vi.mocked(shareOrDownload).mock.calls[0][0];
+      expect(file.name).toBe('ma-qr-ung-ho.jpg');
+      expect(file.type).toBe('image/jpeg');
+    } finally {
+      fetchMock.mockRestore();
+    }
+  });
+});
