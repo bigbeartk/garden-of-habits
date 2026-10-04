@@ -30,6 +30,8 @@ describe('Khu vườn (báo cáo từ ngày tới ngày)', () => {
   it('luống > 0 ngày (kể cả cây héo, ngày nghỉ) đứng trên mọi luống 0 ngày', async () => {
     const { garden } = await openGarden();
     await waitFor(() => expect(countOf(garden, 'corn')).toBe('3'));
+    // số ngày cây héo cần thêm truy vấn ngày dùng app đầu tiên: chờ nó về rồi mới đọc thứ tự
+    await waitFor(() => expect(within(garden).getByTestId('garden-wilted').querySelector('.garden__count')!.textContent).toBe('9'));
     const ids = within(garden).getAllByRole('listitem').map((li) => li.dataset.testid);
     // 01–15/10: Ngô 3, Xương rồng 1, héo (03, 04, 07–09, 11–14) 9, nghỉ 1; các loài khác 0
     expect(ids.slice(0, 4)).toEqual(['garden-plant-corn', 'garden-plant-cactus', 'garden-wilted', 'garden-rest']);
