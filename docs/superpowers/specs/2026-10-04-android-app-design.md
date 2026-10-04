@@ -1,7 +1,7 @@
 # Spec: App Android (Capacitor) + hỗ trợ nhiều màn hình
 
 ## Context
-Garden of Habits đang là PWA cho iPhone 13. Chủ repo muốn có thêm **app Android** (máy của chủ repo là **iQOO Neo 9**), sau này **đưa lên CH Play để kiếm tiền**. Cả PWA lẫn app Android phải hiển thị tốt trên nhiều cỡ màn hình và nhiều máy Android.
+Garden of Habits đang là PWA cho iPhone 13. Chủ repo muốn có thêm **app Android** cho các điện thoại Android thông dụng, sau này **đưa lên CH Play để kiếm tiền**. Cả PWA lẫn app Android phải hiển thị tốt trên nhiều cỡ màn hình và nhiều máy Android.
 Thiết kế đã được duyệt qua brainstorming (4 phần).
 
 **Mục tiêu đợt này:** app Android làm được đúng như PWA, chạy offline hoàn toàn, sẵn sàng về mặt kỹ thuật để lên Play sau này. iPhone vẫn là máy ưu tiên, nên không được làm thay đổi hành vi của PWA trên iPhone.
@@ -88,7 +88,7 @@ Lớp nào mở sau thì đăng ký sau, nên được xử lý trước. Đợt
 - Thanh trạng thái và thanh điều hướng trong suốt, icon tối. Ở màn Hôm nay và ngày tương lai, khi trời tối (`timeOfDay` = tối) thì đổi sang icon sáng (`@capacitor/status-bar` `Style.Dark`/`Style.Light`, gọi qua `platform/`).
 
 ### 3. Chặn ép giao diện tối
-Theme Android: `android:forceDarkAllowed="false"`, kế thừa theme sáng (`Theme.Material3.Light.NoActionBar` hoặc theme của Capacitor). WebView: `WebSettingsCompat.setAlgorithmicDarkeningAllowed(settings, false)`. Bật "ép tối cho mọi app" của OriginOS thì màu app vẫn giữ nguyên.
+Theme Android: `android:forceDarkAllowed="false"`, kế thừa theme sáng (`Theme.Material3.Light.NoActionBar` hoặc theme của Capacitor). WebView: `WebSettingsCompat.setAlgorithmicDarkeningAllowed(settings, false)`. Máy bật "ép giao diện tối cho mọi app" (có trên Samsung, Xiaomi, Oppo…) thì màu app vẫn giữ nguyên.
 
 ### 4. Cỡ chữ
 `MainActivity`: `webView.settings.textZoom = 100`. Vẫn giữ `user-scalable=no` như bản hiện tại.
@@ -96,7 +96,7 @@ Theme Android: `android:forceDarkAllowed="false"`, kế thừa theme sáng (`The
 ### 5. Bàn phím
 - Mục tiêu: khi gõ `DraftRow`/`GoalInput`/ghi chú, ô đang gõ nằm trên bàn phím, còn trời và cây **không bị bóp méo**.
 - Hướng làm: bàn phím phủ lên nội dung (`windowSoftInputMode="adjustNothing"` hoặc `@capacitor/keyboard` `resize: 'none'`), đặt `--keyboard-h` từ chiều cao bàn phím. `.today__list` và `BottomSheet` cộng `--keyboard-h` vào `padding-bottom`, ô đang focus thì `scrollIntoView({ block: 'nearest' })`.
-- Phải kiểm chứng trên Neo 9 (bàn phím Gboard và bàn phím của vivo). Nếu `adjustResize` cho kết quả tốt hơn mà không bóp trời (vì `.today` đã dùng `dvh`), được phép chọn cách đó; ghi lý do vào CLAUDE.md.
+- Kiểm chứng trên trình giả lập Android với Gboard. Nếu `adjustResize` cho kết quả tốt hơn mà không bóp trời (vì `.today` đã dùng `dvh`), được phép chọn cách đó; ghi lý do vào CLAUDE.md.
 
 ### 6. Lưu file và link ngoài
 - `💾 Sao lưu dữ liệu` và `Lưu mã QR` gọi `saveFile`. Hành vi ghi nhận `lastBackupAt` giữ như hiện tại: người dùng huỷ thì không tính là đã sao lưu.
@@ -121,10 +121,6 @@ Theme Android: `android:forceDarkAllowed="false"`, kế thừa theme sáng (`The
 - **Máy dài** (≥ 900 cao): trời `46dvh` rất cao. **Giới hạn cỡ cây**: khung cây 200×240 tối đa khoảng 1,5 lần (con số cụ thể chốt khi soát ảnh) và đặt `max-height` cho trời, để phần còn lại dành cho danh sách việc.
 - **Tablet** dọc (800×1280) và ngang (1280×800): cột 480 căn giữa, mọi màn dùng được, không có phần tử nào nằm ngoài cột.
 
-### iQOO Neo 9
-- Đo trên máy thật (bật Gỡ lỗi USB): `adb shell wm size`, `adb shell wm density`, insets thanh trạng thái/camera/thanh điều hướng (log từ `MainActivity`). Kích thước viewport dp đo được thành khổ E2E `android-iqoo-neo9`. Đo thêm ở **cỡ hiển thị lớn nhất** và ở cả chế độ cử chỉ lẫn 3 nút.
-- 144Hz: chỉ soát bằng mắt hiệu ứng nền động / cây nảy.
-
 ## Kiểm thử
 
 ### Unit (Vitest, chạy trong CI)
@@ -136,11 +132,12 @@ Theme Android: `android:forceDarkAllowed="false"`, kế thừa theme sáng (`The
 ### E2E (Playwright, chạy trên máy dev)
 - Projects:
   - `iphone-13` (WebKit): như hiện tại, khổ chính;
-  - `android-iqoo-neo9` (Chromium, viewport đo được, DPR 3, `isMobile`, `hasTouch`);
+  - `android-pixel-7` (Chromium, `devices['Pixel 7']`, 412×915): khổ Android chính, đại diện máy màn dài phổ biến;
+  - `android-galaxy` (Chromium 360×800, DPR 3, `isMobile`, `hasTouch`): khổ của dòng Samsung Galaxy A/S thông dụng;
   - `android-small` (Chromium 360×640);
   - `tablet-portrait` (800×1280);
   - `tablet-landscape` (1280×800).
-- `tests/e2e/app.spec.ts` chạy trên `iphone-13` + `android-iqoo-neo9`.
+- `tests/e2e/app.spec.ts` chạy trên `iphone-13` + `android-pixel-7`.
 - File mới `tests/e2e/layout.spec.ts` chạy trên **mọi project**, gồm:
   - không có thanh cuộn ngang ở mọi màn (Lịch, Hôm nay, Khu vườn, Cài đặt, Mẫu, ngày tương lai);
   - hàng 4 nút và cây nằm gọn trong viewport;
@@ -151,11 +148,12 @@ Theme Android: `android:forceDarkAllowed="false"`, kế thừa theme sáng (`The
 - Chụp ảnh mỗi màn ở mỗi khổ vào `test-results/` để soát bằng mắt.
 - `PW_CHANNEL=chrome` vẫn dùng được cho các project Chromium.
 
-### Checklist trên máy thật Neo 9 (`adb` + `chrome://inspect`)
+### Checklist trên trình giả lập Android (`emulator` của SDK + `adb` + `chrome://inspect`)
+Dùng AVD Pixel (API mới nhất, có camera đục lỗ). Nếu có máy Android thật cắm vào thì chạy thêm trên đó, không bắt buộc.
 1. Cài APK release và mở khi tắt mạng.
 2. Vuốt Back ở mọi màn và lớp (bảng, dòng mới, Mẫu, ngày tương lai, tab), cuối cùng thoát app.
 3. Camera đục lỗ và thanh trạng thái không che nội dung; chế độ cử chỉ và 3 nút đều không che nút menu.
-4. Bật ép tối của OriginOS: màu không đổi.
+4. Bật tối hệ thống + ép tối (Developer options → Override force-dark): màu không đổi.
 5. Cỡ hiển thị lớn nhất + cỡ chữ lớn nhất: bố cục không vỡ.
 6. Thêm việc bằng bàn phím: ô gõ không bị che, trời và cây không méo.
 7. Sao lưu ra Drive/Files; khôi phục từ file sao lưu của iPhone (cả Thay thế và Gộp).
@@ -165,8 +163,8 @@ Theme Android: `android:forceDarkAllowed="false"`, kế thừa theme sáng (`The
 
 ## Tiêu chí xong
 - `npm test`, test giống CI (`TZ=UTC npx -y node@20 …`), `npx tsc --noEmit`, E2E mọi project đều pass.
-- Checklist Neo 9 đạt cả 10 mục.
-- Push tag `v1.0.0` thì GitHub Releases có APK + AAB đã ký, cài được lên Neo 9.
+- Checklist trên trình giả lập đạt cả 10 mục.
+- Push tag `v1.0.0` thì GitHub Releases có APK + AAB đã ký, cài được lên trình giả lập (và máy thật nếu có).
 - PWA trên iPhone không đổi hành vi: E2E WebKit pass, ảnh chụp các màn ở khổ iPhone 13 không lệch so với trước.
 - CLAUDE.md cập nhật: lệnh Android, `platform/`, ngăn xếp Back, biến `--safe-*`, cột 480, ký app, quy trình phát hành.
 
@@ -174,7 +172,7 @@ Theme Android: `android:forceDarkAllowed="false"`, kế thừa theme sáng (`The
 - **Keystore** là thứ duy nhất không thể làm lại; chủ repo phải sao lưu.
 - **Play (spec sau):** tài khoản cá nhân mới phải chạy thử kín với ≥ 12 người trong 14 ngày; cần chính sách quyền riêng tư (app không thu dữ liệu, dễ viết), trang giới thiệu, ảnh chụp màn hình; thẻ Ủng hộ có thể phải ẩn (`VITE_PLAY_BUILD`).
 - WebView trên máy rất cũ (Android 7–8, WebView chưa cập nhật) có thể thiếu `dvh`/`aspect-ratio`. Đợt này chỉ đảm bảo trên WebView được cập nhật qua Play Store; nếu `minSdk` mặc định làm lộ vấn đề thì nâng `minSdk`.
-- Inset và bàn phím của OriginOS chỉ kiểm được trên máy thật; E2E chỉ giả lập.
+- Inset và bàn phím chỉ kiểm được trên trình giả lập/máy thật; E2E chỉ giả lập. Các bản Android tuỳ biến của hãng (One UI, MIUI/HyperOS, ColorOS…) có thể khác chút; xử lý khi có báo lỗi cụ thể.
 
 ## Không làm trong đợt này
 Thông báo · kiếm tiền (quảng cáo/mua trong app) · đăng Play · Back cho PWA trên Android · bố cục tablet riêng · xoay ngang trên điện thoại · cho phóng cỡ chữ theo hệ thống · đồng bộ dữ liệu giữa máy.
