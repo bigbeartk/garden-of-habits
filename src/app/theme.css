@@ -68,7 +68,7 @@ button, input, textarea { font: inherit; color: inherit; }
 }
 .fnav > * { pointer-events: auto; }
 .fnav__toggle {
-  width: var(--tabbar-h); height: var(--tabbar-h); flex: none; border-radius: 50%;
+  width: var(--tabbar-h); height: var(--tabbar-h); padding: 0; flex: none; border-radius: 50%;
   display: grid; place-items: center; cursor: pointer;
   border: 2.5px solid var(--cocoa); background: var(--butter);
   box-shadow: 0 4px 0 rgba(91, 70, 54, 0.25), var(--shadow-soft);

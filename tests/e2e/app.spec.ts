@@ -261,3 +261,29 @@ test('chạm ngày tương lai mở màn giống Hôm nay để lên lịch; t�
   await openToday(page);
   await expect(page.getByTestId('todo-section-evening').getByRole('checkbox', { name: 'Hoàn thành: Gọi điện cho mẹ' })).toBeVisible();
 });
+
+test('nút tròn vẫn tròn dù Safari gán padding mặc định lớn cho <button>', async ({ page }) => {
+  // Giả lập UA stylesheet của một số bản Safari: nút có padding ngang lớn.
+  await page.addInitScript(() => {
+    document.addEventListener('DOMContentLoaded', () => {
+      const s = document.createElement('style');
+      s.textContent = 'button { padding: 1px 24px; }';
+      document.head.prepend(s);
+    });
+  });
+  await page.clock.setFixedTime(at('2026-10-02T15:00:00'));
+  await page.goto('/');
+  await openToday(page);
+  await addTodo(page, 'Dọn nhà');
+  await page.getByRole('dialog', { name: 'Thêm việc cần làm' }).getByRole('button', { name: 'Đóng' }).click();
+  const round = [
+    page.getByRole('button', { name: 'Đổi cây' }),
+    page.getByRole('button', { name: 'Thêm việc mới' }),
+    page.getByRole('checkbox', { name: 'Hoàn thành: Dọn nhà' }),
+    page.getByRole('button', { name: /^(Mở|Đóng) menu$/ }),
+  ];
+  for (const el of round) {
+    const box = (await el.boundingBox())!;
+    expect(Math.abs(box.width - box.height), await el.getAttribute('aria-label') ?? '').toBeLessThan(1);
+  }
+});
