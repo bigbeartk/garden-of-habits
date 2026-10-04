@@ -3,64 +3,64 @@ import type { PlantSpecies } from '../types';
 import { SOIL_Y, Seed, Sprout } from './parts';
 
 const STEM = '#6FAE62';
-const LEAF = '#7CC47A';
-const LEAF_BACK = '#5FAE66';
+const LEAF = '#7FBF6A';
+const LEAF_FOLD = '#5E9E52';
+const RED = '#F0525A';
+const RED_DEEP = '#D63B47';
+const RED_LIGHT = '#FF8A8E';
 
-interface CupColors {
-  front: string;
-  back: string;
-}
-const PINK: CupColors = { front: '#FF9DB3', back: '#EE7393' };
-const YELLOW: CupColors = { front: '#FFD979', back: '#F2B84B' };
-const LILAC: CupColors = { front: '#D3B8FA', back: '#AE8DE6' };
-
-/** Thân cong từ gốc (100, 160) lên tới đáy bông */
-function Stalk({ x, y }: { x: number; y: number }) {
-  const cx = 100 + (x - 100) * 0.2;
-  return <path d={`M100 ${SOIL_Y} Q${cx} ${(SOIL_Y + y) / 2} ${x} ${y}`} stroke={STEM} strokeWidth={4.5} fill="none" strokeLinecap="round" />;
+/** Thân mập thẳng từ gốc lên tới đáy bông */
+function Stalk({ top }: { top: number }) {
+  return <path d={`M100 ${SOIL_Y} C98 ${(SOIL_Y + top) / 2 + 10} 102 ${(SOIL_Y + top) / 2 - 10} 100 ${top}`} stroke={STEM} strokeWidth={7} fill="none" strokeLinecap="round" />;
 }
 
-/** Lá tulip: dải dài, mũi nhọn, mọc thẳng từ gốc rồi ngả ra ngoài */
-function StrapLeaf({ tipX, tipY, fill = LEAF }: { tipX: number; tipY: number; fill?: string }) {
+/** Lá tulip to bản mọc từ gốc, xoè ra rồi vểnh mũi; nửa trong tô đậm như lá gập. `side` -1 trái, 1 phải */
+function BroadLeaf({ side, tipX, tipY }: { side: 1 | -1; tipX: number; tipY: number }) {
   const dx = tipX - 100;
-  const side = Math.sign(dx) || 1;
+  const base = SOIL_Y - 2;
+  const outer = `M${100 + side * 2} ${base} C${100 + dx * 0.9} ${base - 4} ${tipX + side * 6} ${tipY + 34} ${tipX} ${tipY}`;
+  const inner = `C${tipX - side * 4} ${tipY + 26} ${100 + dx * 0.25} ${base - 30} ${100 + side * 2} ${base}`;
+  const mid = `M${100 + side * 2} ${base} C${100 + dx * 0.55} ${base - 12} ${tipX + side * 2} ${tipY + 30} ${tipX} ${tipY}`;
   return (
-    <path
-      d={
-        `M${100 - 7 * side} ${SOIL_Y} C${100 - 6 * side + dx * 0.15} ${SOIL_Y - 40} ${tipX - 6 * side} ${tipY + 30} ${tipX} ${tipY} ` +
-        `C${tipX - 2 * side} ${tipY + 34} ${100 + 10 * side + dx * 0.2} ${SOIL_Y - 30} ${100 + 7 * side} ${SOIL_Y} Z`
-      }
-      fill={fill}
-      stroke={INK}
-      strokeWidth={2}
-      strokeLinejoin="round"
-    />
-  );
-}
-
-/** Bông tulip mở hình chén, tâm (0,0) nằm giữa cánh trước; đáy chén ở y = 20 */
-function Cup({ x, y, s = 1, c }: { x: number; y: number; s?: number; c: CupColors }) {
-  return (
-    <g transform={`translate(${x} ${y}) scale(${s})`} strokeLinejoin="round">
-      <path d="M-4 18 C-17 15 -23 2 -22 -16 C-15 -12 -9 -5 -6 4 Z" fill={c.back} stroke={INK} strokeWidth={2 / s} />
-      <path d="M4 18 C17 15 23 2 22 -16 C15 -12 9 -5 6 4 Z" fill={c.back} stroke={INK} strokeWidth={2 / s} />
-      <path
-        d="M-16 -6 C-18 10 -10 20 0 20 C10 20 18 10 16 -6 C10 -9 4 -13 0 -19 C-4 -13 -10 -9 -16 -6 Z"
-        fill={c.front}
-        stroke={INK}
-        strokeWidth={2 / s}
-      />
-      <path d="M-11 -2 C-12 6 -9 12 -5 15" stroke="#fff" strokeWidth={2.4 / s} fill="none" strokeLinecap="round" opacity={0.45} />
+    <g strokeLinejoin="round">
+      <path d={`${outer} ${inner} Z`} fill={LEAF} stroke={INK} strokeWidth={2} />
+      <path d={`${mid} ${inner} Z`} fill={LEAF_FOLD} stroke="none" />
+      <path d={`${outer} ${inner} Z`} fill="none" stroke={INK} strokeWidth={2} />
     </g>
   );
 }
 
-/** Nụ tulip còn khép: giọt nước dựng đứng, ngọn hơi ửng màu */
-function Bud({ x, y, s = 1, c }: { x: number; y: number; s?: number; c: CupColors }) {
+/** Bông tulip mũm mĩm hình chén; tâm (0,0) giữa cánh trước, đáy chén ở y = 30 */
+function Cup() {
   return (
-    <g transform={`translate(${x} ${y}) scale(${s})`} strokeLinejoin="round">
-      <path d="M0 18 C-14 17 -16 2 -12 -8 C-8 -17 -3 -22 0 -25 C3 -22 8 -17 12 -8 C16 2 14 17 0 18 Z" fill="#BFE3A8" stroke={INK} strokeWidth={2 / s} />
-      <path d="M-11 -6 C-7 -15 -3 -20 0 -25 C3 -20 7 -15 11 -6 C6 -9 3 -10 0 -10 C-3 -10 -6 -9 -11 -6 Z" fill={c.front} stroke={INK} strokeWidth={1.6 / s} />
+    <g strokeLinejoin="round" stroke={INK}>
+      {/* cánh sau: chỉ lộ mũi nhọn giữa hai cánh bên */}
+      <path d="M-14 -16 C-10 -28 -4 -36 0 -40 C4 -36 10 -28 14 -16 Z" fill={RED_DEEP} strokeWidth={2} />
+      {/* hai cánh bên ôm lấy cánh trước */}
+      <path d="M-4 30 C-26 30 -38 14 -36 -8 C-35 -18 -32 -26 -30 -32 C-20 -26 -12 -16 -10 -4 Z" fill={RED_DEEP} strokeWidth={2} />
+      <path d="M4 30 C26 30 38 14 36 -8 C35 -18 32 -26 30 -32 C20 -26 12 -16 10 -4 Z" fill={RED_DEEP} strokeWidth={2} />
+      {/* cánh trước mang mặt */}
+      <path d="M-27 -10 C-30 12 -18 31 0 31 C18 31 30 12 27 -10 C20 -16 10 -24 0 -34 C-10 -24 -20 -16 -27 -10 Z" fill={RED} strokeWidth={2.2} />
+      {/* gân cánh nhạt + ánh sáng */}
+      <g fill="none" stroke={RED_LIGHT} strokeLinecap="round">
+        <path d="M-20 -6 C-22 6 -18 16 -12 22" strokeWidth={2.4} opacity={0.8} />
+        <path d="M-6 -24 C-3 -28 -1 -30 0 -31" strokeWidth={2} opacity={0.8} />
+        <path d="M-30 -18 C-32 -6 -31 6 -27 14" strokeWidth={2} opacity={0.6} />
+        <path d="M30 -18 C32 -6 31 6 27 14" strokeWidth={2} opacity={0.4} />
+      </g>
+      <ellipse cx={-15} cy={-12} rx={3} ry={6} fill="#fff" stroke="none" opacity={0.55} transform="rotate(25 -15 -12)" />
+    </g>
+  );
+}
+
+/** Nụ tulip còn khép: búp trứng thuôn nhọn, gốc ửng xanh */
+function ClosedBud() {
+  return (
+    <g strokeLinejoin="round" stroke={INK}>
+      <path d="M0 22 C-16 22 -20 6 -18 -6 C-16 -16 -8 -26 0 -32 C8 -26 16 -16 18 -6 C20 6 16 22 0 22 Z" fill={RED} strokeWidth={2} />
+      <path d="M-18 -6 C-10 -2 -4 -10 0 -32 C-6 -24 -14 -16 -18 -6 Z" fill={RED_DEEP} strokeWidth={1.6} />
+      <path d="M0 22 C-12 22 -16 14 -17 6 C-10 12 -4 14 0 14 C4 14 10 12 17 6 C16 14 12 22 0 22 Z" fill="#9FCF7E" strokeWidth={1.6} />
+      <ellipse cx={8} cy={-8} rx={2.4} ry={5} fill="#fff" stroke="none" opacity={0.5} transform="rotate(-20 8 -8)" />
     </g>
   );
 }
@@ -74,32 +74,24 @@ function TulipSprout() {
 function TulipBud() {
   return (
     <g>
-      <StrapLeaf tipX={50} tipY={104} fill={LEAF_BACK} />
-      <StrapLeaf tipX={150} tipY={100} fill={LEAF_BACK} />
-      <Stalk x={70} y={108} />
-      <Stalk x={132} y={102} />
-      <Stalk x={100} y={98} />
-      <Bud x={70} y={90} s={0.72} c={YELLOW} />
-      <Bud x={132} y={84} s={0.72} c={LILAC} />
-      <Bud x={100} y={78} s={1.15} c={PINK} />
-      <StrapLeaf tipX={80} tipY={118} />
-      <StrapLeaf tipX={122} tipY={114} />
+      <Stalk top={100} />
+      <BroadLeaf side={-1} tipX={60} tipY={104} />
+      <BroadLeaf side={1} tipX={142} tipY={110} />
+      <g transform="translate(100 82)">
+        <ClosedBud />
+      </g>
     </g>
   );
 }
 function TulipBloom() {
   return (
     <g>
-      <StrapLeaf tipX={40} tipY={100} fill={LEAF_BACK} />
-      <StrapLeaf tipX={160} tipY={96} fill={LEAF_BACK} />
-      <Stalk x={58} y={100} />
-      <Stalk x={143} y={92} />
-      <Stalk x={100} y={86} />
-      <Cup x={58} y={84} s={0.85} c={YELLOW} />
-      <Cup x={143} y={76} s={0.85} c={LILAC} />
-      <Cup x={100} y={62} s={1.35} c={PINK} />
-      <StrapLeaf tipX={74} tipY={112} />
-      <StrapLeaf tipX={128} tipY={108} />
+      <Stalk top={104} />
+      <BroadLeaf side={-1} tipX={48} tipY={100} />
+      <BroadLeaf side={1} tipX={154} tipY={108} />
+      <g transform="translate(100 76) scale(1.15)">
+        <Cup />
+      </g>
     </g>
   );
 }
@@ -118,10 +110,10 @@ export const tulip: PlantSpecies = {
   faceAnchor: {
     seed: { x: 100, y: 149, scale: 0.55 },
     sprout: { x: 100, y: 122, scale: 0.6 },
-    bud: { x: 100, y: 85, scale: 0.48 },
-    bloom: { x: 100, y: 68, scale: 0.75 },
+    bud: { x: 100, y: 78, scale: 0.6 },
+    bloom: { x: 100, y: 90, scale: 1 },
   },
-  sayings: ['Ba bông tulip xinh xắn chào bạn nè 🌷', 'Hôm nay mình nở thật tươi để cổ vũ bạn đó!'],
+  sayings: ['Bông tulip đỏ xinh xắn chào bạn nè 🌷', 'Hôm nay mình nở thật tươi để cổ vũ bạn đó!'],
   praises: ['Thêm một cánh tulip hé nở vì bạn đó 🌷'],
-  taps: ['Hihi, nhột cánh hoa mình quá 🌷', 'Cả bó tulip này tặng bạn nè 💐'],
+  taps: ['Hihi, nhột cánh hoa mình quá 🌷', 'Bông tulip này tặng bạn nè 💐'],
 };
