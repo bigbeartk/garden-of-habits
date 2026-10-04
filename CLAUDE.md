@@ -93,7 +93,7 @@ src/
   | `future` | ngày tương lai |
 
   Đi tới được tối đa **12 tháng sau** tháng hiện tại (`MAX_MONTHS_AHEAD`). **Chạm ô lịch:** ngày đã qua → `DayDetailSheet` (bảng cao, phủ gần hết màn Lịch) chỉ xem (việc chia 3 buổi `detail-section-*`, ghi chú `detail-note`); **hôm nay → chuyển thẳng sang tab Hôm nay**; **ngày tương lai → `FutureDayScreen`** (thay chỗ lưới lịch, nút `Quay lại Lịch`): bố cục giống Hôm nay (trời + chậu đứng yên, danh sách cuộn), chậu đất nung có **hạt giống bí ẩn đang ngủ** + bong bóng "Hẹn gặp bạn vào <thứ> nha!"; danh sách 3 buổi (`PlannedList`: sửa bằng chạm chữ, xoá; **không có ô tick**); nút ＋ ở mỗi buổi thêm dòng trống như Hôm nay, lưu thành việc đã lên lịch. Không có 4 nút đổi cây/chậu/ghi chú/ngày nghỉ. (`plannedService`: `addPlanned` chỉ nhận ngày **sau hôm nay**, `editPlanned`, `deletePlanned`.)  Ô có việc đã lên lịch hiện huy hiệu số việc (`planned-count`). Việc tương lai **chỉ thêm được từ Lịch** (mở ngày đó rồi bấm ＋ ở buổi).
-- **Khu vườn (báo cáo)**: nút tròn icon `garden` (nhãn `Khu vườn`) ở hàng dưới màn Lịch, cạnh nút đổi hình nền; mở `GardenScreen` thay chỗ lưới lịch (`data-testid="garden"`, nút `Quay lại Lịch`). Chọn `Từ ngày` / `Đến ngày` (mặc định đầu tháng → hôm nay; ngược thì tự đổi chỗ) hoặc nút nhanh `Tháng này` / `30 ngày` / `Tất cả`. Vườn cỏ xanh, mỗi loài một luống (`garden-plant-<id>`, số ngày ở `.garden__count`), vẽ dạng ra hoa trong chậu mặc định; nhiều nhất đứng trước, loài 0 ngày hiện mờ (`is-empty`). Tóm tắt `garden-summary`: số ngày · ngày ra hoa · việc xong. Logic thuần ở `domain/garden.ts` (`gardenReport`): ngày tiết kiệm năng lượng vẫn tính là cây được chọn; loài đã xoá khỏi nội dung không có luống.
+- **Khu vườn (báo cáo)**: nút tròn icon `garden` (nhãn `Khu vườn`) ở hàng dưới màn Lịch, cạnh nút đổi hình nền; mở `GardenScreen` thay chỗ lưới lịch (`data-testid="garden"`, nút `Quay lại Lịch`). Chọn `Từ ngày` / `Đến ngày` (mặc định đầu tháng → hôm nay; ngược thì tự đổi chỗ) hoặc nút nhanh `Tháng này` / `30 ngày` / `Tất cả`. Vườn cỏ xanh, mỗi loài một luống (`garden-plant-<id>`, số ngày ở `.garden__count`), vẽ dạng ra hoa trong chậu mặc định; nhiều nhất đứng trước, loài 0 ngày hiện mờ (`is-empty`). Sau các loài là 2 luống riêng: `garden-wilted` **Cây héo** (ngày bỏ lỡ, cùng định nghĩa `missed` của ô lịch: không bản ghi, từ ngày dùng app đầu tiên tới hôm qua) và `garden-rest` **Ngày nghỉ**. Tóm tắt `garden-summary`: số ngày · ngày ra hoa · việc xong. Logic thuần ở `domain/garden.ts` (`gardenReport(records, ids, from, to, { todayKey, firstKey })`): ngày tiết kiệm năng lượng **không** tính cho loài cây (đếm riêng `restDays`); loài đã xoá khỏi nội dung không có luống.
 - **Nền theo giờ** (`timeOfDay`): sáng 4–11h, trưa 11–14h, chiều 14–18h, tối 18–4h.
 - **Nhắc sao lưu:** khi đã quá 7 ngày kể từ lần sao lưu cuối, hoặc kể từ dữ liệu cũ nhất nếu chưa sao lưu lần nào.
 
@@ -126,7 +126,10 @@ interface PlantSpecies {
 }
 ```
 **Thêm cây mới** gồm 3 bước:
-1. Tạo `src/content/plants/<id>.tsx` export một `PlantSpecies`. Dùng lại các phần có sẵn trong `plants/parts.tsx`: `Seed`, `Sprout`, `LeafyStem`, `Trunk`, `Canopy`, `HeartLeaf`.
+1. Tạo `src/content/plants/<id>.tsx` export một `PlantSpecies`. Phần dùng chung trong `plants/parts.tsx` chỉ cho giai đoạn đầu và chi tiết nhỏ: `Seed`, `Sprout`, `LeafyStem`, `HeartLeaf`.
+
+> **Quy tắc: mỗi loài mới phải KHÁC các loài đã có ở DÁNG (silhouette) ở giai đoạn `bud` và `bloom`**, không chỉ khác màu hay khác quả. Trước khi vẽ, đối chiếu cột *Dáng* trong bảng dưới và chọn một dáng chưa có (khối cầu, dù, cột, dây leo, bụi thấp, cây cao một bông, cụm hoa cầu…). Không tái dùng tán/thân của loài khác; nếu cần phần chung thì chỉ ở mức chi tiết (lá, hạt). Sau khi vẽ, soát bằng ảnh chụp WebKit màn **Khu vườn** (đủ mọi loài, dạng ra hoa) và lưới Lịch (dạng ra chồi): đặt cạnh nhau phải nhận ra ngay. Bài học: cam và cherry từng dùng chung tán mây tròn `Canopy` + thân `Trunk` nên trông như một, đã vẽ lại và xoá hai phần đó.
+
 2. Thêm loài vào mảng `PLANTS` trong `src/content/plants/registry.ts`.
 3. Chạy `npm test`. `tests/unit/content/plants.test.tsx` kiểm tra đủ 4 giai đoạn, chậu mặc định có tồn tại, và mỗi loài có chậu mặc định khác nhau.
 
@@ -134,17 +137,17 @@ Lưu ý: test này cũng cố định danh sách loài theo thứ tự, nên th�
 
 Các loài hiện có:
 
-| id | Tên | Chậu mặc định |
-|---|---|---|
-| `sunflower` | Hướng dương | `terracotta` |
-| `corn` | Ngô | `rattan` |
-| `cactus` | Xương rồng | `pink-cup` |
-| `pothos` | Trầu bà | `mint` |
-| `orange` | Cây cam | `wood` |
-| `cherry` | Cherry | `polka` |
-| `rose` | Hoa hồng | `rose-porcelain` |
-| `watermelon` | Dưa hấu | `tin-bucket` |
-| `hydrangea` | Cẩm tú cầu | `blue-ceramic` |
+| id | Tên | Chậu mặc định | Dáng (bud/bloom) |
+|---|---|---|---|
+| `sunflower` | Hướng dương | `terracotta` | thân cao, một bông tròn cánh vàng ở đỉnh |
+| `corn` | Ngô | `rattan` | thân thẳng, lá dài xoè hai bên, bắp ở giữa |
+| `cactus` | Xương rồng | `pink-cup` | cột mập có hai tay, hoa nhỏ trên đỉnh |
+| `pothos` | Trầu bà | `mint` | dây leo lá tim rủ xuống mép chậu |
+| `orange` | Cây cam | `wood` | cây kẹo mút: thân thẳng mảnh + một khối cầu lá đậm, mép lá nhọn |
+| `cherry` | Cherry | `polka` | cây dù rộng và thấp: thân chẻ đôi, vòm bông cong, quả đôi treo cuống dài |
+| `rose` | Hoa hồng | `rose-porcelain` | một bông hồng trên cành có lá |
+| `watermelon` | Dưa hấu | `tin-bucket` | dây bò lá tim xoè ngang + quả dưa giữa |
+| `hydrangea` | Cẩm tú cầu | `blue-ceramic` | thân + một cụm hoa cầu nhiều bông nhỏ |
 
 Hình dùng chung cho mọi loài: `common/SleepingSeed.tsx` (ngày nghỉ) và `common/WiltedPlant.tsx` (ngày bỏ lỡ).
 
@@ -291,7 +294,7 @@ File thiếu `planned` (phiên bản 1–2) hoặc `plannedGoals` (phiên bản 
 - **Đóng bảng (`BottomSheet`)**: nút X (icon `close`, `aria-label="Đóng"`) ở góc phải trên hàng tiêu đề (`.sheet__head`) như cửa sổ Windows; không còn nút chữ "Đóng" ở đáy. Chạm nền mờ cũng đóng.
   - `BottomSheet` render qua **portal vào `<body>`**: màn Lịch đặt `position: relative` cho mọi con trực tiếp (`.screen--calendar > :not(.bg-scene)`), trước đây làm bảng mất `position: fixed` và nằm cuối trang. Đừng bỏ portal.
   - `tall`: bảng phủ gần hết màn hình (chừa 48px + safe-area ở trên), tiêu đề + X đứng yên, chỉ `.sheet__body` cuộn. Dùng cho `DayDetailSheet` (chạm ngày đã qua).
-- **Icon:** không dùng emoji cho icon chức năng; dùng bộ SVG tự vẽ trong `components/icons.tsx` (khung 32×32, viền cocoa, màu pastel, `data-icon` để test). Hiện có: `calendar`, `sprout`, `clipboard`, `gear` (4 tab), `menu`, `close`, `plus` (nút ＋ mỗi buổi), `garden` (Khu vườn), `back`, `plant-swap`, `pot`, `note`, `sleep-seed` (hạt giống đội mũ ngủ), `sun` (4 nút dưới chậu; ngày nghỉ đổi `sleep-seed` → `sun`), `period-morning` / `period-afternoon` / `period-evening` (dùng qua `<PeriodIcon period>` ở mọi chỗ hiện buổi: Hôm nay, ngày tương lai, thẻ mẫu, bảng chi tiết). Ô đánh dấu việc trong bảng chi tiết là `.detail__check` tự vẽ, không dùng emoji ✅/⬜. `IconButton` nhận `icon: ReactNode`.
+- **Icon:** không dùng emoji cho icon chức năng; dùng bộ SVG tự vẽ trong `components/icons.tsx` (khung 32×32, viền cocoa, màu pastel, `data-icon` để test). Hiện có: `calendar`, `sprout`, `clipboard`, `gear` (4 tab), `menu`, `close`, `plus` (nút ＋ mỗi buổi, nền `--butter` giống nút bông hoa), `garden` (Khu vườn), `back`, `plant-swap`, `pot`, `note`, `sleep-seed` (hạt giống đội mũ ngủ), `sun` (4 nút dưới chậu; ngày nghỉ đổi `sleep-seed` → `sun`), `period-morning` / `period-afternoon` / `period-evening` (dùng qua `<PeriodIcon period>` ở mọi chỗ hiện buổi: Hôm nay, ngày tương lai, thẻ mẫu, bảng chi tiết). Ô đánh dấu việc trong bảng chi tiết là `.detail__check` tự vẽ, không dùng emoji ✅/⬜. `IconButton` nhận `icon: ReactNode`.
 - **Hình nền Lịch** (`BackgroundPicker`, radiogroup `Hình nền lịch`, setting `calendarTheme`: `default | cat | grass | rain | gamer | photo`). Trên màn Lịch có **một nút tròn icon xem trước** (ẩn được bằng công tắc `Hiện nút đổi hình nền ở trang Lịch` trong Cài đặt, setting `showCalendarBgButton`, mặc định bật, có trong file sao lưu) (không chữ, nhãn `Đổi hình nền lịch (đang dùng: …)`) mở BottomSheet 6 lựa chọn (lưới 3 cột), chọn xong tự đóng; cùng bộ chọn có trong Cài đặt:
   - `cat` = **Mèo vươn vai** (`components/backgrounds/CatStretchScene.tsx`): nền pastel, mèo chibi duỗi người ở góc trái dưới (nâng lên `CAT_LIFT` 72 để không sát thanh Home), đuôi ve vẩy, tim bay lên (vị trí tim đặt ở `<g>` bao ngoài vì transform của keyframes đè transform của chính phần tử).
   - `grass` = **Cỏ nở** (`GrassBloomScene.tsx`): nền xanh, **chu kỳ 10s**: cỏ mọc lên, đung đưa, hoa nở, thu lại, mọc lại.

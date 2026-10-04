@@ -11,6 +11,7 @@ async function openGarden() {
     makeDay({ date: '2026-10-01', plantId: 'corn', finalStage: 'bloom' }),
     makeDay({ date: '2026-10-02', plantId: 'corn' }),
     makeDay({ date: '2026-10-05', plantId: 'cactus' }),
+    makeDay({ date: '2026-10-06', plantId: 'corn', isRestDay: true }),
     makeDay({ date: '2026-10-10', plantId: 'corn' }),
   ]);
   const user = userEvent.setup();
@@ -45,8 +46,25 @@ describe('Khu vườn (báo cáo từ ngày tới ngày)', () => {
     expect(tiles).toHaveLength(CATALOG.plants.length);
     expect(tiles[0]).toHaveAttribute('data-testid', 'garden-plant-corn');
     expect(within(tiles[0]).getByTestId('plant-scene')).toHaveAttribute('data-stage', 'bloom');
-    expect(within(garden).getByTestId('garden-summary')).toHaveTextContent('4 ngày');
+    expect(within(garden).getByTestId('garden-summary')).toHaveTextContent('5 ngày');
     expect(within(garden).getByTestId('garden-summary')).toHaveTextContent('1 ngày ra hoa');
+  });
+
+  it('có luống Cây héo (ngày bỏ lỡ) và Ngày nghỉ ở cuối vườn, ngày nghỉ không tính cho cây', async () => {
+    const { garden } = await openGarden();
+    // 01/10 → 15/10 (hôm nay): bỏ lỡ 03, 04, 07, 08, 09, 11, 12, 13, 14 = 9 ngày; nghỉ 06/10
+    const wilted = await within(garden).findByTestId('garden-wilted');
+    await waitFor(() => expect(wilted.querySelector('.garden__count')!.textContent).toBe('9'));
+    expect(within(wilted).getByText('Cây héo')).toBeInTheDocument();
+    expect(within(wilted).getByTestId('plant-scene')).toHaveAttribute('data-mode', 'wilted');
+    const rest = within(garden).getByTestId('garden-rest');
+    expect(rest.querySelector('.garden__count')!.textContent).toBe('1');
+    expect(within(rest).getByText('Ngày nghỉ')).toBeInTheDocument();
+    expect(within(rest).getByTestId('plant-scene')).toHaveAttribute('data-mode', 'sleeping');
+    expect(countOf(garden, 'corn')).toBe('3'); // 01, 02, 10/10; ngày nghỉ 06/10 không tính
+    // hai luống đặc biệt đứng sau mọi loài cây
+    const beds = within(garden).getAllByRole('listitem');
+    expect(beds.slice(-2).map((b) => b.getAttribute('data-testid'))).toEqual(['garden-wilted', 'garden-rest']);
   });
 
   it('đổi ngày hoặc bấm nút nhanh thì báo cáo đổi theo', async () => {

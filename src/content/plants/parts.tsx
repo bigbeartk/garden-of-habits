@@ -39,33 +39,6 @@ export function LeafyStem({ top, leaf, stem }: { top: number; leaf: string; stem
   );
 }
 
-export function Trunk() {
-  return (
-    <path d="M94 160 L96 112 Q100 102 104 112 L106 160 Z" fill="#B07D56" stroke={INK} strokeWidth={2} strokeLinejoin="round" />
-  );
-}
-
-const CANOPY_BLOBS: [number, number, number][] = [
-  [72, 96, 26],
-  [128, 96, 26],
-  [100, 76, 32],
-  [100, 106, 28],
-];
-
-/** Tán cây: vẽ viền dày trước rồi phủ nền lên để chỉ còn viền ngoài. */
-export function Canopy({ fill }: { fill: string }) {
-  return (
-    <g data-part="canopy">
-      {CANOPY_BLOBS.map(([x, y, r]) => (
-        <circle key={`o${x}-${y}`} cx={x} cy={y} r={r} fill={fill} stroke={INK} strokeWidth={4} />
-      ))}
-      {CANOPY_BLOBS.map(([x, y, r]) => (
-        <circle key={`i${x}-${y}`} cx={x} cy={y} r={r} fill={fill} />
-      ))}
-    </g>
-  );
-}
-
 export function HeartLeaf({ x, y, s = 1, r = 0 }: { x: number; y: number; s?: number; r?: number }) {
   return (
     <g transform={`translate(${x} ${y}) rotate(${r}) scale(${s})`}>

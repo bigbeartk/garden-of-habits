@@ -151,6 +151,10 @@ test('nút ＋ nằm ngoài cùng bên phải hàng Sáng/Chiều/Tối; thêm v
     expect(box.x + box.width - (add.x + add.width), `${label}: sát mép phải`).toBeLessThan(16);
     expect(add.width).toBeCloseTo(add.height, 0);
   }
+  // nút ＋ cùng màu nền với nút bông hoa mở menu (lúc menu thu gọn; khi mở nút hoa đổi sang trắng)
+  await closeMenu(page);
+  const bg = (loc: ReturnType<Page['locator']>) => loc.evaluate((el) => getComputedStyle(el).backgroundColor);
+  expect(await bg(page.getByRole('button', { name: 'Thêm việc buổi Sáng' }))).toBe(await bg(page.locator('.fnav__toggle')));
   await addTodo(page, 'Đi chợ', 'Chiều');
   await addTodo(page, 'Nấu cơm', 'Chiều');
   // dòng trống buổi Chiều còn mở mà bấm ＋ buổi Tối (Safari không lấy focus khỏi ô khi chạm nút)

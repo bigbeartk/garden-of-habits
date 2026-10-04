@@ -43,3 +43,8 @@
 .garden__bed.is-empty { box-shadow: none; }
 .garden__bed.is-empty .garden__plant { opacity: 0.4; filter: grayscale(0.8); }
 .garden__bed.is-empty .garden__tally { opacity: 0.6; }
+/* luống cây héo: đất khô màu nâu; luống ngày nghỉ: tím lavender dịu */
+.garden__bed--wilted { border-color: #8A6A4E; background: linear-gradient(180deg, rgba(255, 253, 251, 0.75) 0, rgba(255, 253, 251, 0.75) 62%, #D9B98F 62%, #C9A379 100%); }
+.garden__bed--wilted::before { background: radial-gradient(circle at 10% 100%, #B08A5E 4px, transparent 5px) 0 0 / 14px 10px repeat-x; }
+.garden__bed--sleeping { border-color: #8C7BC4; background: linear-gradient(180deg, rgba(255, 253, 251, 0.75) 0, rgba(255, 253, 251, 0.75) 62%, #D6CCF5 62%, #C5B8EE 100%); }
+.garden__bed--sleeping::before { background: radial-gradient(circle at 10% 100%, #A797DD 4px, transparent 5px) 0 0 / 14px 10px repeat-x; }

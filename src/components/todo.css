@@ -28,7 +28,7 @@
 /* nút ＋ ở cuối hàng tiêu đề buổi: thêm dòng việc trống vào buổi đó */
 .todo__section-add {
   flex: none; width: 34px; height: 34px; padding: 0; display: grid; place-items: center; cursor: pointer;
-  border: 2px solid var(--cocoa); border-radius: 50%; background: var(--white); box-shadow: var(--shadow-pop);
+  border: 2px solid var(--cocoa); border-radius: 50%; background: var(--butter); box-shadow: var(--shadow-pop); /* cùng màu nút bông hoa mở menu */
 }
 .todo__section-add:active { transform: translateY(2px); box-shadow: none; }
 .todo__row--draft .todo__edit .input { padding-top: 6px; padding-bottom: 6px; }

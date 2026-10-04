@@ -3,28 +3,44 @@ import { makeDay } from '../helpers';
 
 const IDS = ['sunflower', 'corn', 'cactus'];
 const todo = (done: boolean) => ({ id: crypto.randomUUID(), text: 'x', done, doneAt: done ? 1 : null, order: 0, period: 'morning' as const });
+// hôm nay 10/10, dùng app từ 30/09
+const CTX = { todayKey: '2026-10-10', firstKey: '2026-09-30' };
 
 describe('gardenReport', () => {
   const records = [
     makeDay({ date: '2026-09-30', plantId: 'corn' }), // ngoài khoảng
     makeDay({ date: '2026-10-01', plantId: 'corn', finalStage: 'bloom', todos: [todo(true), todo(true)] }),
     makeDay({ date: '2026-10-02', plantId: 'cactus', todos: [todo(true), todo(false)], finalStage: 'bud' }),
-    makeDay({ date: '2026-10-03', plantId: 'corn', isRestDay: true }), // ngày nghỉ vẫn tính là cây được chọn
+    makeDay({ date: '2026-10-03', plantId: 'corn', isRestDay: true }), // ngày nghỉ: tính riêng, không tính cho Ngô
+    // 04/10: không có bản ghi → cây héo
     makeDay({ date: '2026-10-05', plantId: 'corn', finalStage: 'bloom', todos: [todo(true)] }),
     makeDay({ date: '2026-10-06', plantId: 'sunflower' }), // ngoài khoảng
   ];
 
-  it('đếm số ngày mỗi cây được chọn trong khoảng (tính cả hai đầu), nhiều nhất đứng trước', () => {
-    const r = gardenReport(records, IDS, '2026-10-01', '2026-10-05');
+  it('đếm số ngày mỗi cây được chọn trong khoảng (tính cả hai đầu), nhiều nhất đứng trước; ngày nghỉ không tính cho cây', () => {
+    const r = gardenReport(records, IDS, '2026-10-01', '2026-10-05', CTX);
     expect(r.entries).toEqual([
-      { plantId: 'corn', count: 3 },
+      { plantId: 'corn', count: 2 },
       { plantId: 'cactus', count: 1 },
       { plantId: 'sunflower', count: 0 }, // vẫn có mặt, để vườn hiện đủ loài
     ]);
   });
 
-  it('tổng kết: số ngày có cây, số ngày ra hoa, số việc đã xong', () => {
-    const r = gardenReport(records, IDS, '2026-10-01', '2026-10-05');
+  it('đếm riêng ngày nghỉ và cây héo (ngày bỏ lỡ, giống ô héo trên Lịch)', () => {
+    const r = gardenReport(records, IDS, '2026-10-01', '2026-10-05', CTX);
+    expect(r.restDays).toBe(1);
+    expect(r.wiltedDays).toBe(1);
+  });
+
+  it('cây héo chỉ tính từ ngày dùng app đầu tiên tới hôm qua; hôm nay chưa có bản ghi và ngày tương lai không héo', () => {
+    // khoảng 25/09 → 15/10: trước 30/09 là chưa dùng app; 07,08,09/10 bỏ lỡ; 10/10 là hôm nay; 11–15/10 là tương lai
+    const r = gardenReport(records, IDS, '2026-09-25', '2026-10-15', CTX);
+    expect(r.wiltedDays).toBe(4); // 04, 07, 08, 09/10
+    expect(gardenReport([], IDS, '2026-10-01', '2026-10-05', { todayKey: '2026-10-10', firstKey: null }).wiltedDays).toBe(0);
+  });
+
+  it('tổng kết: số ngày có cây (kể cả ngày nghỉ), số ngày ra hoa, số việc đã xong', () => {
+    const r = gardenReport(records, IDS, '2026-10-01', '2026-10-05', CTX);
     expect(r.days).toBe(4);
     expect(r.bloomDays).toBe(2);
     expect(r.todosDone).toBe(4);
@@ -33,13 +49,13 @@ describe('gardenReport', () => {
   it('cùng số lần thì giữ thứ tự loài trong danh sách; loài lạ (đã xoá khỏi nội dung) không có ô riêng', () => {
     const r = gardenReport(
       [makeDay({ date: '2026-10-01', plantId: 'cactus' }), makeDay({ date: '2026-10-02', plantId: 'sunflower' }), makeDay({ date: '2026-10-03', plantId: 'old-plant' })],
-      IDS, '2026-10-01', '2026-10-31',
+      IDS, '2026-10-01', '2026-10-03', CTX,
     );
     expect(r.entries.map((e) => e.plantId)).toEqual(['sunflower', 'cactus', 'corn']);
     expect(r.days).toBe(3);
   });
 
   it('ngày bắt đầu sau ngày kết thúc thì tự đổi chỗ', () => {
-    expect(gardenReport(records, IDS, '2026-10-05', '2026-10-01')).toEqual(gardenReport(records, IDS, '2026-10-01', '2026-10-05'));
+    expect(gardenReport(records, IDS, '2026-10-05', '2026-10-01', CTX)).toEqual(gardenReport(records, IDS, '2026-10-01', '2026-10-05', CTX));
   });
 });

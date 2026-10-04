@@ -4,6 +4,7 @@ import { useDeps } from '../app/deps';
 import { BackButton } from '../components/BackButton';
 import { PlantScene } from '../components/PlantScene';
 import { PLANTS, getSpecies } from '../content/plants/registry';
+import { DEFAULT_POT_ID } from '../content/pots/registry';
 import { firstDayKey, listDaysInRange } from '../db/queries';
 import { addDays, dayKey } from '../domain/dayKey';
 import { gardenReport } from '../domain/garden';
@@ -25,7 +26,7 @@ export function GardenScreen({ onBack }: { onBack: () => void }) {
   const [lo, hi] = from <= to ? [from, to] : [to, from];
   const records = useLiveQuery(() => listDaysInRange(deps.db, lo, hi), [deps.db, lo, hi]);
   const firstKey = useLiveQuery(() => firstDayKey(deps.db), [deps.db]) ?? null;
-  const report = gardenReport(records ?? [], PLANT_IDS, lo, hi);
+  const report = gardenReport(records ?? [], PLANT_IDS, lo, hi, { todayKey, firstKey });
 
   const preset = (start: string) => {
     setFrom(start);
@@ -81,7 +82,22 @@ export function GardenScreen({ onBack }: { onBack: () => void }) {
             </li>
           );
         })}
+        <SpecialBed testId="garden-wilted" mode="wilted" label="Cây héo" count={report.wiltedDays} />
+        <SpecialBed testId="garden-rest" mode="sleeping" label="Ngày nghỉ" count={report.restDays} />
       </ul>
     </section>
+  );
+}
+
+/** Luống riêng cho ngày bỏ lỡ (cây héo) và ngày tiết kiệm năng lượng (hạt giống ngủ), đứng sau mọi loài cây. */
+function SpecialBed({ testId, mode, label, count }: { testId: string; mode: 'wilted' | 'sleeping'; label: string; count: number }) {
+  return (
+    <li className={`garden__bed garden__bed--${mode}${count === 0 ? ' is-empty' : ''}`} data-testid={testId}>
+      <PlantScene className="garden__plant" plantId={PLANT_IDS[0]} potId={DEFAULT_POT_ID} stage="seed" specialId={null} mood="sleep" mode={mode} title={label} />
+      <span className="garden__name">{label}</span>
+      <span className="garden__tally">
+        <span className="garden__count">{count}</span> ngày
+      </span>
+    </li>
   );
 }
