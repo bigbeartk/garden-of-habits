@@ -63,14 +63,29 @@ describe('TodayScreen', () => {
     await waitFor(() => expect(screen.getByTestId('plant-scene')).toHaveAttribute('data-plant', targetId));
   });
 
-  it('ghi chú cho hôm nay', async () => {
+  it('ghi chú tự lưu khi gõ, không có nút Lưu, gõ tiếp không bị mất chữ', async () => {
     const { deps, user } = setup();
     await screen.findByTestId('plant-scene');
     await user.click(screen.getByRole('button', { name: 'Ghi chú' }));
     const dialog = await screen.findByRole('dialog', { name: 'Ghi chú hôm nay' });
-    await user.type(within(dialog).getByLabelText('Nội dung ghi chú'), 'Trời đẹp');
-    await user.click(within(dialog).getByRole('button', { name: 'Lưu' }));
+    expect(within(dialog).queryByRole('button', { name: 'Lưu' })).not.toBeInTheDocument();
+    const box = within(dialog).getByLabelText('Nội dung ghi chú');
+    await user.type(box, 'Trời đẹp');
     await waitFor(async () => expect((await deps.db.days.get('2026-10-02'))!.note).toBe('Trời đẹp'));
+    await user.type(box, ' quá');
+    await waitFor(async () => expect((await deps.db.days.get('2026-10-02'))!.note).toBe('Trời đẹp quá'));
+    expect(box).toHaveValue('Trời đẹp quá');
+    expect(screen.getByRole('dialog', { name: 'Ghi chú hôm nay' })).toBeInTheDocument();
+  });
+
+  it('đóng ngay sau khi gõ thì ghi chú vẫn được lưu', async () => {
+    const { deps, user } = setup();
+    await screen.findByTestId('plant-scene');
+    await user.click(screen.getByRole('button', { name: 'Ghi chú' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Ghi chú hôm nay' });
+    await user.type(within(dialog).getByLabelText('Nội dung ghi chú'), 'Vui');
+    await user.click(within(dialog).getByRole('button', { name: 'Đóng' }));
+    await waitFor(async () => expect((await deps.db.days.get('2026-10-02'))!.note).toBe('Vui'));
   });
 });
 

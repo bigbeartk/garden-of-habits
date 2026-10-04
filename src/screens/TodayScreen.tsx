@@ -198,7 +198,7 @@ export function TodayScreen() {
         open={sheet === 'note'}
         initial={day.note}
         onClose={() => setSheet(null)}
-        onSave={(note) => { run(setNote(deps, day.date, note)); setSheet(null); }}
+        onSave={(note) => run(setNote(deps, day.date, note))}
       />
     </section>
   );

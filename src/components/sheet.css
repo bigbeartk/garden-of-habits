@@ -8,7 +8,7 @@
 .sheet__title { font-family: var(--font-display); font-size: 1.3rem; margin: 0 0 12px; text-align: center; }
 .sheet__body { display: flex; flex-direction: column; gap: 12px; }
 .sheet__close { display: block; margin: 8px auto 0; }
-.sheet__save { align-self: center; min-width: 140px; }
+.sheet__hint { margin: 0; text-align: center; font-size: 0.85rem; opacity: 0.7; }
 .picker { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .picker__item {
   display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px;
