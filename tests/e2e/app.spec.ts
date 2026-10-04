@@ -579,7 +579,7 @@ test('chọn lại cây đặc biệt đã mở khoá trong bảng Đổi cây',
   const sheet = page.getByRole('dialog', { name: 'Chọn cây hôm nay' });
   const specials = sheet.getByTestId('picker-specials');
   // hôm nay có thể tự trúng cây đặc biệt (10%, ngẫu nhiên thật) nên có thể nhiều hơn 3 cặp
-  for (const name of ['Ngô · Phát sáng', 'Cây cam · Vàng ròng', 'Cẩm tú cầu · Pha lê']) {
+  for (const name of ['Ngô · Phát sáng', 'Cây cam · Vàng ròng', 'Tulip · Pha lê']) {
     await expect(specials.getByRole('button', { name })).toBeVisible();
   }
   await specials.getByRole('button', { name: 'Cây cam · Vàng ròng' }).scrollIntoViewIfNeeded();
