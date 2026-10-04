@@ -336,3 +336,36 @@ test('kéo việc sang buổi khác và sắp xếp trong buổi; còn nguyên s
   await openToday(page);
   await expect(page.getByTestId('todo-section-afternoon').locator('.todo__text')).toHaveText(['Uống nước', 'Tưới cây']);
 });
+
+test('Khu vườn: mở từ Lịch, đếm cây hôm nay, bố cục vừa khổ iPhone', async ({ page }) => {
+  await page.clock.setFixedTime(at('2026-10-02T10:00:00'));
+  await page.goto('/');
+  await openToday(page);
+  const plant = await page.getByTestId('plant-scene').getAttribute('data-plant');
+  await goTab(page, 'Lịch');
+  await page.getByRole('button', { name: 'Đóng menu' }).click();
+  // nút Khu vườn đứng cạnh nút đổi hình nền, cả cụm căn giữa
+  const gBtn = (await page.getByRole('button', { name: 'Khu vườn' }).boundingBox())!;
+  const bgBtn = (await page.getByRole('button', { name: /Đổi hình nền lịch/ }).boundingBox())!;
+  expect(Math.abs(gBtn.y - bgBtn.y)).toBeLessThan(2);
+  expect(bgBtn.x - (gBtn.x + gBtn.width)).toBeLessThan(24);
+  const mid = (gBtn.x + bgBtn.x + bgBtn.width) / 2;
+  expect(Math.abs(mid - page.viewportSize()!.width / 2)).toBeLessThan(4);
+  await page.getByRole('button', { name: 'Khu vườn' }).click();
+  const garden = page.getByTestId('garden');
+  await expect(garden.getByRole('heading', { name: 'Khu vườn' })).toBeVisible();
+  await expect(garden.getByTestId(`garden-plant-${plant}`).locator('.garden__count')).toHaveText('1');
+  await expect(garden.getByTestId('garden-summary')).toContainText('1 ngày');
+  // không tràn ngang; ô chọn ngày nằm gọn trong thẻ; 3 cây mỗi hàng
+  const vw = page.viewportSize()!.width;
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(vw);
+  const card = (await garden.locator('.garden__range').boundingBox())!;
+  for (const label of ['Từ ngày', 'Đến ngày']) {
+    const input = (await garden.getByLabel(label).boundingBox())!;
+    expect(input.x + input.width, label).toBeLessThanOrEqual(card.x + card.width);
+  }
+  const tops = await garden.locator('.garden__bed').evaluateAll((els) => els.map((e) => Math.round(e.getBoundingClientRect().top)));
+  expect(tops.filter((t) => t === tops[0])).toHaveLength(3);
+  await garden.getByRole('button', { name: 'Quay lại Lịch' }).click();
+  await expect(page.getByTestId('calendar-card')).toBeVisible();
+});

@@ -1,0 +1,45 @@
+/* Khu vườn: trời xanh nhạt trên cùng, đồi cỏ xanh, mỗi loài cây là một luống cỏ */
+.screen--garden {
+  position: relative; display: flex; flex-direction: column; gap: 12px; isolation: isolate;
+  background:
+    radial-gradient(120% 60px at 20% 210px, #A8DCA0 98%, transparent 100%),
+    radial-gradient(110% 70px at 85% 230px, #94D18D 98%, transparent 100%),
+    linear-gradient(180deg, #DDF1FF 0, #EAF8E6 200px, #B9E3B0 240px, #A5D99B 100%);
+  padding-bottom: calc(var(--tabbar-h) + 56px + env(safe-area-inset-bottom));
+}
+.garden__head { display: flex; align-items: center; gap: 4px; }
+.garden__range { display: flex; flex-direction: column; gap: 10px; background: rgba(255, 253, 251, 0.92); }
+.garden__dates { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.garden__date { display: flex; flex-direction: column; gap: 4px; min-width: 0; font-weight: 700; font-size: 0.85rem; }
+.garden__date .input { width: 100%; min-width: 0; padding: 8px 10px; font-size: 0.95rem; -webkit-appearance: none; appearance: none; min-height: 42px; }
+.garden__presets { display: flex; gap: 6px; }
+.garden__preset {
+  flex: 1; min-height: 36px; padding: 0 8px; border: 2px solid var(--cocoa); border-radius: 999px;
+  background: var(--mint); font-weight: 700; font-size: 0.85rem; cursor: pointer; box-shadow: var(--shadow-pop);
+}
+.garden__preset:active { transform: translateY(2px); box-shadow: none; }
+.garden__summary {
+  margin: 0; align-self: center; padding: 6px 14px; border-radius: 999px; border: 2px solid var(--cocoa);
+  background: var(--butter); font-weight: 600; font-size: 0.9rem; box-shadow: var(--shadow-pop); text-align: center;
+}
+.garden__beds { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.garden__bed {
+  position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 4px 10px;
+  border: 2px solid #4E8A4A; border-radius: var(--radius-md); box-shadow: var(--shadow-pop);
+  background: linear-gradient(180deg, rgba(255, 253, 251, 0.75) 0, rgba(255, 253, 251, 0.75) 62%, #8CCB80 62%, #7BBF6A 100%);
+}
+/* cụm cỏ nhỏ dưới chân chậu */
+.garden__bed::before {
+  content: ''; position: absolute; left: 10%; right: 10%; top: 58%; height: 10px; pointer-events: none;
+  background: radial-gradient(circle at 10% 100%, #5FA55A 4px, transparent 5px) 0 0 / 14px 10px repeat-x;
+}
+.garden__plant { width: 100%; max-width: 96px; aspect-ratio: 5 / 6; height: auto; display: block; }
+.garden__name { font-weight: 700; font-size: 0.8rem; color: var(--cocoa); text-align: center; line-height: 1.2; }
+.garden__tally {
+  display: inline-flex; align-items: baseline; gap: 3px; padding: 1px 10px; border-radius: 999px;
+  background: var(--white); border: 2px solid var(--cocoa); font-size: 0.75rem; font-weight: 700;
+}
+.garden__count { font-family: var(--font-display); font-size: 1.05rem; }
+.garden__bed.is-empty { box-shadow: none; }
+.garden__bed.is-empty .garden__plant { opacity: 0.4; filter: grayscale(0.8); }
+.garden__bed.is-empty .garden__tally { opacity: 0.6; }

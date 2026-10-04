@@ -40,11 +40,11 @@ PWA todo cho iPhone, có phần "nuôi cây": mỗi việc làm xong là một l
 src/
   app/        App (tab + tự sang ngày mới), TabBar (menu nổi), nav (TABS + NavContext), deps (DepsContext), theme.css
   domain/     logic thuần TS, test độc lập: dayKey, growth, random, timeOfDay, dayService,
-              templateService, calendar, types
+              templateService, calendar, garden, types
   db/         Dexie (db.ts), settings, queries, backup (export/import/merge), share
   content/    NỘI DUNG mở rộng được: plants/, pots/, specials/, common/, Face, ArtView, catalog, greetings
   components/ PlantScene, SkyBackground, TodoList, BottomSheet, DayCell, ...
-  screens/    CalendarScreen (màn mở đầu; mở FutureDayScreen cho ngày tương lai), TodayScreen, TemplatesScreen, SettingsScreen
+  screens/    CalendarScreen (màn mở đầu; mở FutureDayScreen cho ngày tương lai, GardenScreen cho báo cáo), TodayScreen, TemplatesScreen, SettingsScreen
   hooks/      useNow, useToday, useBackupReminder, useCalendarBg
   dev/        ArtGallery.tsx — xem trước mọi cây/chậu (render tạm từ main.tsx khi cần)
 ```
@@ -93,6 +93,7 @@ src/
   | `future` | ngày tương lai |
 
   Đi tới được tối đa **12 tháng sau** tháng hiện tại (`MAX_MONTHS_AHEAD`). **Chạm ô lịch:** ngày đã qua → `DayDetailSheet` chỉ xem (việc chia 3 buổi `detail-section-*`, ghi chú `detail-note`); **hôm nay → chuyển thẳng sang tab Hôm nay**; **ngày tương lai → `FutureDayScreen`** (thay chỗ lưới lịch, nút `Quay lại Lịch`): bố cục giống Hôm nay (trời + chậu đứng yên, danh sách cuộn), chậu đất nung có **hạt giống bí ẩn đang ngủ** + bong bóng "Hẹn gặp bạn vào <thứ> nha!"; danh sách 3 buổi (`PlannedList`: sửa bằng chạm chữ, xoá; **không có ô tick**); nút ＋ ở mỗi buổi thêm dòng trống như Hôm nay, lưu thành việc đã lên lịch. Không có 4 nút đổi cây/chậu/ghi chú/ngày nghỉ. (`plannedService`: `addPlanned` chỉ nhận ngày **sau hôm nay**, `editPlanned`, `deletePlanned`.)  Ô có việc đã lên lịch hiện huy hiệu số việc (`planned-count`). Việc tương lai **chỉ thêm được từ Lịch** (mở ngày đó rồi bấm ＋ ở buổi).
+- **Khu vườn (báo cáo)**: nút tròn icon `garden` (nhãn `Khu vườn`) ở hàng dưới màn Lịch, cạnh nút đổi hình nền; mở `GardenScreen` thay chỗ lưới lịch (`data-testid="garden"`, nút `Quay lại Lịch`). Chọn `Từ ngày` / `Đến ngày` (mặc định đầu tháng → hôm nay; ngược thì tự đổi chỗ) hoặc nút nhanh `Tháng này` / `30 ngày` / `Tất cả`. Vườn cỏ xanh, mỗi loài một luống (`garden-plant-<id>`, số ngày ở `.garden__count`), vẽ dạng ra hoa trong chậu mặc định; nhiều nhất đứng trước, loài 0 ngày hiện mờ (`is-empty`). Tóm tắt `garden-summary`: số ngày · ngày ra hoa · việc xong. Logic thuần ở `domain/garden.ts` (`gardenReport`): ngày tiết kiệm năng lượng vẫn tính là cây được chọn; loài đã xoá khỏi nội dung không có luống.
 - **Nền theo giờ** (`timeOfDay`): sáng 4–11h, trưa 11–14h, chiều 14–18h, tối 18–4h.
 - **Nhắc sao lưu:** khi đã quá 7 ngày kể từ lần sao lưu cuối, hoặc kể từ dữ liệu cũ nhất nếu chưa sao lưu lần nào.
 
@@ -287,7 +288,7 @@ File thiếu `planned` (phiên bản 1–2) hoặc `plannedGoals` (phiên bản 
 - **Phiên bản & cập nhật:** Cài đặt hiện `Phiên bản <sha7> · <giờ build>` (`__APP_VERSION__`/`__BUILD_TIME__` gắn trong `vite.config.ts`, CI dùng `GITHUB_SHA`). `main.tsx` gọi `registration.update()` mỗi khi app hiện lại (`visibilitychange`) và mỗi 30 phút, để PWA trên iPhone nhận bản mới mà không cần đóng hẳn app.
 - **Chuyển tab không có hiệu ứng** (theo yêu cầu): `App` render thẳng màn của tab, đổi ngay.
 - **Đóng bảng (`BottomSheet`)**: nút X (icon `close`, `aria-label="Đóng"`) ở góc phải trên hàng tiêu đề (`.sheet__head`) như cửa sổ Windows; không còn nút chữ "Đóng" ở đáy. Chạm nền mờ cũng đóng.
-- **Icon:** không dùng emoji cho icon chức năng; dùng bộ SVG tự vẽ trong `components/icons.tsx` (khung 32×32, viền cocoa, màu pastel, `data-icon` để test). Hiện có: `calendar`, `sprout`, `clipboard`, `gear` (4 tab), `menu`, `close`, `plus` (nút ＋ mỗi buổi), `back`, `plant-swap`, `pot`, `note`, `sleep-seed` (hạt giống đội mũ ngủ), `sun` (4 nút dưới chậu; ngày nghỉ đổi `sleep-seed` → `sun`), `period-morning` / `period-afternoon` / `period-evening` (dùng qua `<PeriodIcon period>` ở mọi chỗ hiện buổi: Hôm nay, ngày tương lai, thẻ mẫu, bảng chi tiết). Ô đánh dấu việc trong bảng chi tiết là `.detail__check` tự vẽ, không dùng emoji ✅/⬜. `IconButton` nhận `icon: ReactNode`.
+- **Icon:** không dùng emoji cho icon chức năng; dùng bộ SVG tự vẽ trong `components/icons.tsx` (khung 32×32, viền cocoa, màu pastel, `data-icon` để test). Hiện có: `calendar`, `sprout`, `clipboard`, `gear` (4 tab), `menu`, `close`, `plus` (nút ＋ mỗi buổi), `garden` (Khu vườn), `back`, `plant-swap`, `pot`, `note`, `sleep-seed` (hạt giống đội mũ ngủ), `sun` (4 nút dưới chậu; ngày nghỉ đổi `sleep-seed` → `sun`), `period-morning` / `period-afternoon` / `period-evening` (dùng qua `<PeriodIcon period>` ở mọi chỗ hiện buổi: Hôm nay, ngày tương lai, thẻ mẫu, bảng chi tiết). Ô đánh dấu việc trong bảng chi tiết là `.detail__check` tự vẽ, không dùng emoji ✅/⬜. `IconButton` nhận `icon: ReactNode`.
 - **Hình nền Lịch** (`BackgroundPicker`, radiogroup `Hình nền lịch`, setting `calendarTheme`: `default | cat | grass | rain | gamer | photo`). Trên màn Lịch có **một nút tròn icon xem trước** (ẩn được bằng công tắc `Hiện nút đổi hình nền ở trang Lịch` trong Cài đặt, setting `showCalendarBgButton`, mặc định bật, có trong file sao lưu) (không chữ, nhãn `Đổi hình nền lịch (đang dùng: …)`) mở BottomSheet 6 lựa chọn (lưới 3 cột), chọn xong tự đóng; cùng bộ chọn có trong Cài đặt:
   - `cat` = **Mèo vươn vai** (`components/backgrounds/CatStretchScene.tsx`): nền pastel, mèo chibi duỗi người ở góc trái dưới, đuôi ve vẩy, tim bay lên.
   - `grass` = **Cỏ nở** (`GrassBloomScene.tsx`): nền xanh, **chu kỳ 10s**: cỏ mọc lên, đung đưa, hoa nở, thu lại, mọc lại.

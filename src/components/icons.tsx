@@ -43,6 +43,23 @@ export function PlusIcon({ size }: { size?: number }) {
   );
 }
 
+/** Khu vườn: cây tròn + bông hoa trên mô cỏ */
+export function GardenIcon({ size }: { size?: number }) {
+  return (
+    <Svg name="garden" size={size}>
+      <path d="M3 26 Q16 19 29 26 L29 28 L3 28 Z" fill="#9ED89A" {...STROKE} />
+      <path d="M11 23 V14" {...STROKE} />
+      <circle cx={11} cy={10} r={6} fill="#7CC985" {...STROKE} />
+      <path d="M22 23 V17" {...STROKE} />
+      <circle cx={22} cy={14} r={2.2} fill="#FFE27A" {...STROKE} />
+      <circle cx={22} cy={10.3} r={1.9} fill="#FF9FB2" stroke={INK} strokeWidth={1.5} />
+      <circle cx={25.6} cy={14} r={1.9} fill="#FF9FB2" stroke={INK} strokeWidth={1.5} />
+      <circle cx={18.4} cy={14} r={1.9} fill="#FF9FB2" stroke={INK} strokeWidth={1.5} />
+      <circle cx={22} cy={14} r={2.2} fill="#FFE27A" {...STROKE} />
+    </Svg>
+  );
+}
+
 export function CalendarIcon({ size }: { size?: number }) {
   return (
     <Svg name="calendar" size={size}>
