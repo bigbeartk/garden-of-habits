@@ -79,7 +79,8 @@ src/
 - **Cây nói ghi chú:** công tắc `Cây nói ghi chú` ngay trong bảng ghi chú (setting chung `plantSaysNote`, mặc định tắt, có trong file sao lưu). Bật thì bong bóng thoại hiện ghi chú hôm nay (`data-kind="note"`, tối đa 3 dòng) và mặt cây `talk` (`PlantScene` có `data-mood`); câu chào/khen (`data-kind` `greeting`/`praise`) hiện tạm rồi quay về ghi chú. Ghi chú trống hoặc ngày tiết kiệm năng lượng thì không nói.
 - **Xoá việc phải xác nhận** (`DeleteWithConfirm`, dùng ở Hôm nay và ngày tương lai): bấm `Xoá: <việc>` thì hàng hiện `Xác nhận xoá: <việc>` (nút "Xoá") và `Thôi`; chỉ nút Xoá mới xoá thật.
 - **Thêm việc** (`components/InlineAdd.tsx`, dùng ở Hôm nay và ngày tương lai): không có nút ＋ nổi hay popup. Mỗi buổi có nút ＋ tròn 26px (cao bằng icon buổi để hàng không giãn, vùng chạm nới bằng `::after`; icon `plus`, nhãn `Thêm việc buổi Sáng|Chiều|Tối`) ngoài cùng bên phải hàng tiêu đề; bấm thì cuối buổi hiện **dòng việc trống** (`DraftRow`, ô `Việc mới buổi …`) đã focus. Enter: lưu rồi để trống gõ tiếp; rời ô hoặc bấm ＋ buổi khác: lưu nếu đã gõ chữ rồi đóng; Escape: đóng không lưu. **Việc rỗng không bao giờ được lưu** (cây sẽ tính sai). Bẫy Safari đã xử lý: nút ＋ chặn `mousedown` để không cướp focus (nếu không dòng cũ đóng, danh sách dịch và cú chạm trượt), mở dòng bằng `flushSync` để bàn phím iOS bật, và `onDone` chỉ đóng nếu dòng đang mở vẫn là của buổi đó. Ngày tiết kiệm năng lượng ẩn cả danh sách nên không thêm được.
-- **Đổi cây:** nếu đang dùng chậu mặc định của cây cũ thì chậu đổi theo cây mới; nếu người dùng đã tự chọn chậu khác thì giữ chậu đó. Không đổi `specialId`.
+- **Đổi cây:** nếu đang dùng chậu mặc định của cây cũ thì chậu đổi theo cây mới; nếu người dùng đã tự chọn chậu khác thì giữ chậu đó. Chọn loài thường thì thành **cây thường** (`specialId = null`).
+- **Cây đặc biệt đã mở khoá** (`domain/specialUnlocks.ts`): khi `ensureToday` tung trúng cây đặc biệt thì ghi cặp `'plantId|specialId'` vào setting `unlockedSpecials`. Mở khoá theo **đúng cặp** (Ngô · Phát sáng), không theo hiệu ứng. `listUnlockedSpecials` = setting ∪ các cặp có trong lịch sử ngày (dữ liệu trước khi có tính năng), bỏ cặp có loài/hiệu ứng đã xoá, xếp theo thứ tự nội dung. Bảng `Chọn cây hôm nay` có mục `✨ Cây đặc biệt đã gặp` (`picker-specials`, nút `Ngô · Phát sáng`, viền vàng); chưa có thì hiện lời gợi ý 10%. `changePlant(deps, date, plantId, specialId)` từ chối cặp chưa mở khoá. Ngày tự chọn cây đặc biệt vẫn tính là ngày cây đặc biệt (✨ lịch, Khu vườn); khung ✨ giới thiệu chỉ hiện ở ngày tung trúng.
 - **Ngày tiết kiệm năng lượng** (`isRestDay`): todo bị ẩn nhưng vẫn giữ, cây hiện hình hạt giống ôm gối ngủ.
 - **Chào hỏi:** lần đầu trong ngày (`greetedAt === null`), App tự chuyển sang tab Hôm nay, cây nói một câu ngẫu nhiên (câu chung + câu riêng của loài), rồi ghi `greetedAt`. Nếu là cây đặc biệt thì hiện thêm khung ✨ giới thiệu.
 - **Lịch:** mỗi ô ngày mang một trạng thái (`dayCellStatus`):
@@ -240,6 +241,7 @@ showNoteDot:  boolean                                // chấm đỏ ở ô lị
 plantSaysNote: boolean                               // cây nói ghi chú hôm nay; không có = TẮT
 gardenOnlyPlanted: boolean                           // Khu vườn chỉ hiện luống > 0 ngày; không có = TẮT
 gardenSeparateSpecial: boolean                       // Khu vườn tách ngày cây đặc biệt thành luống riêng; không có = TẮT
+unlockedSpecials: string[]                           // cây đặc biệt đã tung trúng, 'plantId|specialId'; có trong sao lưu (gộp = hợp hai danh sách)
 // mọi công tắc bật/tắt liệt kê ở BOOLEAN_SETTINGS (db/settings.ts): backup tự sao lưu/khôi phục theo danh sách này
 ```
 
@@ -260,7 +262,8 @@ Tên file: `chau-cay-backup-YYYY-MM-DD.json`. Khi lưu, app mở menu Chia sẻ 
   "templates": [Template, ...],
   "planned": [PlannedTodo, ...],
   "plannedGoals": [{ "date": "YYYY-MM-DD", "title": "..." }, ...],
-  "calendarBg": { "mime": "image/jpeg", "base64": "..." } | null
+  "calendarBg": { "mime": "image/jpeg", "base64": "..." } | null,
+  "unlockedSpecials": ["corn|glow", ...]          // tuỳ chọn; file cũ không có
 }
 ```
 

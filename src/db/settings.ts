@@ -15,6 +15,8 @@ export interface SettingsShape {
   /** màn Khu vườn tách ngày cây đặc biệt thành luống riêng (mặc định: không) */
   gardenSeparateSpecial: boolean;
   lastBackupAt: number;
+  /** cây đặc biệt đã tung trúng, dạng 'plantId|specialId'; chọn lại được ở bảng Đổi cây */
+  unlockedSpecials: string[];
 }
 
 export async function getSetting<K extends keyof SettingsShape>(db: PlantDB, key: K): Promise<SettingsShape[K] | undefined> {

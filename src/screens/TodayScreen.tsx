@@ -180,8 +180,9 @@ export function TodayScreen() {
       <PlantPickerSheet
         open={sheet === 'plant'}
         currentId={day.plantId}
+        currentSpecialId={day.specialId}
         onClose={() => setSheet(null)}
-        onPick={(id) => { run(changePlant(deps, day.date, id)); setSheet(null); }}
+        onPick={(id, specialId) => { run(changePlant(deps, day.date, id, specialId)); setSheet(null); }}
       />
       <PotPickerSheet
         open={sheet === 'pot'}

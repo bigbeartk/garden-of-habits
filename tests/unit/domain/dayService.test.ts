@@ -131,7 +131,7 @@ describe('ngày nghỉ, đổi cây, đổi chậu, chào hỏi', () => {
     const date = '2026-10-02';
     await deps.db.days.put(makeDay({ date, plantId: 'sunflower', potId: 'terracotta', specialId: 'glow' }));
     const day = await changePlant(deps, date, 'corn');
-    expect([day.plantId, day.potId, day.specialId]).toEqual(['corn', 'rattan', 'glow']);
+    expect([day.plantId, day.potId, day.specialId]).toEqual(['corn', 'rattan', null]);
   });
 
   it('changePlant giữ chậu người dùng đã tự chọn', async () => {

@@ -530,3 +530,41 @@ test('hiệu ứng Vàng ròng đổi màu cây thật trên WebKit (Safari)', a
   expect(avg.b, JSON.stringify(avg)).toBeLessThan(170);
   expect(avg.r).toBeGreaterThan(avg.b + 60);
 });
+
+test('chọn lại cây đặc biệt đã mở khoá trong bảng Đổi cây', async ({ page }) => {
+  await page.clock.setFixedTime(at('2026-10-02T10:00:00'));
+  await page.goto('/');
+  await openToday(page);
+  // giả lập đã từng tung trúng 3 cây đặc biệt
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolve) => {
+        const req = indexedDB.open('chau-cay-chibi');
+        req.onsuccess = () => {
+          const tx = req.result.transaction('settings', 'readwrite');
+          tx.objectStore('settings').put({ key: 'unlockedSpecials', value: ['orange|gold', 'corn|glow', 'hydrangea|crystal'] });
+          tx.oncomplete = () => resolve();
+        };
+      }),
+  );
+  // ghi thẳng vào IndexedDB thì Dexie không biết, nên tải lại trang
+  await page.reload();
+  await openToday(page);
+  await closeMenu(page);
+  await page.getByRole('button', { name: 'Đổi cây' }).click();
+  const sheet = page.getByRole('dialog', { name: 'Chọn cây hôm nay' });
+  const specials = sheet.getByTestId('picker-specials');
+  await expect(specials.getByRole('button')).toHaveCount(3);
+  await specials.getByRole('button', { name: 'Cây cam · Vàng ròng' }).scrollIntoViewIfNeeded();
+  // chờ bảng trượt lên xong rồi chụp để soát hình
+  await page.waitForTimeout(400);
+  await page.screenshot({ path: 'test-results/plant-picker-specials.png' });
+  const vw = page.viewportSize()!.width;
+  for (const box of await specials.getByRole('button').evaluateAll((els) => els.map((e) => e.getBoundingClientRect().right))) {
+    expect(box).toBeLessThanOrEqual(vw);
+  }
+  await specials.getByRole('button', { name: 'Cây cam · Vàng ròng' }).click();
+  const scene = page.getByTestId('plant-scene');
+  await expect(scene).toHaveAttribute('data-special', 'gold');
+  await expect(scene).toHaveAttribute('data-plant', 'orange');
+});

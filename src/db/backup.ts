@@ -70,6 +70,7 @@ const BackupSchema = z.object({
   plantSaysNote: z.boolean().optional(),
   gardenOnlyPlanted: z.boolean().optional(),
   gardenSeparateSpecial: z.boolean().optional(),
+  unlockedSpecials: z.array(z.string()).optional(), // cây đặc biệt đã mở khoá; file cũ chưa có
 });
 
 export type BackupFile = z.infer<typeof BackupSchema>;
@@ -101,6 +102,7 @@ export async function createBackup(db: PlantDB, now: number): Promise<BackupFile
     const plannedGoals = await db.plannedGoals.toArray();
     const bg = await getSetting(db, 'calendarBg');
     const calendarTheme = await getSetting(db, 'calendarTheme');
+    const unlockedSpecials = await getSetting(db, 'unlockedSpecials');
     const switches: Partial<Record<BooleanSetting, boolean>> = {};
     for (const key of BOOLEAN_SETTINGS) {
       const v = await getSetting(db, key);
@@ -116,6 +118,7 @@ export async function createBackup(db: PlantDB, now: number): Promise<BackupFile
       plannedGoals,
       calendarBg: bg ? { mime: bg.mime, base64: bytesToBase64(bg.data) } : null,
       ...(calendarTheme ? { calendarTheme } : {}),
+      ...(unlockedSpecials ? { unlockedSpecials } : {}),
       ...switches,
     };
   });
@@ -169,6 +172,8 @@ export async function restoreBackup(db: PlantDB, backup: BackupFile, mode: Resto
       else await deleteSetting(db, 'calendarBg');
       if (backup.calendarTheme) await setSetting(db, 'calendarTheme', backup.calendarTheme);
       else await deleteSetting(db, 'calendarTheme');
+      if (backup.unlockedSpecials) await setSetting(db, 'unlockedSpecials', backup.unlockedSpecials);
+      else await deleteSetting(db, 'unlockedSpecials');
       for (const key of BOOLEAN_SETTINGS) {
         const v = backup[key];
         if (v !== undefined) await setSetting(db, key, v);
@@ -199,6 +204,10 @@ export async function restoreBackup(db: PlantDB, backup: BackupFile, mode: Resto
       }
       if (bg && !(await getSetting(db, 'calendarBg'))) await setSetting(db, 'calendarBg', bg);
       if (backup.calendarTheme && !(await getSetting(db, 'calendarTheme'))) await setSetting(db, 'calendarTheme', backup.calendarTheme);
+      if (backup.unlockedSpecials) {
+        const mine = (await getSetting(db, 'unlockedSpecials')) ?? [];
+        await setSetting(db, 'unlockedSpecials', [...new Set([...mine, ...backup.unlockedSpecials])]);
+      }
       for (const key of BOOLEAN_SETTINGS) {
         const v = backup[key];
         if (v !== undefined && (await getSetting(db, key)) === undefined) await setSetting(db, key, v);

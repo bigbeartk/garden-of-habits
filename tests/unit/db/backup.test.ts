@@ -293,3 +293,34 @@ describe('sao lưu công tắc tách riêng cây đặc biệt', () => {
     expect(await getSetting(dst, 'gardenSeparateSpecial')).toBe(true);
   });
 });
+
+describe('sao lưu cây đặc biệt đã mở khoá', () => {
+  async function backupWith(keys: string[]) {
+    const src = makeDb();
+    await setSetting(src, 'unlockedSpecials', keys);
+    const r = parseBackup(serializeBackup(await createBackup(src, 1)));
+    if (!r.ok) throw new Error(r.error);
+    return r.backup;
+  }
+
+  it('thay thế: lấy đúng danh sách trong file (file không có thì xoá)', async () => {
+    const dst = makeDb();
+    await setSetting(dst, 'unlockedSpecials', ['rose|gold']);
+    await restoreBackup(dst, await backupWith(['corn|glow']), 'replace');
+    expect(await getSetting(dst, 'unlockedSpecials')).toEqual(['corn|glow']);
+    await restoreBackup(dst, await createBackup(makeDb(), 1), 'replace');
+    expect(await getSetting(dst, 'unlockedSpecials')).toBeUndefined();
+  });
+
+  it('gộp: lấy cả hai danh sách, không trùng', async () => {
+    const dst = makeDb();
+    await setSetting(dst, 'unlockedSpecials', ['rose|gold', 'corn|glow']);
+    await restoreBackup(dst, await backupWith(['corn|glow', 'cactus|crystal']), 'merge');
+    expect(await getSetting(dst, 'unlockedSpecials')).toEqual(['rose|gold', 'corn|glow', 'cactus|crystal']);
+  });
+
+  it('file cũ không có trường này vẫn đọc được', () => {
+    const r = parseBackup(JSON.stringify({ format: BACKUP_FORMAT, schemaVersion: 1, exportedAt: 1, days: [], templates: [], calendarBg: null }));
+    expect(r.ok).toBe(true);
+  });
+});

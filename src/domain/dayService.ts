@@ -4,6 +4,7 @@ import { stageOfTodos, type GrowthStage } from './growth';
 import { newId } from './id';
 import { pickUniform, rollSpecial, type Rng } from './random';
 import { PERIODS, type Period } from './period';
+import { listUnlockedSpecials, pairKey, unlockSpecial } from './specialUnlocks';
 import type { Catalog, DayRecord, TemplateItem, Todo } from './types';
 
 export interface DayDeps {
@@ -23,7 +24,7 @@ export class LockedDayError extends Error {
 export async function ensureToday(deps: DayDeps): Promise<DayRecord> {
   const { db } = deps;
   const date = dayKey(deps.now());
-  return db.transaction('rw', [db.days, db.templates, db.planned, db.plannedGoals], async () => {
+  return db.transaction('rw', [db.days, db.templates, db.planned, db.plannedGoals, db.settings], async () => {
     const existing = await db.days.get(date);
     if (existing) return existing;
     const template = (await db.templates.toArray()).find((t) => t.isDefault);
@@ -49,6 +50,8 @@ export async function ensureToday(deps: DayDeps): Promise<DayRecord> {
     await db.days.add(record);
     await db.planned.bulkDelete(planned.map((p) => p.id));
     if (goal) await db.plannedGoals.delete(date);
+    // trúng cây đặc biệt: mở khoá để những ngày sau chọn lại được trong bảng Đổi cây
+    if (record.specialId) await unlockSpecial(db, { plantId: record.plantId, specialId: record.specialId });
     return record;
   });
 }
@@ -149,13 +152,20 @@ export function setRestDay(deps: DayDeps, date: string, isRest: boolean): Promis
   });
 }
 
-export function changePlant(deps: DayDeps, date: string, plantId: string): Promise<DayRecord> {
+/** Đổi cây hôm nay: loài thường (`specialId` null) hoặc một cây đặc biệt đã mở khoá. */
+export async function changePlant(deps: DayDeps, date: string, plantId: string, specialId: string | null = null): Promise<DayRecord> {
   const next = deps.catalog.plants.find((p) => p.id === plantId);
-  if (!next) return Promise.reject(new Error(`Không có loại cây "${plantId}"`));
+  if (!next) throw new Error(`Không có loại cây "${plantId}"`);
+  if (specialId) {
+    const key = pairKey({ plantId, specialId });
+    const unlocked = await listUnlockedSpecials(deps);
+    if (!unlocked.some((p) => pairKey(p) === key)) throw new Error('Cây đặc biệt này chưa mở khoá');
+  }
   return mutateDay(deps, date, 'today-only', (d) => {
     const prev = deps.catalog.plants.find((p) => p.id === d.plantId);
     if (!prev || d.potId === prev.defaultPotId) d.potId = next.defaultPotId;
     d.plantId = next.id;
+    d.specialId = specialId;
   });
 }
 

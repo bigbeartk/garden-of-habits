@@ -34,3 +34,8 @@
 }
 .picker__item.is-selected { border-color: var(--berry); background: var(--peach); }
 .picker__scene { width: 80px; height: 96px; }
+.picker__heading { margin: 16px 0 8px; font-family: var(--font-display); font-size: 1rem; text-align: center; }
+/* cây đặc biệt: viền vàng như luống đặc biệt ở Khu vườn */
+.picker__item--special { border-color: #D9A400; background: #FFF8DC; }
+.picker__item--special.is-selected { border-color: var(--berry); background: #FFF1C1; }
+.picker__effect { margin-top: -4px; font-size: 0.75rem; font-weight: 600; color: #A07800; }

@@ -63,6 +63,33 @@ describe('TodayScreen', () => {
     await waitFor(() => expect(screen.getByTestId('plant-scene')).toHaveAttribute('data-plant', targetId));
   });
 
+  it('chưa gặp cây đặc biệt nào thì bảng chọn cây hiện lời gợi ý', async () => {
+    const { user } = setup();
+    await screen.findByTestId('plant-scene');
+    await user.click(screen.getByRole('button', { name: 'Đổi cây' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Chọn cây hôm nay' });
+    expect(within(dialog).getByText(/10% cơ hội gặp cây đặc biệt/)).toBeInTheDocument();
+  });
+
+  it('chọn lại cây đặc biệt đã mở khoá, chọn loài thường thì thành cây thường', async () => {
+    const { deps, user } = setup();
+    await setSetting(deps.db, 'unlockedSpecials', ['corn|glow']);
+    await screen.findByTestId('plant-scene');
+    await user.click(screen.getByRole('button', { name: 'Đổi cây' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Chọn cây hôm nay' });
+    await user.click(await within(dialog).findByRole('button', { name: 'Ngô · Phát sáng' }));
+    const scene = screen.getByTestId('plant-scene');
+    await waitFor(() => expect(scene).toHaveAttribute('data-special', 'glow'));
+    expect(scene).toHaveAttribute('data-plant', 'corn');
+
+    await user.click(screen.getByRole('button', { name: 'Đổi cây' }));
+    const again = await screen.findByRole('dialog', { name: 'Chọn cây hôm nay' });
+    expect(within(again).getByRole('button', { name: 'Ngô · Phát sáng' })).toHaveAttribute('aria-pressed', 'true');
+    expect(within(again).getByRole('button', { name: 'Ngô' })).toHaveAttribute('aria-pressed', 'false');
+    await user.click(within(again).getByRole('button', { name: 'Ngô' }));
+    await waitFor(() => expect(screen.getByTestId('plant-scene')).toHaveAttribute('data-special', ''));
+  });
+
   it('ghi chú tự lưu khi gõ, không có nút Lưu, gõ tiếp không bị mất chữ', async () => {
     const { deps, user } = setup();
     await screen.findByTestId('plant-scene');
