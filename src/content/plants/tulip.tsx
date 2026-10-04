@@ -14,13 +14,13 @@ function Stalk({ top }: { top: number }) {
   return <path d={`M100 ${SOIL_Y} C98 ${(SOIL_Y + top) / 2 + 10} 102 ${(SOIL_Y + top) / 2 - 10} 100 ${top}`} stroke={STEM} strokeWidth={7} fill="none" strokeLinecap="round" />;
 }
 
-/** Lá tulip to bản mọc từ gốc, xoè ra rồi vểnh mũi; nửa trong tô đậm như lá gập. `side` -1 trái, 1 phải */
+/** Lá tulip to bản mọc từ gốc, xoè ra, mũi bo tròn; nửa trong tô đậm như lá gập. `side` -1 trái, 1 phải */
 function BroadLeaf({ side, tipX, tipY }: { side: 1 | -1; tipX: number; tipY: number }) {
   const dx = tipX - 100;
   const base = SOIL_Y - 2;
-  const outer = `M${100 + side * 2} ${base} C${100 + dx * 0.9} ${base - 4} ${tipX + side * 6} ${tipY + 34} ${tipX} ${tipY}`;
-  const inner = `C${tipX - side * 4} ${tipY + 26} ${100 + dx * 0.25} ${base - 30} ${100 + side * 2} ${base}`;
-  const mid = `M${100 + side * 2} ${base} C${100 + dx * 0.55} ${base - 12} ${tipX + side * 2} ${tipY + 30} ${tipX} ${tipY}`;
+  const outer = `M${100 + side * 2} ${base} C${100 + dx * 0.9} ${base - 4} ${tipX + side * 10} ${tipY + 6} ${tipX} ${tipY}`;
+  const inner = `C${tipX - side * 10} ${tipY - 2} ${100 + dx * 0.25} ${base - 30} ${100 + side * 2} ${base}`;
+  const mid = `M${100 + side * 2} ${base} C${100 + dx * 0.55} ${base - 12} ${tipX + side * 2} ${tipY + 16} ${tipX} ${tipY}`;
   return (
     <g strokeLinejoin="round">
       <path d={`${outer} ${inner} Z`} fill={LEAF} stroke={INK} strokeWidth={2} />
@@ -35,16 +35,16 @@ function Cup() {
   return (
     <g strokeLinejoin="round" stroke={INK}>
       {/* cánh sau: chỉ lộ mũi nhọn giữa hai cánh bên */}
-      <path d="M-14 -16 C-10 -28 -4 -36 0 -40 C4 -36 10 -28 14 -16 Z" fill={RED_DEEP} strokeWidth={2} />
+      <path d="M-15 -14 C-15 -30 -7 -39 0 -39 C7 -39 15 -30 15 -14 Z" fill={RED_DEEP} strokeWidth={2} />
       {/* hai cánh bên ôm lấy cánh trước */}
-      <path d="M-4 30 C-26 30 -38 14 -36 -8 C-35 -18 -32 -26 -30 -32 C-20 -26 -12 -16 -10 -4 Z" fill={RED_DEEP} strokeWidth={2} />
-      <path d="M4 30 C26 30 38 14 36 -8 C35 -18 32 -26 30 -32 C20 -26 12 -16 10 -4 Z" fill={RED_DEEP} strokeWidth={2} />
+      <path d="M-4 30 C-26 30 -39 14 -38 -6 C-37 -20 -34 -31 -28 -32 C-21 -33 -13 -20 -10 -4 Z" fill={RED_DEEP} strokeWidth={2} />
+      <path d="M4 30 C26 30 39 14 38 -6 C37 -20 34 -31 28 -32 C21 -33 13 -20 10 -4 Z" fill={RED_DEEP} strokeWidth={2} />
       {/* cánh trước mang mặt */}
-      <path d="M-27 -10 C-30 12 -18 31 0 31 C18 31 30 12 27 -10 C20 -16 10 -24 0 -34 C-10 -24 -20 -16 -27 -10 Z" fill={RED} strokeWidth={2.2} />
+      <path d="M-28 -8 C-30 14 -18 31 0 31 C18 31 30 14 28 -8 C26 -20 12 -30 0 -32 C-12 -30 -26 -20 -28 -8 Z" fill={RED} strokeWidth={2.2} />
       {/* gân cánh nhạt + ánh sáng */}
       <g fill="none" stroke={RED_LIGHT} strokeLinecap="round">
         <path d="M-20 -6 C-22 6 -18 16 -12 22" strokeWidth={2.4} opacity={0.8} />
-        <path d="M-6 -24 C-3 -28 -1 -30 0 -31" strokeWidth={2} opacity={0.8} />
+        <path d="M-12 -24 C-8 -27 -4 -29 0 -29" strokeWidth={2} opacity={0.8} />
         <path d="M-30 -18 C-32 -6 -31 6 -27 14" strokeWidth={2} opacity={0.6} />
         <path d="M30 -18 C32 -6 31 6 27 14" strokeWidth={2} opacity={0.4} />
       </g>
@@ -57,8 +57,8 @@ function Cup() {
 function ClosedBud() {
   return (
     <g strokeLinejoin="round" stroke={INK}>
-      <path d="M0 22 C-16 22 -20 6 -18 -6 C-16 -16 -8 -26 0 -32 C8 -26 16 -16 18 -6 C20 6 16 22 0 22 Z" fill={RED} strokeWidth={2} />
-      <path d="M-18 -6 C-10 -2 -4 -10 0 -32 C-6 -24 -14 -16 -18 -6 Z" fill={RED_DEEP} strokeWidth={1.6} />
+      <path d="M0 22 C-16 22 -20 6 -18 -6 C-16 -22 -7 -31 0 -31 C7 -31 16 -22 18 -6 C20 6 16 22 0 22 Z" fill={RED} strokeWidth={2} />
+      <path d="M-18 -6 C-10 -2 -3 -14 -2 -30 C-9 -28 -16 -18 -18 -6 Z" fill={RED_DEEP} strokeWidth={1.6} />
       <path d="M0 22 C-12 22 -16 14 -17 6 C-10 12 -4 14 0 14 C4 14 10 12 17 6 C16 14 12 22 0 22 Z" fill="#9FCF7E" strokeWidth={1.6} />
       <ellipse cx={8} cy={-8} rx={2.4} ry={5} fill="#fff" stroke="none" opacity={0.5} transform="rotate(-20 8 -8)" />
     </g>

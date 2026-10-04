@@ -154,7 +154,7 @@ Các loài hiện có:
 | `cherry` | Cherry | `polka` | cây dù rộng và thấp: thân chẻ đôi, vòm bông cong, quả đôi treo cuống dài |
 | `rose` | Hoa hồng (phong cách **quý cô sang chảnh**, `faceStyle: 'lady'`) | `rose-porcelain` | một bông hồng nhiều lớp đội vương miện vàng lệch, cành mảnh thắt nơ satin hồng |
 | `watermelon` | Dưa hấu | `tin-bucket` | dây bò lá tim xoè ngang + quả dưa giữa |
-| `hydrangea` | Tulip (trước là Cẩm tú cầu; giữ id `hydrangea` để không mất dữ liệu cũ) | `blue-ceramic` | một bông tulip đỏ to mũm mĩm hình chén (mặt trên cánh trước), thân mập, hai lá to bản xoè ở gốc |
+| `hydrangea` | Tulip (trước là Cẩm tú cầu; giữ id `hydrangea` để không mất dữ liệu cũ) | `blue-ceramic` | một bông tulip đỏ to mũm mĩm hình chén, mọi cánh bo tròn không mũi nhọn (mặt trên cánh trước), thân mập, hai lá to bản mũi tròn xoè ở gốc |
 
 Hình dùng chung cho mọi loài: `common/SleepingSeed.tsx` (ngày nghỉ) và `common/WiltedPlant.tsx` (ngày bỏ lỡ).
 
