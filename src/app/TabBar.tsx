@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { TABS, type Tab } from './nav';
 import { CloseIcon, MenuIcon } from '../components/icons';
@@ -9,12 +9,24 @@ const SHOWN = { clipPath: 'inset(0 0 0 0% round 999px)', opacity: 1 };
 
 /**
  * Menu nổi ở góc phải dưới: chỉ có một nút tròn; bấm vào thì dải 4 tab trượt
- * từ nút ra bên trái, bấm lần nữa thì trượt ngược về. Chọn tab không đóng dải.
+ * từ nút ra bên trái, bấm lần nữa hoặc chạm ra ngoài thì trượt ngược về. Chọn tab không đóng dải.
  */
 export function TabBar({ current, onChange }: { current: Tab; onChange: (tab: Tab) => void }) {
   const [open, setOpen] = useState(false);
+  const navRef = useRef<HTMLElement>(null);
+
+  // đang mở mà chạm ra ngoài menu thì thu dải tab lại (cú chạm vẫn tới chỗ được chạm)
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: PointerEvent) => {
+      if (!navRef.current?.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('pointerdown', onDown, true);
+    return () => document.removeEventListener('pointerdown', onDown, true);
+  }, [open]);
+
   return (
-    <nav className="fnav" aria-label="Điều hướng">
+    <nav className="fnav" aria-label="Điều hướng" ref={navRef}>
       <AnimatePresence>
         {open && (
           <motion.div

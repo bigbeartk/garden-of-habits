@@ -35,6 +35,22 @@ describe('TabBar (menu nổi thu gọn)', () => {
     expect(screen.getByRole('button', { name: 'Cài đặt' })).toBeInTheDocument();
   });
 
+  it('chạm ra ngoài menu thì dải tab tự thu lại; chạm trong dải thì không', async () => {
+    const user = userEvent.setup();
+    render(
+      <>
+        <p>nội dung màn hình</p>
+        <TabBar current="calendar" onChange={() => {}} />
+      </>,
+    );
+    await user.click(screen.getByRole('button', { name: 'Mở menu' }));
+    await user.click(screen.getByRole('button', { name: 'Mẫu' }));
+    expect(screen.getByRole('button', { name: 'Đóng menu' })).toBeInTheDocument();
+    await user.click(screen.getByText('nội dung màn hình'));
+    await waitFor(() => expect(screen.queryByRole('button', { name: 'Lịch' })).not.toBeInTheDocument());
+    expect(screen.getByRole('button', { name: 'Mở menu' })).toHaveAttribute('aria-expanded', 'false');
+  });
+
   it('icon tab và nút menu là SVG tự vẽ, không phải emoji', async () => {
     const user = userEvent.setup();
     render(<TabBar current="calendar" onChange={() => {}} />);

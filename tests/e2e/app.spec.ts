@@ -9,6 +9,13 @@ async function goTab(page: Page, name: 'Lịch' | 'Hôm nay' | 'Mẫu' | 'Cài �
   await page.getByRole('button', { name, exact: true }).click();
 }
 
+/** Thu dải tab nếu đang mở (chạm ra ngoài cũng tự thu, nên có thể đã đóng). */
+async function closeMenu(page: Page) {
+  const close = page.getByRole('button', { name: 'Đóng menu' });
+  if (await close.isVisible()) await close.click();
+  await expect(page.locator('#fnav-tabs')).toHaveCount(0);
+}
+
 async function openToday(page: Page) {
   await goTab(page, 'Hôm nay');
   await expect(page.getByTestId('plant-scene')).toBeVisible();
@@ -221,6 +228,12 @@ test('menu nổi: nút ở góc phải dưới, dải tab trượt ra bên trái
   const vp = page.viewportSize()!;
   expect(menu.x + menu.width).toBeGreaterThan(vp.width - 24);
   expect(menu.y + menu.height).toBeGreaterThan(vp.height - 90);
+  // mở lại rồi chạm ra ngoài (vào bầu trời) thì dải tab tự thu
+  await page.getByRole('button', { name: 'Mở menu' }).click();
+  await expect(tabs).toBeVisible();
+  await page.getByTestId('sky').tap({ position: { x: 40, y: 200 } });
+  await expect(tabs).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Mở menu' })).toHaveAttribute('aria-expanded', 'false');
 });
 
 test('việc đã xong không bị gạch ngang chữ', async ({ page }) => {
@@ -316,7 +329,7 @@ test('kéo việc sang buổi khác và sắp xếp trong buổi; còn nguyên s
   await addTodo(page, 'Tưới cây');
   await addTodo(page, 'Uống nước');
   await closeDraft(page);
-  await page.getByRole('button', { name: 'Đóng menu' }).click(); // dải tab đang mở che mất nút kéo
+  await closeMenu(page); // dải tab đang mở che mất nút kéo
   const morning = page.getByTestId('todo-section-morning');
   const afternoon = page.getByTestId('todo-section-afternoon');
 
@@ -343,7 +356,7 @@ test('Khu vườn: mở từ Lịch, đếm cây hôm nay, bố cục vừa kh�
   await openToday(page);
   const plant = await page.getByTestId('plant-scene').getAttribute('data-plant');
   await goTab(page, 'Lịch');
-  await page.getByRole('button', { name: 'Đóng menu' }).click();
+  await closeMenu(page);
   // nút Khu vườn đứng cạnh nút đổi hình nền, cả cụm căn giữa
   const gBtn = (await page.getByRole('button', { name: 'Khu vườn' }).boundingBox())!;
   const bgBtn = (await page.getByRole('button', { name: /Đổi hình nền lịch/ }).boundingBox())!;
@@ -379,7 +392,7 @@ test('chạm ngày đã qua: bảng chi tiết phủ gần hết màn Lịch, ti
   await page.clock.setFixedTime(at('2026-10-05T10:00:00'));
   await page.reload();
   await goTab(page, 'Lịch');
-  await page.getByRole('button', { name: 'Đóng menu' }).click();
+  await closeMenu(page);
   await page.getByTestId('day-2026-10-02').click();
   const sheet = page.getByRole('dialog');
   await expect(sheet.getByTestId('detail-section-morning')).toBeVisible();
