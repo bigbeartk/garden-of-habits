@@ -180,7 +180,8 @@ describe('SettingsScreen mục Ủng hộ tôi', () => {
   it('có mã QR chuyển khoản, nút lưu mã QR và nút PayPal', async () => {
     const { shareOrDownload } = await import('../../../src/db/share');
     vi.mocked(shareOrDownload).mockClear();
-    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(new Blob([new Uint8Array([1, 2, 3])], { type: 'image/jpeg' })));
+    // thân Response là byte thô: Blob của jsdom không có .stream() nên Response của Node 20 (CI) báo lỗi
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(new Uint8Array([1, 2, 3]), { headers: { 'Content-Type': 'image/jpeg' } }));
     try {
       const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
       const user = userEvent.setup();

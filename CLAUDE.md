@@ -32,6 +32,7 @@ PWA todo cho iPhone, có phần "nuôi cây": mỗi việc làm xong là một l
 
 - Máy dev là Windows 10; công cụ Bash là Git Bash (POSIX). Đường dẫn Windows trong biến môi trường (`$APPDATA`…) bị hỏng trong Bash, nên dùng PowerShell khi cần.
 - Không có `gh` CLI: xem trạng thái deploy tại https://github.com/bigbeartk/garden-of-habits/actions.
+- **CI chạy Node 20, máy dev chạy Node 24.** Test pass trên máy vẫn có thể fail trên CI (đã từng làm tắc deploy 12 commit vì `new Response(new Blob(…))` của jsdom). Trước khi push, chạy thêm test bằng Node 20: `npx -y node@20 node_modules/vitest/vitest.mjs run`. Sau khi push, kiểm tra run mới nhất: `https://api.github.com/repos/bigbeartk/garden-of-habits/actions/runs?per_page=1` (lỗi xem ở `check-runs/<job id>/annotations`).
 - Push dùng tài khoản `bigbeartk` (remote `origin`).
 - Source Control của VS Code có thể còn đếm hàng nghìn file `node_modules` từ lúc vừa `npm install`, dù `git status` sạch. Bấm Refresh hoặc **Developer: Reload Window**.
 
