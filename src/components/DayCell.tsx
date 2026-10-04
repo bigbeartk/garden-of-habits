@@ -11,8 +11,8 @@ const STATUS_LABEL: Record<CellStatus, string> = {
   'before-start': '',
 };
 
-export function DayCell({ dateKey, day, status, record, plannedCount = 0, isToday, onSelect }: {
-  dateKey: string; day: number; status: CellStatus; record?: DayRecord; plannedCount?: number; isToday: boolean; onSelect: () => void;
+export function DayCell({ dateKey, day, status, record, plannedCount = 0, isToday, showNoteDot = true, onSelect }: {
+  dateKey: string; day: number; status: CellStatus; record?: DayRecord; plannedCount?: number; isToday: boolean; showNoteDot?: boolean; onSelect: () => void;
 }) {
   // ngày tương lai bấm được để lên lịch việc
   const disabled = status === 'before-start';
@@ -30,7 +30,7 @@ export function DayCell({ dateKey, day, status, record, plannedCount = 0, isToda
       <span className="cal__num">{day}</span>
       <span className="cal__art"><MiniPlant status={status} record={record} /></span>
       {record?.specialId && !record.isRestDay && <span className="cal__spark" aria-hidden="true">✨</span>}
-      {record?.note && <span className="cal__note-dot" aria-hidden="true" />}
+      {showNoteDot && record?.note && <span className="cal__note-dot" data-testid="note-dot" aria-hidden="true" />}
       {plannedCount > 0 && <span className="cal__planned" data-testid="planned-count" aria-hidden="true">{plannedCount}</span>}
     </button>
   );

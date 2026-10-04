@@ -6,6 +6,8 @@ export interface SettingsShape {
   calendarTheme: CalendarTheme;
   /** hiện nút tròn đổi hình nền ngay trên trang Lịch (mặc định: có) */
   showCalendarBgButton: boolean;
+  /** hiện chấm đỏ ở ô lịch của ngày có ghi chú (mặc định: có) */
+  showNoteDot: boolean;
   lastBackupAt: number;
 }
 

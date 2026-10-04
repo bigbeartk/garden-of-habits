@@ -229,6 +229,7 @@ calendarBg:   { mime: string; data: ArrayBuffer }   // ảnh nền lịch, đã 
 lastBackupAt: number
 calendarTheme: 'default' | 'cat' | 'grass' | 'rain' | 'gamer' | 'photo'
 showCalendarBgButton: boolean                        // không có = bật
+showNoteDot:  boolean                                // chấm đỏ ở ô lịch ngày có ghi chú; không có = bật
 ```
 
 - **Ảnh lưu dạng `ArrayBuffer`, không dùng `Blob`**, vì IndexedDB của Safari xử lý Blob không ổn định.
@@ -277,6 +278,7 @@ File thiếu `planned` (phiên bản 1–2) hoặc `plannedGoals` (phiên bản 
   - chữ cocoa `#5B4636`
 - **Font:** Baloo 2 (tiêu đề) và Quicksand (nội dung), tự host qua `@fontsource` để chạy offline. Không gọi mạng lúc chạy; mọi file đều được precache bởi Workbox.
 - **Màn Hôm nay:** cao đúng bằng khung app (`overflow: hidden`); **trời + cây đứng yên, chỉ `.today__list` tự cuộn** (chừa `padding-bottom` cho nút ＋ và nút menu). Việc đã xong: chữ nhạt + dấu ✓, **không gạch ngang**. Nửa trên là bầu trời cao `46dvh`. `.sky__content` là khung flex dọc, `.today__stage` có `flex: 1 1 0; min-height: 0`, SVG cây được **định vị tuyệt đối** trong stage.
+  - **Cài đặt, card "Lịch"**: bộ chọn hình nền + 2 công tắc (`SettingSwitch` trong `SettingsScreen.tsx`, giữ state cục bộ): `Hiện nút đổi hình nền ở trang Lịch` (`showCalendarBgButton`) và `Hiện chấm đỏ ở ngày có ghi chú` (`showNoteDot`, ô lịch có `note-dot`). Cả hai mặc định bật và có trong file sao lưu.
   - **Nút tròn (`<button>` có `width`/`height` cố định) phải đặt `padding: 0`**: một số bản Safari gán padding ngang lớn cho `<button>`, làm nút trong hàng flex nở thành hình bầu dục và đẩy icon sang phải. Test E2E `nút tròn vẫn tròn…` giả lập trường hợp này.
   - **Không dùng `height: 100%` + `width: auto` cho SVG**: Safari tính sai và đẩy hàng 4 nút ra khỏi khung.
 - **Điều hướng = menu nổi** (`app/TabBar.tsx`): không còn thanh tab ở đáy. Chỉ có một nút tròn (icon bông hoa) cố định ở góc phải dưới, nằm **ngay dưới nút ＋** và có mặt ở cả 4 màn. Bấm vào thì dải 4 tab (Lịch, Hôm nay, Mẫu, Cài đặt) **trượt từ nút ra bên trái** (`clipPath` + các tab hiện lần lượt, tab gần nút hiện trước), nút chuyển thành ✕; bấm lần nữa thì trượt ngược về. Mặc định thu gọn khi mở app. **Chọn tab không đóng dải tab.** `--tabbar-h` (60px) là cỡ nút menu và nút ＋.

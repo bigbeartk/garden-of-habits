@@ -42,6 +42,7 @@ export function CalendarScreen() {
   const bgUrl = useCalendarBgUrl();
   const theme = useCalendarTheme();
   const showBgButton = useLiveQuery(async () => (await getSetting(deps.db, 'showCalendarBgButton')) !== false, [deps.db], true);
+  const showNoteDot = useLiveQuery(async () => (await getSetting(deps.db, 'showNoteDot')) !== false, [deps.db], true);
   const photoUrl = theme === 'photo' ? bgUrl : null;
   const glass = theme !== 'default' ? ' is-glass' : '';
 
@@ -107,6 +108,7 @@ export function CalendarScreen() {
                 record={byKey.get(key)}
                 plannedCount={plannedCounts[key] ?? 0}
                 isToday={key === todayKey}
+                showNoteDot={showNoteDot}
                 onSelect={() => selectDay(key)}
               />
             ) : (

@@ -137,3 +137,19 @@ describe('SettingsScreen công tắc nút đổi hình nền ở trang Lịch', 
     await waitFor(async () => expect(await getSetting(deps.db, 'showCalendarBgButton')).toBe(true));
   });
 });
+
+describe('SettingsScreen công tắc chấm đỏ ngày có ghi chú', () => {
+  it('mặc định bật; tắt thì lưu false, bật lại thì lưu true', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
+    const user = userEvent.setup();
+    renderWithDeps(<SettingsScreen />, deps);
+    const toggle = await screen.findByRole('switch', { name: 'Hiện chấm đỏ ở ngày có ghi chú' });
+    expect(toggle).toHaveAttribute('aria-checked', 'true');
+    await user.click(toggle);
+    await waitFor(async () => expect(await getSetting(deps.db, 'showNoteDot')).toBe(false));
+    await waitFor(() => expect(toggle).toHaveAttribute('aria-checked', 'false'));
+    await user.click(toggle);
+    expect(toggle).toHaveAttribute('aria-checked', 'true');
+    await waitFor(async () => expect(await getSetting(deps.db, 'showNoteDot')).toBe(true));
+  });
+});

@@ -257,3 +257,15 @@ describe('CalendarScreen ẩn nút đổi hình nền theo cài đặt', () => {
     await waitFor(() => expect(screen.queryByRole('button', { name: /Đổi hình nền lịch/ })).not.toBeInTheDocument());
   });
 });
+
+describe('CalendarScreen chấm đỏ ngày có ghi chú', () => {
+  it('mặc định hiện chấm; cài đặt tắt thì ẩn', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 15, 10, 0), CATALOG);
+    await deps.db.days.put(makeDay({ date: '2026-10-03', note: 'Vui' }));
+    renderWithDeps(<CalendarScreen />, deps);
+    const cell = await screen.findByTestId('day-2026-10-03');
+    await waitFor(() => expect(within(cell).getByTestId('note-dot')).toBeInTheDocument());
+    await setSetting(deps.db, 'showNoteDot', false);
+    await waitFor(() => expect(within(cell).queryByTestId('note-dot')).not.toBeInTheDocument());
+  });
+});

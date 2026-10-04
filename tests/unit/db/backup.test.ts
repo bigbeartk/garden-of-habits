@@ -239,3 +239,18 @@ describe('sao lưu công tắc nút hình nền', () => {
     expect(await getSetting(dst, 'showCalendarBgButton')).toBe(false);
   });
 });
+
+describe('sao lưu công tắc chấm ghi chú', () => {
+  it('giữ showNoteDot khi khôi phục (thay thế và gộp)', async () => {
+    const src = makeDb();
+    await setSetting(src, 'showNoteDot', false);
+    const r = parseBackup(serializeBackup(await createBackup(src, 1)));
+    if (!r.ok) throw new Error(r.error);
+    const dst = makeDb();
+    await restoreBackup(dst, r.backup, 'replace');
+    expect(await getSetting(dst, 'showNoteDot')).toBe(false);
+    const dst2 = makeDb();
+    await restoreBackup(dst2, r.backup, 'merge');
+    expect(await getSetting(dst2, 'showNoteDot')).toBe(false);
+  });
+});

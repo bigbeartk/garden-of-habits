@@ -19,10 +19,6 @@ export function SettingsScreen() {
   const deps = useDeps();
   const nav = useNav();
   const lastBackupAt = useLiveQuery(() => getSetting(deps.db, 'lastBackupAt'), [deps.db]);
-  const storedShowBgButton = useLiveQuery(async () => (await getSetting(deps.db, 'showCalendarBgButton')) !== false, [deps.db], true);
-  // giữ trạng thái ngay trên giao diện để bấm nhanh liên tiếp vẫn đổi đúng
-  const [showBgButton, setShowBgButton] = useState(storedShowBgButton);
-  useEffect(() => setShowBgButton(storedShowBgButton), [storedShowBgButton]);
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState<BackupFile | null>(null);
@@ -114,23 +110,10 @@ export function SettingsScreen() {
       </div>
 
       <div className="card settings__section">
-        <h2>Ảnh nền lịch</h2>
+        <h2>Lịch</h2>
         <BackgroundPicker />
-        <button
-          type="button"
-          role="switch"
-          aria-checked={showBgButton}
-          aria-label="Hiện nút đổi hình nền ở trang Lịch"
-          className={`switch-row${showBgButton ? ' is-on' : ''}`}
-          onClick={() => {
-            const next = !showBgButton;
-            setShowBgButton(next);
-            setSetting(deps.db, 'showCalendarBgButton', next).catch((e: Error) => setError(e.message));
-          }}
-        >
-          <span className="switch-row__text">Hiện nút đổi hình nền ở trang Lịch</span>
-          <span className="switch" aria-hidden="true"><span className="switch__knob" /></span>
-        </button>
+        <SettingSwitch settingKey="showCalendarBgButton" label="Hiện nút đổi hình nền ở trang Lịch" onError={setError} />
+        <SettingSwitch settingKey="showNoteDot" label="Hiện chấm đỏ ở ngày có ghi chú" onError={setError} />
       </div>
 
       <div className="card settings__section">
@@ -150,5 +133,31 @@ export function SettingsScreen() {
         Phiên bản {__APP_VERSION__} · {new Date(__BUILD_TIME__).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
       </p>
     </section>
+  );
+}
+
+/** Công tắc bật/tắt một setting kiểu boolean (chưa lưu = bật). */
+function SettingSwitch({ settingKey, label, onError }: { settingKey: 'showCalendarBgButton' | 'showNoteDot'; label: string; onError: (msg: string) => void }) {
+  const deps = useDeps();
+  const stored = useLiveQuery(async () => (await getSetting(deps.db, settingKey)) !== false, [deps.db, settingKey], true);
+  // giữ trạng thái ngay trên giao diện để bấm nhanh liên tiếp vẫn đổi đúng
+  const [on, setOn] = useState(stored);
+  useEffect(() => setOn(stored), [stored]);
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={on}
+      aria-label={label}
+      className={`switch-row${on ? ' is-on' : ''}`}
+      onClick={() => {
+        const next = !on;
+        setOn(next);
+        setSetting(deps.db, settingKey, next).catch((e: Error) => onError(e.message));
+      }}
+    >
+      <span className="switch-row__text">{label}</span>
+      <span className="switch" aria-hidden="true"><span className="switch__knob" /></span>
+    </button>
   );
 }
