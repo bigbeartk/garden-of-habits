@@ -150,6 +150,9 @@ test('nút ＋ nằm ngoài cùng bên phải hàng Sáng/Chiều/Tối; thêm v
     expect(Math.abs(add.y + add.height / 2 - (title.y + title.height / 2)), `${label}: cùng hàng tiêu đề`).toBeLessThan(4);
     expect(box.x + box.width - (add.x + add.width), `${label}: sát mép phải`).toBeLessThan(16);
     expect(add.width).toBeCloseTo(add.height, 0);
+    // nút ＋ không làm hàng tiêu đề cao hơn chính tiêu đề buổi
+    const head = (await section.locator('.todo__section-head').boundingBox())!;
+    expect(head.height - title.height, `${label}: hàng tiêu đề bị giãn`).toBeLessThan(1);
   }
   // nút ＋ cùng màu nền với nút bông hoa mở menu (lúc menu thu gọn; khi mở nút hoa đổi sang trắng)
   await closeMenu(page);

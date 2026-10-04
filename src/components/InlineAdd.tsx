@@ -18,7 +18,7 @@ export function SectionAddButton({ period, onClick }: { period: Period; onClick:
       onMouseDown={(e) => e.preventDefault()}
       onClick={() => flushSync(onClick)}
     >
-      <PlusIcon size={22} />
+      <PlusIcon size={18} />
     </button>
   );
 }
