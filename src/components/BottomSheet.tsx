@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
+import { CloseIcon } from './icons';
 import './sheet.css';
 
 export function BottomSheet({ open, title, onClose, children }: { open: boolean; title: string; onClose: () => void; children: ReactNode }) {
@@ -19,9 +20,13 @@ export function BottomSheet({ open, title, onClose, children }: { open: boolean;
             transition={{ type: 'spring', damping: 28, stiffness: 280 }}
           >
             <div className="sheet__grip" aria-hidden="true" />
-            <h2 className="sheet__title">{title}</h2>
+            <div className="sheet__head">
+              <h2 className="sheet__title">{title}</h2>
+              <button type="button" className="sheet__close" aria-label="Đóng" onClick={onClose}>
+                <CloseIcon size={26} />
+              </button>
+            </div>
             <div className="sheet__body">{children}</div>
-            <button type="button" className="btn btn--ghost sheet__close" onClick={onClose}>Đóng</button>
           </motion.div>
         </>
       )}

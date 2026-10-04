@@ -5,9 +5,16 @@
   padding: 10px 16px calc(16px + env(safe-area-inset-bottom)); box-shadow: 0 -8px 24px rgba(91, 70, 54, 0.15);
 }
 .sheet__grip { width: 44px; height: 5px; border-radius: 3px; background: var(--lavender); margin: 0 auto 10px; }
-.sheet__title { font-family: var(--font-display); font-size: 1.3rem; margin: 0 0 12px; text-align: center; }
+/* hàng tiêu đề: chữ căn giữa, nút X ở góc phải trên như cửa sổ Windows */
+.sheet__head { position: relative; padding: 0 44px; margin: 0 0 12px; }
+.sheet__title { font-family: var(--font-display); font-size: 1.3rem; margin: 0; text-align: center; }
 .sheet__body { display: flex; flex-direction: column; gap: 12px; }
-.sheet__close { display: block; margin: 8px auto 0; }
+.sheet__close {
+  position: absolute; top: 50%; right: -6px; transform: translateY(-50%);
+  width: 44px; height: 44px; padding: 0; display: grid; place-items: center;
+  border: none; border-radius: 50%; background: transparent; cursor: pointer;
+}
+.sheet__close:active { background: var(--lavender); }
 .sheet__hint { margin: 0; text-align: center; font-size: 0.85rem; opacity: 0.7; }
 .picker { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .picker__item {
