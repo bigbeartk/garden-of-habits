@@ -1,4 +1,4 @@
-.todo { display: flex; flex-direction: column; gap: 12px; }
+.todo { position: relative; display: flex; flex-direction: column; gap: 12px; }
 .todo__add { display: flex; gap: 8px; }
 .todo__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
 .todo__row {
@@ -14,7 +14,7 @@
 .todo__row.is-done .todo__text { color: var(--cocoa-soft); } /* xong: chữ nhạt, không gạch ngang */
 .todo__edit { flex: 1; }
 .todo__delete { flex: none; border: none; background: none; font-size: 1.4rem; color: var(--cocoa-soft); cursor: pointer; width: 32px; height: 32px; }
-.todo__handle { flex: none; touch-action: none; cursor: grab; color: var(--cocoa-soft); letter-spacing: -3px; padding: 6px 2px; }
+.todo__handle { flex: none; touch-action: none; cursor: grab; -webkit-user-select: none; user-select: none; color: var(--cocoa-soft); letter-spacing: -3px; padding: 10px 12px; margin: -4px -12px -4px -10px; } /* vùng chạm rộng cho ngón tay */
 .todo__empty { text-align: center; margin: 12px 0; }
 .todo__hint { text-align: center; margin: 0; }
 .todo__section { display: flex; flex-direction: column; gap: 8px; padding: 10px 10px 12px; border-radius: var(--radius-md); }
@@ -43,3 +43,11 @@
 }
 .todo__confirm-yes { background: #FFC9D0; color: #8E2238; border-color: #C2415B; }
 .todo__confirm-no { background: var(--white); }
+/* Kéo thả giữa các buổi */
+.todo.is-dragging { -webkit-user-select: none; user-select: none; }
+.todo__row.is-lifted { position: relative; z-index: 5; box-shadow: 0 10px 22px rgba(91, 70, 54, 0.25); cursor: grabbing; }
+.todo__section.is-drop-target { box-shadow: inset 0 0 0 2.5px var(--berry); }
+.todo__drop-line {
+  position: absolute; left: 16px; right: 16px; height: 4px; margin-top: -2px; z-index: 4;
+  border-radius: 2px; background: var(--berry); pointer-events: none;
+}

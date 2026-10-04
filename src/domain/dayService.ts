@@ -3,7 +3,7 @@ import { dayKey } from './dayKey';
 import { stageOfTodos, type GrowthStage } from './growth';
 import { newId } from './id';
 import { pickUniform, rollSpecial, type Rng } from './random';
-import type { Period } from './period';
+import { PERIODS, type Period } from './period';
 import type { Catalog, DayRecord, TemplateItem, Todo } from './types';
 
 export interface DayDeps {
@@ -131,13 +131,15 @@ export function deleteTodo(deps: DayDeps, date: string, id: string): Promise<Day
   });
 }
 
-export function reorderTodos(deps: DayDeps, date: string, ids: string[]): Promise<DayRecord> {
+/** Chuyển một việc sang buổi `period`, đứng ở vị trí `index` trong buổi đó (dùng cả để sắp xếp trong cùng buổi). */
+export function moveTodo(deps: DayDeps, date: string, id: string, period: Period, index: number): Promise<DayRecord> {
   return mutateDay(deps, date, 'today-only', (d) => {
-    const rank = (t: Todo) => {
-      const i = ids.indexOf(t.id);
-      return i === -1 ? ids.length + t.order : i;
-    };
-    d.todos.sort((a, b) => rank(a) - rank(b)).forEach((t, i) => (t.order = i));
+    const todo = findTodo(d, id);
+    const sorted = d.todos.filter((t) => t.id !== id).sort((a, b) => a.order - b.order);
+    const target = sorted.filter((t) => t.period === period);
+    target.splice(Math.max(0, Math.min(index, target.length)), 0, todo);
+    todo.period = period;
+    PERIODS.flatMap((p) => (p === period ? target : sorted.filter((t) => t.period === p))).forEach((t, i) => (t.order = i));
   });
 }
 

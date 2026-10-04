@@ -287,3 +287,43 @@ test('nút tròn vẫn tròn dù Safari gán padding mặc định lớn cho <bu
     expect(Math.abs(box.width - box.height), await el.getAttribute('aria-label') ?? '').toBeLessThan(1);
   }
 });
+
+/** Kéo nút ⋮⋮ của một việc tới điểm (x, y) theo từng bước như ngón tay. */
+async function dragHandle(page: Page, text: string, to: { x: number; y: number }) {
+  const row = page.locator('.todo__row', { hasText: text });
+  const box = (await row.locator('.todo__handle').boundingBox())!;
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(to.x, to.y, { steps: 12 });
+  await page.mouse.up();
+}
+
+test('kéo việc sang buổi khác và sắp xếp trong buổi; còn nguyên sau khi tải lại', async ({ page }) => {
+  await page.clock.setFixedTime(at('2026-10-02T09:00:00'));
+  await page.goto('/');
+  await openToday(page);
+  await addTodo(page, 'Tưới cây');
+  await addTodo(page, 'Uống nước');
+  await page.getByRole('dialog', { name: 'Thêm việc cần làm' }).getByRole('button', { name: 'Đóng' }).click();
+  await expect(page.locator('.sheet__backdrop')).toHaveCount(0); // chờ bảng trượt xuống hẳn
+  await page.getByRole('button', { name: 'Đóng menu' }).click(); // dải tab đang mở che mất nút kéo
+  const morning = page.getByTestId('todo-section-morning');
+  const afternoon = page.getByTestId('todo-section-afternoon');
+
+  // nút ＋ nổi che nút kéo của việc thứ hai trên khung 664px, nên luôn kéo việc trên cùng
+  // kéo "Tưới cây" thả vào buổi Chiều (đang trống)
+  const target = (await afternoon.boundingBox())!;
+  await dragHandle(page, 'Tưới cây', { x: target.x + target.width / 2, y: target.y + target.height / 2 });
+  await expect(afternoon.getByRole('checkbox', { name: 'Hoàn thành: Tưới cây' })).toBeVisible();
+  await expect(morning.getByRole('checkbox', { name: 'Hoàn thành: Tưới cây' })).toHaveCount(0);
+
+  // kéo "Uống nước" lên trên đầu buổi Chiều
+  const first = (await afternoon.locator('.todo__row').first().boundingBox())!;
+  await dragHandle(page, 'Uống nước', { x: first.x + first.width / 2, y: first.y + 4 });
+  await expect(afternoon.locator('.todo__text')).toHaveText(['Uống nước', 'Tưới cây']);
+  await expect(morning.getByText('Chưa có việc')).toBeVisible();
+
+  await page.reload();
+  await openToday(page);
+  await expect(page.getByTestId('todo-section-afternoon').locator('.todo__text')).toHaveText(['Uống nước', 'Tưới cây']);
+});

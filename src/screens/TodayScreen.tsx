@@ -21,7 +21,7 @@ import { pickPraise } from '../content/praises';
 import { getSpecies } from '../content/plants/registry';
 import { getSpecial } from '../content/specials/registry';
 import {
-  addTodo, changePlant, changePot, deleteTodo, editTodo, markGreeted, reorderTodos, setNote, setRestDay, setTitle, toggleTodo,
+  addTodo, changePlant, changePot, deleteTodo, editTodo, markGreeted, moveTodo, setNote, setRestDay, setTitle, toggleTodo,
 } from '../domain/dayService';
 import { stageIndex } from '../domain/growth';
 import { periodOf } from '../domain/period';
@@ -165,7 +165,7 @@ export function TodayScreen() {
               onToggle={handleToggle}
               onEdit={(id, t) => run(editTodo(deps, day.date, id, t))}
               onDelete={(id) => run(deleteTodo(deps, day.date, id))}
-              onReorder={(ids) => run(reorderTodos(deps, day.date, ids))}
+              onMove={(id, period, index) => run(moveTodo(deps, day.date, id, period, index))}
             />
           </>
         )}

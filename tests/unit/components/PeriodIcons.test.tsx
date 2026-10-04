@@ -30,7 +30,7 @@ describe('icon Sáng/Chiều/Tối là SVG tự vẽ, không phải emoji', () =
   });
 
   it('danh sách việc hôm nay và ngày tương lai', () => {
-    const { unmount } = render(<TodoList todos={[]} currentPeriod="morning" onToggle={() => {}} onEdit={() => {}} onDelete={() => {}} onReorder={() => {}} />);
+    const { unmount } = render(<TodoList todos={[]} currentPeriod="morning" onToggle={() => {}} onEdit={() => {}} onDelete={() => {}} onMove={() => {}} />);
     for (const p of ['morning', 'afternoon', 'evening'] as const) expectCuteIcon(screen.getByTestId(`todo-section-${p}`).querySelector('h2')!, p);
     unmount();
     render(<PlannedList items={[]} onEdit={() => {}} onDelete={() => {}} />);

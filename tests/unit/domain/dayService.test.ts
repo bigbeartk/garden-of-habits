@@ -1,6 +1,6 @@
 import {
   LockedDayError, addTodo, addTodos, changePlant, changePot, deleteTodo, editTodo,
-  ensureToday, markGreeted, reorderTodos, setNote, setRestDay, setTitle, toggleTodo,
+  ensureToday, markGreeted, moveTodo, setNote, setRestDay, setTitle, toggleTodo,
 } from '../../../src/domain/dayService';
 import { makeDay, makeDeps } from '../helpers';
 
@@ -86,13 +86,13 @@ describe('todo', () => {
     expect(r2.day.finalStage).toBe('seed');
   });
 
-  it('editTodo, deleteTodo và reorderTodos', async () => {
+  it('editTodo, deleteTodo và moveTodo', async () => {
     const { deps } = makeDeps();
     const { date } = await ensureToday(deps);
     const day = await addTodos(deps, date, [m('A'), m('B'), m('C')]);
-    const [a, b, c] = day.todos;
+    const [a, , c] = day.todos;
     expect((await editTodo(deps, date, a.id, ' A2 ')).todos[0].text).toBe('A2');
-    const reordered = await reorderTodos(deps, date, [c.id, a.id, b.id]);
+    const reordered = await moveTodo(deps, date, c.id, 'morning', 0);
     expect(reordered.todos.map((t) => [t.text, t.order])).toEqual([['C', 0], ['A2', 1], ['B', 2]]);
     const deleted = await deleteTodo(deps, date, a.id);
     expect(deleted.todos.map((t) => [t.text, t.order])).toEqual([['C', 0], ['B', 1]]);
@@ -192,11 +192,49 @@ describe('buổi Sáng / Chiều / Tối', () => {
     const { date } = await ensureToday(deps);
     await addTodos(deps, date, [m('S1'), { text: 'T1', period: 'evening' }, m('S2'), { text: 'T2', period: 'evening' }]);
     const day = (await deps.db.days.get(date))!;
-    const [s1, , s2] = day.todos;
-    const after = await reorderTodos(deps, date, [s2.id, s1.id]);
+    const s2 = day.todos[2];
+    const after = await moveTodo(deps, date, s2.id, 'morning', 0);
     const morning = after.todos.filter((t) => t.period === 'morning').map((t) => t.text);
     const evening = after.todos.filter((t) => t.period === 'evening').map((t) => t.text);
     expect(morning).toEqual(['S2', 'S1']);
     expect(evening).toEqual(['T1', 'T2']);
+  });
+});
+
+describe('moveTodo (kéo việc sang buổi khác)', () => {
+  const byPeriod = (todos: { text: string; period: string }[], p: string) => todos.filter((t) => t.period === p).map((t) => t.text);
+
+  it('chuyển việc sang buổi khác, chèn đúng vị trí, giữ trạng thái xong', async () => {
+    const { deps } = makeDeps();
+    const { date } = await ensureToday(deps);
+    await addTodos(deps, date, [m('S1'), m('S2'), { text: 'T1', period: 'evening' }, { text: 'T2', period: 'evening' }]);
+    const s2 = (await deps.db.days.get(date))!.todos[1];
+    await toggleTodo(deps, date, s2.id);
+    const after = await moveTodo(deps, date, s2.id, 'evening', 1);
+    expect(byPeriod(after.todos, 'morning')).toEqual(['S1']);
+    expect(byPeriod(after.todos, 'evening')).toEqual(['T1', 'S2', 'T2']);
+    expect(after.todos.find((t) => t.id === s2.id)!.done).toBe(true);
+    expect([...after.todos].map((t) => t.order).sort((a, b) => a - b)).toEqual([0, 1, 2, 3]);
+  });
+
+  it('chuyển vào buổi trống, và sắp xếp trong cùng buổi', async () => {
+    const { deps } = makeDeps();
+    const { date } = await ensureToday(deps);
+    await addTodos(deps, date, [m('S1'), m('S2'), m('S3')]);
+    const [s1, , s3] = (await deps.db.days.get(date))!.todos;
+    let after = await moveTodo(deps, date, s1.id, 'afternoon', 0);
+    expect(byPeriod(after.todos, 'afternoon')).toEqual(['S1']);
+    after = await moveTodo(deps, date, s3.id, 'morning', 0);
+    expect(byPeriod(after.todos, 'morning')).toEqual(['S3', 'S2']);
+    after = await moveTodo(deps, date, s3.id, 'morning', 99); // vượt quá thì đặt cuối
+    expect(byPeriod(after.todos, 'morning')).toEqual(['S2', 'S3']);
+  });
+
+  it('ngày đã qua bị khoá', async () => {
+    const { deps, clock } = makeDeps();
+    const { date } = await ensureToday(deps);
+    const day = await addTodo(deps, date, 'A');
+    clock.current = new Date(clock.current.getTime() + 24 * 3600 * 1000);
+    await expect(moveTodo(deps, date, day.todos[0].id, 'evening', 0)).rejects.toBeInstanceOf(LockedDayError);
   });
 });
