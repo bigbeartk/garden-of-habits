@@ -24,6 +24,7 @@ const DaySchema = z.object({
   specialId: z.string().nullable(),
   isRestDay: z.boolean(),
   title: z.string().optional(),
+  speech: z.string().optional(), // file cũ chưa có
   greetedAt: z.number().nullable(),
   note: z.string(),
   todos: z.array(TodoSchema),
@@ -67,7 +68,7 @@ const BackupSchema = z.object({
   // các công tắc bật/tắt (BOOLEAN_SETTINGS); file cũ có thể chưa có
   showCalendarBgButton: z.boolean().optional(),
   showNoteDot: z.boolean().optional(),
-  plantSaysNote: z.boolean().optional(),
+  showPlantSpeech: z.boolean().optional(),
   gardenOnlyPlanted: z.boolean().optional(),
   gardenSeparateSpecial: z.boolean().optional(),
   unlockedSpecials: z.array(z.string()).optional(), // cây đặc biệt đã mở khoá; file cũ chưa có

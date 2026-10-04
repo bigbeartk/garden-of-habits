@@ -20,6 +20,8 @@ export interface DayRecord {
   isRestDay: boolean;
   /** tiêu đề do người dùng đặt cho ngày; bản ghi cũ (trước khi có tính năng) không có trường này */
   title?: string;
+  /** câu cây nói cả ngày (chọn ngẫu nhiên lần đầu mở Hôm nay, sửa được); bản ghi cũ không có → chọn khi mở. Rỗng = không nói */
+  speech?: string;
   greetedAt: number | null;
   note: string;
   /** luôn được lưu theo thứ tự `order` tăng dần */

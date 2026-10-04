@@ -5,7 +5,7 @@ import { useNav } from '../app/nav';
 import { BackButton } from '../components/BackButton';
 import { GoalInput } from '../components/GoalInput';
 import { IconButton } from '../components/IconButton';
-import { NoteIcon, PlantSwapIcon, PotIcon, SleepSeedIcon, SunIcon } from '../components/icons';
+import { NoteIcon, PlantSwapIcon, PotIcon, SleepSeedIcon, SpeechIcon, SunIcon } from '../components/icons';
 import { NoteSheet } from '../components/NoteSheet';
 import { PlantPickerSheet } from '../components/PlantPickerSheet';
 import { PlantScene } from '../components/PlantScene';
@@ -16,18 +16,19 @@ import { StageBurst } from '../components/StageBurst';
 import { TodoList } from '../components/TodoList';
 import { WateringCan } from '../components/WateringCan';
 import type { Mood } from '../content/Face';
-import { pickGreeting } from '../content/greetings';
 import { pickPraise } from '../content/praises';
+import { pickSaying } from '../content/sayings';
 import { pickTap } from '../content/taps';
 import { getSpecies } from '../content/plants/registry';
 import { getSpecial } from '../content/specials/registry';
 import {
-  addTodo, changePlant, changePot, deleteTodo, editTodo, markGreeted, moveTodo, setNote, setRestDay, setTitle, toggleTodo,
+  SPEECH_MAX, addTodo, changePlant, changePot, deleteTodo, editTodo, markGreeted, moveTodo, setDaySpeech, setNote, setRestDay, setTitle,
+  toggleTodo,
 } from '../domain/dayService';
 import { stageIndex } from '../domain/growth';
 import { periodOf } from '../domain/period';
 import { timeOfDay } from '../domain/timeOfDay';
-import { getSetting } from '../db/settings';
+import { getSetting, setSetting } from '../db/settings';
 import { useBackupReminder } from '../hooks/useBackupReminder';
 import { useToday } from '../hooks/useToday';
 import './today.css';
@@ -39,8 +40,12 @@ export function TodayScreen() {
   const nav = useNav();
   const { day, now, error: loadError } = useToday();
   const showReminder = useBackupReminder();
-  /** lời cây nói: chào đầu ngày, khen khi xong việc, hoặc đáp lại khi bị chạm */
-  const [speech, setSpeech] = useState<{ text: string; kind: 'greeting' | 'praise' | 'tap' } | null>(null);
+  /** câu nói tạm (khen khi xong việc, đáp lại khi bị chạm); hết thì cây quay về lời của ngày (`day.speech`) */
+  const [speech, setSpeech] = useState<{ text: string; kind: 'praise' | 'tap' } | null>(null);
+  /** đang sửa lời của ngày: giữ bong bóng đó, câu tạm không chen vào */
+  const [editingSpeech, setEditingSpeech] = useState(false);
+  /** khung ✨ giới thiệu cây đặc biệt, hiện lúc chào lần đầu trong ngày */
+  const [intro, setIntro] = useState(false);
   /** tăng mỗi lần chạm cây để cây nảy lên */
   const [tapKey, setTapKey] = useState(0);
   const [celebrating, setCelebrating] = useState(false);
@@ -49,18 +54,36 @@ export function TodayScreen() {
   const [sheet, setSheet] = useState<Sheet>(null);
   const [error, setError] = useState<string | null>(null);
   const greetedFor = useRef<string | null>(null);
-  const plantSaysNote = useLiveQuery(async () => (await getSetting(deps.db, 'plantSaysNote')) ?? false, [deps.db], false);
+  const pickedFor = useRef<string | null>(null);
+  // undefined = chưa đọc xong setting: chưa hiện bong bóng, để lúc đang ẩn không bị nháy lên
+  const showSpeechSaved = useLiveQuery(async () => (await getSetting(deps.db, 'showPlantSpeech')) ?? true, [deps.db]);
+  /** giữ cục bộ để bấm nhanh hai lần không bị đọc lại giá trị cũ từ DB */
+  const [showSpeechLocal, setShowSpeechLocal] = useState<boolean | null>(null);
+  const showSpeech = showSpeechLocal ?? showSpeechSaved;
+
+  // ngày chưa có lời cây nói (ngày mới, hoặc bản ghi cũ) thì chọn ngẫu nhiên một câu và lưu lại
+  useEffect(() => {
+    if (!day || day.speech !== undefined || pickedFor.current === day.date) return;
+    pickedFor.current = day.date;
+    setDaySpeech(deps, day.date, pickSaying(getSpecies(day.plantId), deps.rng)).catch((e: Error) => setError(e.message));
+  }, [day, deps]);
 
   useEffect(() => {
     if (!day || day.greetedAt !== null || greetedFor.current === day.date) return;
     greetedFor.current = day.date;
-    setSpeech({ text: pickGreeting(getSpecies(day.plantId), deps.rng), kind: 'greeting' });
+    setIntro(true);
     markGreeted(deps, day.date).catch((e: Error) => setError(e.message));
   }, [day, deps]);
 
   useEffect(() => {
+    if (!intro) return;
+    const t = setTimeout(() => setIntro(false), 5000);
+    return () => clearTimeout(t);
+  }, [intro]);
+
+  useEffect(() => {
     if (!speech) return;
-    const t = setTimeout(() => setSpeech(null), speech.kind === 'greeting' ? 5000 : 3500);
+    const t = setTimeout(() => setSpeech(null), 3500);
     return () => clearTimeout(t);
   }, [speech]);
 
@@ -80,13 +103,19 @@ export function TodayScreen() {
   const run = (p: Promise<unknown>) => {
     p.catch((e: Error) => setError(e.message));
   };
-  // chào/khen hiện tạm; ngoài lúc đó, nếu bật "Cây nói ghi chú" thì cây nói ghi chú hôm nay
-  const noteText = plantSaysNote && !day.isRestDay ? day.note.trim() : '';
-  const said: { text: string; kind: SpeechKind } | null = speech ?? (noteText ? { text: noteText, kind: 'note' } : null);
-  const mood: Mood = day.isRestDay ? 'sleep' : celebrating || speech?.kind === 'tap' ? 'smile' : said ? 'talk' : 'normal';
+  // câu khen/chạm hiện tạm; ngoài lúc đó cây nói lời của ngày (nếu không bị ẩn)
+  const daily = !day.isRestDay && showSpeech === true && day.speech !== undefined ? { text: day.speech, kind: 'daily' as const } : null;
+  const said: { text: string; kind: SpeechKind } | null = editingSpeech ? daily : speech ?? daily;
+  const mood: Mood = day.isRestDay ? 'sleep' : celebrating || speech?.kind === 'tap' ? 'smile' : said?.text ? 'talk' : 'normal';
   const currentPeriod = periodOf(now);
   const doneCount = day.todos.filter((t) => t.done).length;
   const special = day.isRestDay ? null : getSpecial(day.specialId);
+
+  function toggleSpeech() {
+    const next = !showSpeech;
+    setShowSpeechLocal(next);
+    run(setSetting(deps.db, 'showPlantSpeech', next));
+  }
 
   /** Chạm cây: cây cười, nảy lên và nói một câu (đang ngủ thì nói câu ngái ngủ). */
   function handleTapPlant() {
@@ -115,13 +144,28 @@ export function TodayScreen() {
       <SkyBackground time={timeOfDay(now)}>
         <div className="today__stage">
           <BackButton onClick={() => nav('calendar')} />
-          {speech?.kind === 'greeting' && special && (
+          {intro && special && (
             <div className="special-intro" data-testid="special-intro" role="status">
               <span className="special-intro__sparkles" aria-hidden="true">✨ ✨ ✨</span>
               Hôm nay mình là cây đặc biệt: {special.name}!
             </div>
           )}
-          <SpeechBubble text={said?.text ?? null} kind={said?.kind} />
+          <SpeechBubble
+            text={said?.text ?? null}
+            kind={said?.kind}
+            edit={{ onEdit: (t) => run(setDaySpeech(deps, day.date, t)), onEditingChange: setEditingSpeech, maxLength: SPEECH_MAX }}
+          />
+          {!day.isRestDay && showSpeech !== undefined && (
+            <button
+              type="button"
+              className={`today__speech-toggle${showSpeech ? '' : ' is-off'}`}
+              aria-label={showSpeech ? 'Ẩn lời cây nói' : 'Hiện lời cây nói'}
+              title={showSpeech ? 'Ẩn lời cây nói' : 'Hiện lời cây nói'}
+              onClick={toggleSpeech}
+            >
+              <SpeechIcon size={22} off={!showSpeech} />
+            </button>
+          )}
           <PlantScene
             className="today__plant"
             plantId={day.plantId}

@@ -44,7 +44,7 @@ src/
   domain/     logic thuần TS, test độc lập: dayKey, growth, random, timeOfDay, dayService,
               templateService, calendar, garden, types
   db/         Dexie (db.ts), settings, queries, backup (export/import/merge), share
-  content/    NỘI DUNG mở rộng được: plants/, pots/, specials/, common/, Face, ArtView, catalog, greetings
+  content/    NỘI DUNG mở rộng được: plants/, pots/, specials/, common/, Face, ArtView, catalog, sayings, praises, taps
   components/ PlantScene, SkyBackground, TodoList, BottomSheet, DayCell, ...
   screens/    CalendarScreen (màn mở đầu; mở FutureDayScreen cho ngày tương lai), TodayScreen, GardenScreen (tab Khu vườn), SettingsScreen (mở TemplatesScreen từ thẻ "Mẫu việc")
   hooks/      useNow, useToday, useBackupReminder, useCalendarBg
@@ -76,16 +76,16 @@ src/
 - **Màn Mẫu nằm trong Cài đặt** (không còn là tab): thẻ đầu tiên của Cài đặt là **"Mẫu việc"**, ghi `⭐ Đang dùng: <tên>` (hoặc `Chưa có mẫu mặc định`) + nút `Quản lý mẫu`; bấm thì `SettingsScreen` hiện `TemplatesScreen` (prop `onBack`) thay chỗ trang Cài đặt.
 - **Màn Mẫu:** nút `＋ Mẫu mới` rộng nét đứt; thẻ mẫu có tên + nút ngôi sao SVG (`star`, chữ "Mặc định"/"Đặt mặc định", thẻ mặc định viền vàng), 3 khối màu theo buổi (icon + tên + số việc), hàng nút [Thêm vào hôm nay][Sửa][Xoá]; form có 3 khối màu kèm icon. Mẫu/Cài đặt chừa `padding-bottom` cho nút menu nổi.
 - **Buổi Sáng / Chiều / Tối** (`domain/period.ts`): mỗi todo và mỗi việc trong mẫu có `period`. Màn Hôm nay luôn hiện đủ 3 mục (mục trống ghi "Chưa có việc"); mỗi mục có số việc xong/tổng riêng; mục của buổi hiện tại (`periodOf`: 4–11h sáng, 11–18h chiều, còn lại tối) có viền đậm. **Kéo thả** (nắm `⋮⋮`) chuyển được việc sang buổi khác, kể cả buổi trống, hoặc sắp xếp trong buổi: `TodoList` tự viết bằng pointer events (không dùng `Reorder` của motion vì nó không kéo qua danh sách khác), buổi đích viền hồng (`is-drop-target`), vạch `todo__drop-line` báo vị trí, kéo gần mép thì vùng danh sách tự cuộn; lưu bằng `moveTodo(deps, date, id, period, index)`. Test E2E kéo phải đóng menu nổi trước. Cây vẫn lớn theo tỉ lệ việc xong của **cả ngày**.
-- **Chạm vào cây** (màn Hôm nay): nút trong suốt `Chạm vào cây` (`.today__plant-tap`, phủ đúng khung 200×240 của cây, không lấn hàng 4 nút). Chạm thì cây cười (`data-mood="smile"`), nảy lên (`bounceKey`) và nói một câu ~3,5 giây (`data-kind="tap"`): `pickTap` lấy từ `COMMON_TAPS` (`content/taps.ts`) + `species.taps`, không lặp câu vừa nói. Ngày tiết kiệm năng lượng: cây vẫn ngủ, nói câu `SLEEPY_TAPS`. Bong bóng thoại và khung ✨ giới thiệu có `pointer-events: none`, vì câu dài phủ xuống thân cây và từng nuốt mất cú chạm.
-- **Cây khen:** xong một việc thì cây cười và nói một câu khen khoảng 3,5 giây (`pickPraise`: câu chung `COMMON_PRAISES` + `species.praises`); xong việc cuối cùng (cây vừa ra hoa) thì dùng `BLOOM_PRAISES`. Câu chào đầu ngày và câu khen dùng chung một bong bóng thoại; khung ✨ cây đặc biệt chỉ hiện khi chào.
+- **Chạm vào cây** (màn Hôm nay): nút trong suốt `Chạm vào cây` (`.today__plant-tap`, phủ đúng khung 200×240 của cây, không lấn hàng 4 nút). Chạm thì cây cười (`data-mood="smile"`), nảy lên (`bounceKey`) và nói một câu ~3,5 giây (`data-kind="tap"`): `pickTap` lấy từ `COMMON_TAPS` (`content/taps.ts`) + `species.taps`, không lặp câu vừa nói. Ngày tiết kiệm năng lượng: cây vẫn ngủ, nói câu `SLEEPY_TAPS`. Câu tạm (khen/chạm) và khung ✨ giới thiệu có `pointer-events: none`, vì câu dài phủ xuống thân cây và từng nuốt mất cú chạm; riêng bong bóng lời của ngày bắt chạm (để sửa), nó chỉ 3 dòng và ẩn được.
+- **Cây khen:** xong một việc thì cây cười và nói một câu khen khoảng 3,5 giây (`pickPraise`: câu chung `COMMON_PRAISES` + `species.praises`); xong việc cuối cùng (cây vừa ra hoa) thì dùng `BLOOM_PRAISES`. Câu khen/chạm hiện tạm trong cùng bong bóng rồi quay về lời của ngày.
 - **Ghi chú tự lưu** (`NoteSheet`): không có nút Lưu; lưu sau khi ngừng gõ 400ms, khi rời ô và khi đóng bảng. Bảng chỉ nạp lại nội dung từ DB lúc vừa mở, nên lúc đang gõ DB cập nhật không ghi đè chữ.
-- **Cây nói ghi chú:** công tắc `Cây nói ghi chú` ngay trong bảng ghi chú (setting chung `plantSaysNote`, mặc định tắt, có trong file sao lưu). Bật thì bong bóng thoại hiện ghi chú hôm nay (`data-kind="note"`, tối đa 3 dòng) và mặt cây `talk` (`PlantScene` có `data-mood`); câu chào/khen (`data-kind` `greeting`/`praise`) hiện tạm rồi quay về ghi chú. Ghi chú trống hoặc ngày tiết kiệm năng lượng thì không nói.
+- **Lời cây nói của ngày** (`DayRecord.speech`, `content/sayings.ts`): mỗi ngày cây nói một câu suốt cả ngày (`data-kind="daily"`, tối đa 3 dòng, mặt `talk`). Lần đầu mở Hôm nay mà ngày chưa có `speech` (ngày mới hoặc bản ghi cũ), `TodayScreen` chọn ngẫu nhiên bằng `pickSaying` (`COMMON_SAYINGS` + `species.sayings`) rồi lưu qua `setDaySpeech` (chỉ hôm nay, cắt khoảng trắng, tối đa `SPEECH_MAX` = 100). Đã có `speech` (kể cả `''`) thì không chọn lại; rỗng thì bong bóng mờ `Chạm để viết lời cây nói ✎` (`data-empty`). **Chạm bong bóng** (nút `Sửa lời cây nói`) thì thành ô `Lời cây nói` ngay tại chỗ (viền hồng): Enter/rời ô lưu, Shift+Enter xuống dòng, Escape huỷ; trong lúc sửa câu tạm không chen vào. **Nút ẩn/hiện** tròn ở góc phải trên khung trời (icon `speech`, nhãn `Ẩn lời cây nói` / `Hiện lời cây nói`, setting `showPlantSpeech`, mặc định bật, có trong sao lưu; giữ state cục bộ, chưa đọc xong setting thì chưa hiện bong bóng để khỏi nháy). Đang ẩn thì câu khen/chạm vẫn hiện tạm. Ngày tiết kiệm năng lượng: không có lời của ngày, không có nút ẩn/hiện. **Ghi chú chỉ để lưu thông tin**: bảng ghi chú không còn công tắc `Cây nói ghi chú` (setting `plantSaysNote` cũ bỏ, file sao lưu cũ có nó vẫn khôi phục được).
 - **Xoá việc phải xác nhận** (`DeleteWithConfirm`, dùng ở Hôm nay và ngày tương lai): bấm `Xoá: <việc>` thì hàng hiện `Xác nhận xoá: <việc>` (nút "Xoá") và `Thôi`; chỉ nút Xoá mới xoá thật.
 - **Thêm việc** (`components/InlineAdd.tsx`, dùng ở Hôm nay và ngày tương lai): không có nút ＋ nổi hay popup. Mỗi buổi có nút ＋ tròn 26px (cao bằng icon buổi để hàng không giãn, vùng chạm nới bằng `::after`; icon `plus`, nhãn `Thêm việc buổi Sáng|Chiều|Tối`) ngoài cùng bên phải hàng tiêu đề; bấm thì cuối buổi hiện **dòng việc trống** (`DraftRow`, ô `Việc mới buổi …`) đã focus. Enter: lưu rồi để trống gõ tiếp; rời ô hoặc bấm ＋ buổi khác: lưu nếu đã gõ chữ rồi đóng; Escape: đóng không lưu. **Việc rỗng không bao giờ được lưu** (cây sẽ tính sai). Bẫy Safari đã xử lý: nút ＋ chặn `mousedown` để không cướp focus (nếu không dòng cũ đóng, danh sách dịch và cú chạm trượt), mở dòng bằng `flushSync` để bàn phím iOS bật, và `onDone` chỉ đóng nếu dòng đang mở vẫn là của buổi đó. Ngày tiết kiệm năng lượng ẩn cả danh sách nên không thêm được.
 - **Đổi cây:** nếu đang dùng chậu mặc định của cây cũ thì chậu đổi theo cây mới; nếu người dùng đã tự chọn chậu khác thì giữ chậu đó. Chọn loài thường thì thành **cây thường** (`specialId = null`).
 - **Cây đặc biệt đã mở khoá** (`domain/specialUnlocks.ts`): khi `ensureToday` tung trúng cây đặc biệt thì ghi cặp `'plantId|specialId'` vào setting `unlockedSpecials`. Mở khoá theo **đúng cặp** (Ngô · Phát sáng), không theo hiệu ứng. `listUnlockedSpecials` = setting ∪ các cặp có trong lịch sử ngày (dữ liệu trước khi có tính năng), bỏ cặp có loài/hiệu ứng đã xoá, xếp theo thứ tự nội dung. Bảng `Chọn cây hôm nay` có mục `✨ Cây đặc biệt đã gặp` (`picker-specials`, nút `Ngô · Phát sáng`, viền vàng); chưa có thì hiện lời gợi ý 10%. `changePlant(deps, date, plantId, specialId)` từ chối cặp chưa mở khoá. Ngày tự chọn cây đặc biệt vẫn tính là ngày cây đặc biệt (✨ lịch, Khu vườn); khung ✨ giới thiệu chỉ hiện ở ngày tung trúng.
 - **Ngày tiết kiệm năng lượng** (`isRestDay`): todo bị ẩn nhưng vẫn giữ, cây hiện hình hạt giống ôm gối ngủ.
-- **Chào hỏi:** lần đầu trong ngày (`greetedAt === null`), App tự chuyển sang tab Hôm nay, cây nói một câu ngẫu nhiên (câu chung + câu riêng của loài), rồi ghi `greetedAt`. Nếu là cây đặc biệt thì hiện thêm khung ✨ giới thiệu.
+- **Chào hỏi:** lần đầu trong ngày (`greetedAt === null`), App tự chuyển sang tab Hôm nay, rồi ghi `greetedAt`; câu chào chính là lời của ngày. Nếu là cây đặc biệt thì hiện thêm khung ✨ giới thiệu ~5 giây.
 - **Lịch:** mỗi ô ngày mang một trạng thái (`dayCellStatus`):
 
   | Trạng thái | Khi nào |
@@ -126,7 +126,7 @@ interface PlantSpecies {
   defaultPotId: string;                              // phải có trong POTS
   stages: Record<'seed'|'sprout'|'bud'|'bloom', Art>;
   faceAnchor: Record<'seed'|'sprout'|'bud'|'bloom', FaceAnchor>;
-  greetings?: string[];                              // câu chào riêng
+  sayings?: string[];                                // lời của ngày riêng của loài
   praises?: string[];                                // câu khen riêng khi xong việc
   taps?: string[];                                   // câu riêng khi bị chạm vào
 }
@@ -139,7 +139,7 @@ interface PlantSpecies {
 2. Thêm loài vào mảng `PLANTS` trong `src/content/plants/registry.ts`.
 3. Chạy `npm test`. `tests/unit/content/plants.test.tsx` kiểm tra đủ 4 giai đoạn, chậu mặc định có tồn tại, và mỗi loài có chậu mặc định khác nhau.
 
-Lưu ý: test này cũng cố định danh sách loài theo thứ tự, nên thêm loài thì phải cập nhật danh sách trong test (và `tests/unit/content/praises.test.ts`, `taps.test.ts`: mỗi loài cần ≥ 1 câu khen và ≥ 2 câu khi bị chạm).
+Lưu ý: test này cũng cố định danh sách loài theo thứ tự, nên thêm loài thì phải cập nhật danh sách trong test (và `tests/unit/content/praises.test.ts`, `taps.test.ts`: mỗi loài cần ≥ 1 câu khen và ≥ 2 câu khi bị chạm; `sayings.test.ts`: ≥ 2 câu lời của ngày).
 
 Các loài hiện có:
 
@@ -225,6 +225,7 @@ interface DayRecord {
   specialId: string | null;
   isRestDay: boolean;
   title?: string;            // MỤC TIÊU ngày (tên trường giữ là title); bản ghi cũ không có → coi là ''
+  speech?: string;           // lời cây nói cả ngày; không có = chưa chọn (chọn khi mở Hôm nay), '' = không nói
   greetedAt: number | null;  // ms; null = chưa chào hôm nay
   note: string;
   todos: Todo[];             // luôn lưu theo order tăng dần, order = 0..n-1
@@ -242,7 +243,7 @@ lastBackupAt: number
 calendarTheme: 'default' | 'cat' | 'grass' | 'rain' | 'gamer' | 'photo'
 showCalendarBgButton: boolean                        // không có = bật
 showNoteDot:  boolean                                // chấm đỏ ở ô lịch ngày có ghi chú; không có = bật
-plantSaysNote: boolean                               // cây nói ghi chú hôm nay; không có = TẮT
+showPlantSpeech: boolean                             // hiện bong bóng lời cây nói của ngày; không có = BẬT
 gardenOnlyPlanted: boolean                           // Khu vườn chỉ hiện luống > 0 ngày; không có = TẮT
 gardenSeparateSpecial: boolean                       // Khu vườn tách ngày cây đặc biệt thành luống riêng; không có = TẮT
 unlockedSpecials: string[]                           // cây đặc biệt đã tung trúng, 'plantId|specialId'; có trong sao lưu (gộp = hợp hai danh sách)
@@ -324,7 +325,7 @@ File thiếu `planned` (phiên bản 1–2) hoặc `plannedGoals` (phiên bản 
   - `Quản lý mẫu`, `Quay lại Cài đặt`, `＋ Mẫu mới`, `Tên mẫu`, `Đặt làm mặc định: <tên>`
   - `💾 Sao lưu dữ liệu`
   - Ngày tương lai: `future-day`, nút `Quay lại Lịch`, `Thêm việc buổi …`, `Sửa việc`, `Xoá: <việc>`, `planned-count` (ô lịch)
-  - `day-YYYY-MM-DD` (+ `data-status`), `calendar-card`, `calendar-head`, `speech-bubble`, `special-intro`, `rest-message`
+  - `day-YYYY-MM-DD` (+ `data-status`), `calendar-card`, `calendar-head`, `speech-bubble` (`data-kind` `daily|praise|tap`), `Sửa lời cây nói`, `Lời cây nói`, `Ẩn lời cây nói` / `Hiện lời cây nói`, `special-intro`, `rest-message`
 
 ## Lỗi nhỏ đã biết (chưa sửa)
 

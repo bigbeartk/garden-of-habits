@@ -71,7 +71,7 @@ export const cactus: PlantSpecies = {
     bud: { x: 100, y: 118, scale: 0.75 },
     bloom: { x: 100, y: 118, scale: 0.75 },
   },
-  greetings: ['Mình ít uống nước thôi, nhưng thích bạn làm việc lắm 🌵', 'Gai góc bên ngoài, mềm mại bên trong nha!'],
+  sayings: ['Mình ít uống nước thôi, nhưng thích bạn làm việc lắm 🌵', 'Gai góc bên ngoài, mềm mại bên trong nha!'],
   praises: ['Kiên trì như xương rồng, giỏi lắm! 🌵'],
   taps: ['Cẩn thận gai nha! 🌵', 'Ngoài gai nhưng trong mềm lắm á 💚'],
 };

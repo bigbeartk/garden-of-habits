@@ -634,15 +634,15 @@ test('chạm vào cây thì cây cười và nói một câu (WebKit)', async ({
   expect(Math.abs(box.x + box.width / 2 - (svg.x + svg.width / 2))).toBeLessThan(2);
   const actions = (await page.getByRole('button', { name: 'Đổi cây' }).boundingBox())!;
   expect(box.y + box.height).toBeLessThanOrEqual(actions.y);
-  // bong bóng câu chào (có khi dài 3 dòng, phủ xuống cây) không được nuốt cú chạm
+  // lời cây nói của ngày hiện sẵn; chạm vào thân cây thì cây đáp một câu tạm, chạm tiếp thì đổi câu
   const bubble = page.getByTestId('speech-bubble');
-  await expect(bubble).toHaveAttribute('data-kind', 'greeting');
+  await expect(bubble).toHaveAttribute('data-kind', 'daily');
+  await page.mouse.click(box.x + box.width / 2, box.y + box.height * 0.6);
+  await expect(bubble).toHaveAttribute('data-kind', 'tap');
+  const first = await bubble.textContent();
+  // câu tạm chỉ để xem: chạm lên nó (kể cả chỗ phủ xuống cây) vẫn tới cây
   const b = (await bubble.boundingBox())!;
   await page.mouse.click(b.x + b.width / 2, b.y + b.height - 6);
-  await expect(bubble).toHaveAttribute('data-kind', 'tap');
-  // chạm vào giữa thân cây thì đổi câu khác
-  const first = await bubble.textContent();
-  await page.mouse.click(box.x + box.width / 2, box.y + box.height * 0.6);
   await expect(bubble).not.toHaveText(first!);
   await expect(scene).toHaveAttribute('data-mood', 'smile');
   await page.waitForTimeout(500);
@@ -650,4 +650,35 @@ test('chạm vào cây thì cây cười và nói một câu (WebKit)', async ({
   // nút quay lại vẫn bấm được (không bị vùng chạm che)
   await page.getByRole('button', { name: 'Quay lại Lịch' }).click();
   await expect(page.getByTestId('calendar-card')).toBeVisible();
+});
+
+test('lời cây nói: chạm bong bóng để sửa, ẩn/hiện được nhớ qua lần mở sau (WebKit)', async ({ page }) => {
+  await page.clock.setFixedTime(at('2026-10-02T10:00:00'));
+  await page.goto('/');
+  await openToday(page);
+  await closeMenu(page);
+  const bubble = page.getByTestId('speech-bubble');
+  await expect(bubble).toHaveAttribute('data-kind', 'daily');
+  await page.getByRole('button', { name: 'Sửa lời cây nói' }).click();
+  const box = page.getByLabel('Lời cây nói', { exact: true });
+  await expect(box).toBeFocused();
+  await box.fill('Hôm nay mình cùng cố gắng nha');
+  await page.screenshot({ path: 'test-results/plant-speech-edit.png' });
+  await box.press('Enter');
+  await expect(bubble).toHaveText('Hôm nay mình cùng cố gắng nha');
+  // nút ẩn/hiện nằm trong khung trời, không đè lên bong bóng
+  const toggle = page.getByRole('button', { name: 'Ẩn lời cây nói' });
+  const t = (await toggle.boundingBox())!;
+  const bb = (await bubble.boundingBox())!;
+  expect(t.x >= bb.x + bb.width || t.y >= bb.y + bb.height).toBe(true);
+  await page.screenshot({ path: 'test-results/plant-speech.png' });
+  await toggle.click();
+  await expect(bubble).toHaveCount(0);
+  await page.reload();
+  await openToday(page);
+  await closeMenu(page);
+  await expect(page.getByRole('button', { name: 'Hiện lời cây nói' })).toBeVisible();
+  await expect(page.getByTestId('speech-bubble')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Hiện lời cây nói' }).click();
+  await expect(page.getByTestId('speech-bubble')).toHaveText('Hôm nay mình cùng cố gắng nha');
 });

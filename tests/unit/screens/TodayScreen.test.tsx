@@ -4,6 +4,7 @@ import { vi } from 'vitest';
 import { TodayScreen } from '../../../src/screens/TodayScreen';
 import { CATALOG } from '../../../src/content/catalog';
 import { BLOOM_PRAISES, COMMON_PRAISES } from '../../../src/content/praises';
+import { COMMON_SAYINGS } from '../../../src/content/sayings';
 import { COMMON_TAPS, SLEEPY_TAPS } from '../../../src/content/taps';
 import { getSpecies } from '../../../src/content/plants/registry';
 import { makeDay, makeDeps, renderWithDeps } from '../helpers';
@@ -291,62 +292,101 @@ describe('TodayScreen xoá việc cần xác nhận', () => {
   });
 });
 
-describe('TodayScreen cây nói ghi chú', () => {
-  // ngày đã chào rồi, để bong bóng chào không che kết quả
-  const setupNote = async (note: string, extra: Partial<Parameters<typeof makeDay>[0]> = {}) => {
+describe('TodayScreen lời cây nói của ngày', () => {
+  const setupDay = async (extra: Partial<Parameters<typeof makeDay>[0]> = {}) => {
     const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
-    await deps.db.days.put(makeDay({ date: '2026-10-02', greetedAt: 1, note, ...extra }));
+    await deps.db.days.put(makeDay({ date: '2026-10-02', greetedAt: 1, ...extra }));
     const user = userEvent.setup();
     renderWithDeps(<TodayScreen />, deps);
     await screen.findByTestId('plant-scene');
     return { deps, user };
   };
 
-  it('mặc định tắt: có ghi chú nhưng cây không nói', async () => {
-    await setupNote('Trời đẹp');
-    expect(screen.queryByTestId('speech-bubble')).not.toBeInTheDocument();
+  it('ngày chưa có câu thì cây tự chọn một câu, lưu lại và nói cả ngày', async () => {
+    const { deps } = setup();
+    await waitFor(async () => expect((await deps.db.days.get('2026-10-02'))?.speech).toBeTruthy());
+    const day = (await deps.db.days.get('2026-10-02'))!;
+    expect([...COMMON_SAYINGS, ...(getSpecies(day.plantId).sayings ?? [])]).toContain(day.speech);
+    await waitFor(() => expect(screen.getByTestId('speech-bubble')).toHaveTextContent(day.speech!));
+    expect(screen.getByTestId('speech-bubble')).toHaveAttribute('data-kind', 'daily');
   });
 
-  it('bật công tắc trong bảng ghi chú thì cây nói ghi chú; tắt thì thôi', async () => {
-    const { deps, user } = await setupNote('Trời đẹp');
+  it('đã có câu (kể cả rỗng) thì không chọn lại', async () => {
+    const { deps } = await setupDay({ speech: 'Câu của mình' });
+    expect(await screen.findByTestId('speech-bubble')).toHaveTextContent('Câu của mình');
+    await deps.db.days.update('2026-10-02', { speech: '' });
+    await waitFor(() => expect(screen.getByTestId('speech-bubble')).toHaveAttribute('data-empty', 'true'));
+    expect((await deps.db.days.get('2026-10-02'))!.speech).toBe('');
+  });
+
+  it('chạm bong bóng để sửa: Enter thì lưu, Escape thì huỷ', async () => {
+    const { deps, user } = await setupDay({ speech: 'Câu cũ' });
+    await user.click(await screen.findByRole('button', { name: 'Sửa lời cây nói' }));
+    const box = screen.getByLabelText('Lời cây nói');
+    expect(box).toHaveFocus();
+    await user.clear(box);
+    await user.type(box, 'Cố lên nhé{Enter}');
+    await waitFor(async () => expect((await deps.db.days.get('2026-10-02'))!.speech).toBe('Cố lên nhé'));
+    await waitFor(() => expect(screen.getByTestId('speech-bubble')).toHaveTextContent('Cố lên nhé'));
+    await user.click(screen.getByRole('button', { name: 'Sửa lời cây nói' }));
+    await user.type(screen.getByLabelText('Lời cây nói'), ' bỏ{Escape}');
+    expect(screen.queryByLabelText('Lời cây nói')).not.toBeInTheDocument();
+    expect(screen.getByTestId('speech-bubble')).toHaveTextContent('Cố lên nhé');
+    expect((await deps.db.days.get('2026-10-02'))!.speech).toBe('Cố lên nhé');
+  });
+
+  it('rời ô thì lưu', async () => {
+    const { deps, user } = await setupDay({ speech: 'A' });
+    await user.click(await screen.findByRole('button', { name: 'Sửa lời cây nói' }));
+    await user.type(screen.getByLabelText('Lời cây nói'), 'B');
+    await user.click(screen.getByRole('button', { name: 'Đổi chậu' }));
+    await waitFor(async () => expect((await deps.db.days.get('2026-10-02'))!.speech).toBe('AB'));
+  });
+
+  it('nút ẩn/hiện lời cây nói được nhớ lại', async () => {
+    const { deps, user } = await setupDay({ speech: 'Xin chào' });
+    expect(await screen.findByTestId('speech-bubble')).toHaveTextContent('Xin chào');
+    const hide = screen.getByRole('button', { name: 'Ẩn lời cây nói' });
+    expect(hide.querySelector('svg[data-icon="speech"]')).not.toBeNull();
+    await user.click(hide);
+    await waitFor(() => expect(screen.queryByTestId('speech-bubble')).not.toBeInTheDocument(), { timeout: 3000 });
+    await waitFor(async () => expect(await getSetting(deps.db, 'showPlantSpeech')).toBe(false));
+    await user.click(screen.getByRole('button', { name: 'Hiện lời cây nói' }));
+    expect(await screen.findByTestId('speech-bubble')).toHaveTextContent('Xin chào');
+    await waitFor(async () => expect(await getSetting(deps.db, 'showPlantSpeech')).toBe(true));
+  });
+
+  it('đang ẩn thì câu khi chạm cây vẫn hiện tạm', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
+    await setSetting(deps.db, 'showPlantSpeech', false);
+    await deps.db.days.put(makeDay({ date: '2026-10-02', greetedAt: 1, speech: 'Xin chào' }));
+    const user = userEvent.setup();
+    renderWithDeps(<TodayScreen />, deps);
+    await screen.findByRole('button', { name: 'Hiện lời cây nói' });
+    expect(screen.queryByTestId('speech-bubble')).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Chạm vào cây' }));
+    expect(await screen.findByTestId('speech-bubble')).toHaveAttribute('data-kind', 'tap');
+  });
+
+  it('ngày tiết kiệm năng lượng: không nói câu của ngày, không có nút ẩn/hiện', async () => {
+    await setupDay({ speech: 'Xin chào', isRestDay: true });
+    expect(screen.queryByTestId('speech-bubble')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Ẩn lời cây nói' })).not.toBeInTheDocument();
+  });
+
+  it('bảng ghi chú không còn công tắc Cây nói ghi chú', async () => {
+    const { user } = await setupDay({ speech: 'Xin chào' });
     await user.click(screen.getByRole('button', { name: 'Ghi chú' }));
     const dialog = await screen.findByRole('dialog', { name: 'Ghi chú hôm nay' });
-    const toggle = within(dialog).getByRole('switch', { name: 'Cây nói ghi chú' });
-    expect(toggle).toHaveAttribute('aria-checked', 'false');
-    await user.click(toggle);
-    await waitFor(async () => expect(await getSetting(deps.db, 'plantSaysNote')).toBe(true));
-    const bubble = await screen.findByTestId('speech-bubble');
-    expect(bubble).toHaveTextContent('Trời đẹp');
-    expect(bubble).toHaveAttribute('data-kind', 'note');
-    expect(screen.getByTestId('plant-scene')).toHaveAttribute('data-mood', 'talk');
-    // gõ thêm thì cây nói theo ngay
-    await user.type(within(dialog).getByLabelText('Nội dung ghi chú'), ' quá');
-    await waitFor(() => expect(screen.getByTestId('speech-bubble')).toHaveTextContent('Trời đẹp quá'));
-    await user.click(toggle);
-    // bong bóng còn chạy hiệu ứng thu nhỏ trước khi rời DOM
-    await waitFor(() => expect(screen.queryByTestId('speech-bubble')).not.toBeInTheDocument(), { timeout: 3000 });
-    expect(await getSetting(deps.db, 'plantSaysNote')).toBe(false);
+    expect(within(dialog).queryByRole('switch')).not.toBeInTheDocument();
   });
 
-  it('ghi chú trống hoặc ngày tiết kiệm năng lượng thì không nói', async () => {
-    const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
-    await setSetting(deps.db, 'plantSaysNote', true);
-    await deps.db.days.put(makeDay({ date: '2026-10-02', greetedAt: 1, note: '   ' }));
-    renderWithDeps(<TodayScreen />, deps);
-    await screen.findByTestId('plant-scene');
-    expect(screen.queryByTestId('speech-bubble')).not.toBeInTheDocument();
-    await deps.db.days.update('2026-10-02', { note: 'Ngủ thôi', isRestDay: true });
-    await waitFor(() => expect(screen.getByTestId('plant-scene')).toHaveAttribute('data-mode', 'sleeping'));
-    expect(screen.queryByTestId('speech-bubble')).not.toBeInTheDocument();
-  });
-
-  it('đang bật thì câu khen hiện tạm rồi cây quay lại nói ghi chú', async () => {
+  it('câu khen hiện tạm rồi cây quay lại nói câu của ngày', async () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'], shouldAdvanceTime: true });
     try {
       const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
-      await setSetting(deps.db, 'plantSaysNote', true);
       await deps.db.days.put(makeDay({
-        date: '2026-10-02', greetedAt: 1, note: 'Trời đẹp',
+        date: '2026-10-02', greetedAt: 1, speech: 'Trời đẹp',
         todos: [{ id: 'a', text: 'A', done: false, doneAt: null, order: 0, period: 'morning' }, { id: 'b', text: 'B', done: false, doneAt: null, order: 1, period: 'morning' }],
       }));
       const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
@@ -355,7 +395,8 @@ describe('TodayScreen cây nói ghi chú', () => {
       await user.click(screen.getByRole('checkbox', { name: 'Hoàn thành: A' }));
       await waitFor(() => expect(screen.getByTestId('speech-bubble')).toHaveAttribute('data-kind', 'praise'));
       await vi.advanceTimersByTimeAsync(4000);
-      await waitFor(() => expect(screen.getByTestId('speech-bubble')).toHaveAttribute('data-kind', 'note'));
+      await waitFor(() => expect(screen.getByTestId('speech-bubble')).toHaveAttribute('data-kind', 'daily'));
+      expect(screen.getByTestId('speech-bubble')).toHaveTextContent('Trời đẹp');
     } finally {
       vi.useRealTimers();
     }

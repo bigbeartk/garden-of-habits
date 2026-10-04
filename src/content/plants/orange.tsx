@@ -113,7 +113,7 @@ export const orange: PlantSpecies = {
     bud: { x: 100, y: 78, scale: 0.72 },
     bloom: { x: 100, y: 78, scale: 0.72 },
   },
-  greetings: ['Vitamin C cho ngày mới nè! 🍊', 'Làm xong việc là có cam ngọt ăn đó!'],
+  sayings: ['Vitamin C cho ngày mới nè! 🍊', 'Làm xong việc là có cam ngọt ăn đó!'],
   praises: ['Ngọt như cam luôn đó 🍊'],
   taps: ['Thơm mùi cam không? 🍊', 'Mình mọng nước vitamin C nè 🍊'],
 };

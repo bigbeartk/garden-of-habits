@@ -42,9 +42,28 @@
   box-shadow: var(--shadow-soft); font-weight: 600; text-align: center; color: var(--cocoa);
   pointer-events: none; /* chỉ để xem: chạm xuyên qua tới cây (câu dài phủ xuống thân cây) */
 }
-/* cây nói ghi chú: ghi chú dài chỉ hiện 3 dòng để không che cây */
-.bubble--note { font-size: 0.95rem; white-space: pre-line; }
-.bubble--note .bubble__text { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; overflow: hidden; overflow-wrap: anywhere; }
+/* lời cây nói của ngày: chạm để sửa (bắt chạm, khác câu tạm), dài chỉ hiện 3 dòng để không che cây */
+.bubble--daily { pointer-events: auto; max-width: 74%; font-size: 0.95rem; }
+.bubble--daily .bubble__text { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; overflow: hidden; overflow-wrap: anywhere; }
+.bubble--daily.is-empty { color: var(--cocoa-soft); font-weight: 500; }
+.bubble--daily.is-editing, .bubble--daily.is-editing::after { border-color: var(--berry); }
+.bubble__edit {
+  display: block; padding: 0; margin: 0; border: none; background: none; font: inherit; color: inherit;
+  text-align: center; cursor: text; -webkit-tap-highlight-color: transparent;
+}
+/* 16px để Safari iOS không tự phóng to khi focus */
+.bubble__input {
+  display: block; width: min(64vw, 260px); padding: 0; border: none; outline: none; resize: none;
+  background: transparent; font: inherit; font-size: 16px; color: inherit; text-align: center;
+}
+/* nút ẩn/hiện lời cây nói: góc phải trên khung trời, cạnh bong bóng */
+.today__speech-toggle {
+  position: absolute; top: 12px; right: 8px; z-index: 3; display: grid; place-items: center;
+  width: 36px; height: 36px; padding: 0; border-radius: 50%; border: 2px solid var(--cocoa);
+  background: var(--white); box-shadow: var(--shadow-pop); cursor: pointer;
+}
+.today__speech-toggle:active { transform: translateY(2px) scale(0.95); box-shadow: none; }
+.today__speech-toggle.is-off { background: var(--lavender); opacity: 0.85; }
 .bubble::after {
   content: ''; position: absolute; bottom: -10px; left: 50%; translate: -50% 0; width: 16px; height: 16px;
   background: var(--white); border-right: 2px solid var(--cocoa); border-bottom: 2px solid var(--cocoa); rotate: 45deg;

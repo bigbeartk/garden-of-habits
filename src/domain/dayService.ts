@@ -21,6 +21,9 @@ export class LockedDayError extends Error {
   }
 }
 
+/** Độ dài tối đa của lời cây nói */
+export const SPEECH_MAX = 100;
+
 export async function ensureToday(deps: DayDeps): Promise<DayRecord> {
   const { db } = deps;
   const date = dayKey(deps.now());
@@ -185,6 +188,13 @@ export function setNote(deps: DayDeps, date: string, note: string): Promise<DayR
 export function markGreeted(deps: DayDeps, date: string): Promise<DayRecord> {
   return mutateDay(deps, date, 'today-only', (d) => {
     d.greetedAt = deps.now().getTime();
+  });
+}
+
+/** Lời cây nói cả ngày (chỉ hôm nay); rỗng = hôm nay cây không nói. */
+export function setDaySpeech(deps: DayDeps, date: string, text: string): Promise<DayRecord> {
+  return mutateDay(deps, date, 'today-only', (d) => {
+    d.speech = text.trim().slice(0, SPEECH_MAX);
   });
 }
 

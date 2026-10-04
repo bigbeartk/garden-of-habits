@@ -60,7 +60,7 @@ export const rose: PlantSpecies = {
     bud: { x: 100, y: 80, scale: 0.45 },
     bloom: { x: 100, y: 82, scale: 0.7 },
   },
-  greetings: ['Một bông hồng nhỏ chào bạn nè 🌹', 'Hôm nay mình nở thật xinh vì bạn nha!'],
+  sayings: ['Một bông hồng nhỏ chào bạn nè 🌹', 'Hôm nay mình nở thật xinh vì bạn nha!'],
   praises: ['Tặng bạn một cánh hồng thơm 🌹'],
   taps: ['Hoa hồng có gai, nhẹ tay nha 🌹', 'Tặng bạn một bông hồng nè 🌹'],
 };

@@ -20,7 +20,7 @@ export interface PlantSpecies {
   defaultPotId: string;
   stages: Record<GrowthStage, Art>;
   faceAnchor: Record<GrowthStage, FaceAnchor>;
-  greetings?: string[];
+  sayings?: string[];                                // câu cây nói mỗi ngày riêng của loài
   /** câu khen riêng khi xong một việc (gộp với câu khen chung) */
   praises?: string[];
   /** câu riêng khi bị chạm vào (gộp với câu chung trong taps.ts) */

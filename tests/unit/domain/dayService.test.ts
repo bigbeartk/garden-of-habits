@@ -1,6 +1,6 @@
 import {
   LockedDayError, addTodo, addTodos, changePlant, changePot, deleteTodo, editTodo,
-  ensureToday, markGreeted, moveTodo, setNote, setRestDay, setTitle, toggleTodo,
+  ensureToday, markGreeted, moveTodo, setDaySpeech, setNote, setRestDay, setTitle, toggleTodo,
 } from '../../../src/domain/dayService';
 import { makeDay, makeDeps } from '../helpers';
 
@@ -236,5 +236,21 @@ describe('moveTodo (kéo việc sang buổi khác)', () => {
     const day = await addTodo(deps, date, 'A');
     clock.current = new Date(clock.current.getTime() + 24 * 3600 * 1000);
     await expect(moveTodo(deps, date, day.todos[0].id, 'evening', 0)).rejects.toBeInstanceOf(LockedDayError);
+  });
+});
+
+describe('lời cây nói của ngày', () => {
+  it('setDaySpeech cắt khoảng trắng, tối đa 100 ký tự, cho phép chuỗi rỗng', async () => {
+    const { deps } = makeDeps();
+    await ensureToday(deps);
+    expect((await setDaySpeech(deps, '2026-10-02', '  Chào nha  ')).speech).toBe('Chào nha');
+    expect((await setDaySpeech(deps, '2026-10-02', 'a'.repeat(150))).speech).toHaveLength(100);
+    expect((await setDaySpeech(deps, '2026-10-02', '   ')).speech).toBe('');
+  });
+
+  it('ngày đã qua không sửa được lời cây nói', async () => {
+    const { deps } = makeDeps();
+    await deps.db.days.put(makeDay({ date: '2026-10-01' }));
+    await expect(setDaySpeech(deps, '2026-10-01', 'x')).rejects.toBeInstanceOf(LockedDayError);
   });
 });

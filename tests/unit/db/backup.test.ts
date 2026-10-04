@@ -255,18 +255,35 @@ describe('sao lưu công tắc chấm ghi chú', () => {
   });
 });
 
-describe('sao lưu công tắc cây nói ghi chú', () => {
-  it('giữ plantSaysNote khi khôi phục (thay thế và gộp)', async () => {
+describe('sao lưu công tắc hiện lời cây nói', () => {
+  it('giữ showPlantSpeech khi khôi phục (thay thế và gộp)', async () => {
     const src = makeDb();
-    await setSetting(src, 'plantSaysNote', true);
+    await setSetting(src, 'showPlantSpeech', false);
     const r = parseBackup(serializeBackup(await createBackup(src, 1)));
     if (!r.ok) throw new Error(r.error);
     const dst = makeDb();
     await restoreBackup(dst, r.backup, 'replace');
-    expect(await getSetting(dst, 'plantSaysNote')).toBe(true);
+    expect(await getSetting(dst, 'showPlantSpeech')).toBe(false);
     const dst2 = makeDb();
     await restoreBackup(dst2, r.backup, 'merge');
-    expect(await getSetting(dst2, 'plantSaysNote')).toBe(true);
+    expect(await getSetting(dst2, 'showPlantSpeech')).toBe(false);
+  });
+
+  it('lời cây nói của ngày đi theo bản ghi ngày', async () => {
+    const src = makeDb();
+    await src.days.put(makeDay({ date: '2026-10-02', speech: 'Hôm nay vui nha' }));
+    const r = parseBackup(serializeBackup(await createBackup(src, 1)));
+    if (!r.ok) throw new Error(r.error);
+    const dst = makeDb();
+    await restoreBackup(dst, r.backup, 'replace');
+    expect((await dst.days.get('2026-10-02'))?.speech).toBe('Hôm nay vui nha');
+  });
+
+  it('file cũ còn plantSaysNote vẫn khôi phục được', async () => {
+    const src = makeDb();
+    const json = JSON.parse(serializeBackup(await createBackup(src, 1)));
+    json.plantSaysNote = true;
+    expect(parseBackup(JSON.stringify(json)).ok).toBe(true);
   });
 });
 

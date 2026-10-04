@@ -95,7 +95,7 @@ export const monstera: PlantSpecies = {
     bud: { x: 100, y: 90, scale: 0.45 },
     bloom: { x: 100, y: 90, scale: 0.6 },
   },
-  greetings: ['Lá xẻ thuỳ của mình vẫy chào bạn nè 🌿', 'Mỗi chiếc lá mới của mình là một bất ngờ đó!'],
+  sayings: ['Lá xẻ thuỳ của mình vẫy chào bạn nè 🌿', 'Mỗi chiếc lá mới của mình là một bất ngờ đó!'],
   praises: ['Thêm một chiếc lá xẻ mới mọc ra vì bạn đó 🌿'],
   taps: ['Lá mình có lỗ là để đón nắng đó ☀️', 'Mình xoè lá ra ôm bạn nè 💚'],
 };

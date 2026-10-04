@@ -96,7 +96,7 @@ export const watermelon: PlantSpecies = {
     bud: { x: 100, y: 144, scale: 0.45 },
     bloom: { x: 100, y: 130, scale: 0.85 },
   },
-  greetings: ['Dưa hấu mát lạnh chào bạn nè 🍉', 'Ngày nóng hay lạnh mình cũng mọng nước vì bạn!'],
+  sayings: ['Dưa hấu mát lạnh chào bạn nè 🍉', 'Ngày nóng hay lạnh mình cũng mọng nước vì bạn!'],
   praises: ['Thưởng bạn một miếng dưa hấu mát rượi 🍉'],
   taps: ['Gõ thử nghe… chín rồi đó! 🍉', 'Mát lạnh như dưa hấu mùa hè 🍉'],
 };

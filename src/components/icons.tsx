@@ -278,3 +278,16 @@ export function StarIcon({ size, filled }: { size?: number; filled?: boolean }) 
     </Svg>
   );
 }
+
+/** Lời cây nói: bong bóng thoại có ba chấm; `off` gạch chéo khi đang ẩn */
+export function SpeechIcon({ size, off }: { size?: number; off?: boolean }) {
+  return (
+    <Svg name="speech" size={size}>
+      <path d="M6 7 h20 a3 3 0 0 1 3 3 v10 a3 3 0 0 1 -3 3 h-11 l-5 4.5 v-4.5 h-4 a3 3 0 0 1 -3 -3 v-10 a3 3 0 0 1 3 -3 Z" fill="#FFFDFB" {...STROKE} />
+      <circle cx={11} cy={15} r={1.6} fill={INK} />
+      <circle cx={16} cy={15} r={1.6} fill={INK} />
+      <circle cx={21} cy={15} r={1.6} fill={INK} />
+      {off && <path d="M5 5 L27 27" stroke="#E86A7E" strokeWidth={2.6} strokeLinecap="round" />}
+    </Svg>
+  );
+}
