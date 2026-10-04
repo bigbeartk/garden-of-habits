@@ -115,4 +115,5 @@ export const orange: PlantSpecies = {
   },
   greetings: ['Vitamin C cho ngày mới nè! 🍊', 'Làm xong việc là có cam ngọt ăn đó!'],
   praises: ['Ngọt như cam luôn đó 🍊'],
+  taps: ['Thơm mùi cam không? 🍊', 'Mình mọng nước vitamin C nè 🍊'],
 };

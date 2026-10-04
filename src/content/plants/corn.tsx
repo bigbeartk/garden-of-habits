@@ -72,4 +72,5 @@ export const corn: PlantSpecies = {
   },
   greetings: ['Bắp nè, bắp nè! Hôm nay mình làm gì đây? 🌽', 'Mỗi việc xong là một hạt ngô vàng ươm đó!'],
   praises: ['Thêm một hạt ngô vàng ươm cho bạn 🌽'],
+  taps: ['Hạt ngô của mình chắc nịch nè 🌽', 'Nhột quá, rụng râu ngô bây giờ 😆'],
 };

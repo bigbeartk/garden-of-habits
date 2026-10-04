@@ -52,4 +52,5 @@ export const sunflower: PlantSpecies = {
   },
   greetings: ['Hôm nay mình hướng về phía bạn nè! 🌻', 'Nắng lên rồi, mình cùng tỏa sáng nha ☀️'],
   praises: ['Bạn sáng chói như mặt trời luôn 🌻'],
+  taps: ['Bạn là mặt trời của mình đó ☀️', 'Mình quay theo bạn nè 🌻'],
 };

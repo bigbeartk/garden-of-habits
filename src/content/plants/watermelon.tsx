@@ -98,4 +98,5 @@ export const watermelon: PlantSpecies = {
   },
   greetings: ['Dưa hấu mát lạnh chào bạn nè 🍉', 'Ngày nóng hay lạnh mình cũng mọng nước vì bạn!'],
   praises: ['Thưởng bạn một miếng dưa hấu mát rượi 🍉'],
+  taps: ['Gõ thử nghe… chín rồi đó! 🍉', 'Mát lạnh như dưa hấu mùa hè 🍉'],
 };

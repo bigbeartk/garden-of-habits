@@ -578,7 +578,10 @@ test('chọn lại cây đặc biệt đã mở khoá trong bảng Đổi cây',
   await page.getByRole('button', { name: 'Đổi cây' }).click();
   const sheet = page.getByRole('dialog', { name: 'Chọn cây hôm nay' });
   const specials = sheet.getByTestId('picker-specials');
-  await expect(specials.getByRole('button')).toHaveCount(3);
+  // hôm nay có thể tự trúng cây đặc biệt (10%, ngẫu nhiên thật) nên có thể nhiều hơn 3 cặp
+  for (const name of ['Ngô · Phát sáng', 'Cây cam · Vàng ròng', 'Cẩm tú cầu · Pha lê']) {
+    await expect(specials.getByRole('button', { name })).toBeVisible();
+  }
   await specials.getByRole('button', { name: 'Cây cam · Vàng ròng' }).scrollIntoViewIfNeeded();
   // chờ bảng trượt lên xong rồi chụp để soát hình
   await page.waitForTimeout(400);
@@ -614,4 +617,37 @@ test('Khu vườn: luống có ngày (kể cả Cây héo) đứng trên các lo
   expect(beds.slice(0, firstEmpty).map((b) => b.id)).toContain('garden-wilted');
   await garden.getByTestId('garden-summary').scrollIntoViewIfNeeded();
   await page.screenshot({ path: 'test-results/garden-order.png' });
+});
+
+test('chạm vào cây thì cây cười và nói một câu (WebKit)', async ({ page }) => {
+  await page.clock.setFixedTime(at('2026-10-02T10:00:00'));
+  await page.goto('/');
+  await openToday(page);
+  await closeMenu(page);
+  const scene = page.getByTestId('plant-scene');
+  const tap = page.getByRole('button', { name: 'Chạm vào cây' });
+  // vùng chạm phủ đúng phần vẽ cây (SVG 200×240 căn giữa), không lấn xuống hàng 4 nút
+  const svg = (await scene.boundingBox())!;
+  const box = (await tap.boundingBox())!;
+  const drawnW = Math.min(svg.width, (svg.height * 200) / 240);
+  expect(Math.abs(box.width - drawnW)).toBeLessThan(3);
+  expect(Math.abs(box.x + box.width / 2 - (svg.x + svg.width / 2))).toBeLessThan(2);
+  const actions = (await page.getByRole('button', { name: 'Đổi cây' }).boundingBox())!;
+  expect(box.y + box.height).toBeLessThanOrEqual(actions.y);
+  // bong bóng câu chào (có khi dài 3 dòng, phủ xuống cây) không được nuốt cú chạm
+  const bubble = page.getByTestId('speech-bubble');
+  await expect(bubble).toHaveAttribute('data-kind', 'greeting');
+  const b = (await bubble.boundingBox())!;
+  await page.mouse.click(b.x + b.width / 2, b.y + b.height - 6);
+  await expect(bubble).toHaveAttribute('data-kind', 'tap');
+  // chạm vào giữa thân cây thì đổi câu khác
+  const first = await bubble.textContent();
+  await page.mouse.click(box.x + box.width / 2, box.y + box.height * 0.6);
+  await expect(bubble).not.toHaveText(first!);
+  await expect(scene).toHaveAttribute('data-mood', 'smile');
+  await page.waitForTimeout(500);
+  await page.screenshot({ path: 'test-results/plant-tap.png' });
+  // nút quay lại vẫn bấm được (không bị vùng chạm che)
+  await page.getByRole('button', { name: 'Quay lại Lịch' }).click();
+  await expect(page.getByTestId('calendar-card')).toBeVisible();
 });

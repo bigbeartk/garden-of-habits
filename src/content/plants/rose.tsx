@@ -62,4 +62,5 @@ export const rose: PlantSpecies = {
   },
   greetings: ['Một bông hồng nhỏ chào bạn nè 🌹', 'Hôm nay mình nở thật xinh vì bạn nha!'],
   praises: ['Tặng bạn một cánh hồng thơm 🌹'],
+  taps: ['Hoa hồng có gai, nhẹ tay nha 🌹', 'Tặng bạn một bông hồng nè 🌹'],
 };

@@ -23,6 +23,8 @@ export interface PlantSpecies {
   greetings?: string[];
   /** câu khen riêng khi xong một việc (gộp với câu khen chung) */
   praises?: string[];
+  /** câu riêng khi bị chạm vào (gộp với câu chung trong taps.ts) */
+  taps?: string[];
 }
 
 export interface PotStyle {

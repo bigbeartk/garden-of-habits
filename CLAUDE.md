@@ -75,6 +75,7 @@ src/
 - **Màn Mẫu nằm trong Cài đặt** (không còn là tab): thẻ đầu tiên của Cài đặt là **"Mẫu việc"**, ghi `⭐ Đang dùng: <tên>` (hoặc `Chưa có mẫu mặc định`) + nút `Quản lý mẫu`; bấm thì `SettingsScreen` hiện `TemplatesScreen` (prop `onBack`) thay chỗ trang Cài đặt.
 - **Màn Mẫu:** nút `＋ Mẫu mới` rộng nét đứt; thẻ mẫu có tên + nút ngôi sao SVG (`star`, chữ "Mặc định"/"Đặt mặc định", thẻ mặc định viền vàng), 3 khối màu theo buổi (icon + tên + số việc), hàng nút [Thêm vào hôm nay][Sửa][Xoá]; form có 3 khối màu kèm icon. Mẫu/Cài đặt chừa `padding-bottom` cho nút menu nổi.
 - **Buổi Sáng / Chiều / Tối** (`domain/period.ts`): mỗi todo và mỗi việc trong mẫu có `period`. Màn Hôm nay luôn hiện đủ 3 mục (mục trống ghi "Chưa có việc"); mỗi mục có số việc xong/tổng riêng; mục của buổi hiện tại (`periodOf`: 4–11h sáng, 11–18h chiều, còn lại tối) có viền đậm. **Kéo thả** (nắm `⋮⋮`) chuyển được việc sang buổi khác, kể cả buổi trống, hoặc sắp xếp trong buổi: `TodoList` tự viết bằng pointer events (không dùng `Reorder` của motion vì nó không kéo qua danh sách khác), buổi đích viền hồng (`is-drop-target`), vạch `todo__drop-line` báo vị trí, kéo gần mép thì vùng danh sách tự cuộn; lưu bằng `moveTodo(deps, date, id, period, index)`. Test E2E kéo phải đóng menu nổi trước. Cây vẫn lớn theo tỉ lệ việc xong của **cả ngày**.
+- **Chạm vào cây** (màn Hôm nay): nút trong suốt `Chạm vào cây` (`.today__plant-tap`, phủ đúng khung 200×240 của cây, không lấn hàng 4 nút). Chạm thì cây cười (`data-mood="smile"`), nảy lên (`bounceKey`) và nói một câu ~3,5 giây (`data-kind="tap"`): `pickTap` lấy từ `COMMON_TAPS` (`content/taps.ts`) + `species.taps`, không lặp câu vừa nói. Ngày tiết kiệm năng lượng: cây vẫn ngủ, nói câu `SLEEPY_TAPS`. Bong bóng thoại và khung ✨ giới thiệu có `pointer-events: none`, vì câu dài phủ xuống thân cây và từng nuốt mất cú chạm.
 - **Cây khen:** xong một việc thì cây cười và nói một câu khen khoảng 3,5 giây (`pickPraise`: câu chung `COMMON_PRAISES` + `species.praises`); xong việc cuối cùng (cây vừa ra hoa) thì dùng `BLOOM_PRAISES`. Câu chào đầu ngày và câu khen dùng chung một bong bóng thoại; khung ✨ cây đặc biệt chỉ hiện khi chào.
 - **Ghi chú tự lưu** (`NoteSheet`): không có nút Lưu; lưu sau khi ngừng gõ 400ms, khi rời ô và khi đóng bảng. Bảng chỉ nạp lại nội dung từ DB lúc vừa mở, nên lúc đang gõ DB cập nhật không ghi đè chữ.
 - **Cây nói ghi chú:** công tắc `Cây nói ghi chú` ngay trong bảng ghi chú (setting chung `plantSaysNote`, mặc định tắt, có trong file sao lưu). Bật thì bong bóng thoại hiện ghi chú hôm nay (`data-kind="note"`, tối đa 3 dòng) và mặt cây `talk` (`PlantScene` có `data-mood`); câu chào/khen (`data-kind` `greeting`/`praise`) hiện tạm rồi quay về ghi chú. Ghi chú trống hoặc ngày tiết kiệm năng lượng thì không nói.
@@ -126,6 +127,7 @@ interface PlantSpecies {
   faceAnchor: Record<'seed'|'sprout'|'bud'|'bloom', FaceAnchor>;
   greetings?: string[];                              // câu chào riêng
   praises?: string[];                                // câu khen riêng khi xong việc
+  taps?: string[];                                   // câu riêng khi bị chạm vào
 }
 ```
 **Thêm cây mới** gồm 3 bước:
@@ -136,7 +138,7 @@ interface PlantSpecies {
 2. Thêm loài vào mảng `PLANTS` trong `src/content/plants/registry.ts`.
 3. Chạy `npm test`. `tests/unit/content/plants.test.tsx` kiểm tra đủ 4 giai đoạn, chậu mặc định có tồn tại, và mỗi loài có chậu mặc định khác nhau.
 
-Lưu ý: test này cũng cố định danh sách loài theo thứ tự, nên thêm loài thì phải cập nhật danh sách trong test (và `tests/unit/content/praises.test.ts`).
+Lưu ý: test này cũng cố định danh sách loài theo thứ tự, nên thêm loài thì phải cập nhật danh sách trong test (và `tests/unit/content/praises.test.ts`, `taps.test.ts`: mỗi loài cần ≥ 1 câu khen và ≥ 2 câu khi bị chạm).
 
 Các loài hiện có:
 

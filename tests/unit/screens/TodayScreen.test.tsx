@@ -4,6 +4,7 @@ import { vi } from 'vitest';
 import { TodayScreen } from '../../../src/screens/TodayScreen';
 import { CATALOG } from '../../../src/content/catalog';
 import { BLOOM_PRAISES, COMMON_PRAISES } from '../../../src/content/praises';
+import { COMMON_TAPS, SLEEPY_TAPS } from '../../../src/content/taps';
 import { getSpecies } from '../../../src/content/plants/registry';
 import { makeDay, makeDeps, renderWithDeps } from '../helpers';
 import { getSetting, setSetting } from '../../../src/db/settings';
@@ -61,6 +62,31 @@ describe('TodayScreen', () => {
     const dialog = await screen.findByRole('dialog', { name: 'Chọn cây hôm nay' });
     await user.click(within(dialog).getByRole('button', { name: targetName }));
     await waitFor(() => expect(screen.getByTestId('plant-scene')).toHaveAttribute('data-plant', targetId));
+  });
+
+  it('chạm vào cây thì cây cười và nói một câu; chạm tiếp thì đổi câu', async () => {
+    const { deps, user } = setup();
+    await waitFor(async () => expect((await deps.db.days.get('2026-10-02'))?.greetedAt).not.toBeNull());
+    const scene = await screen.findByTestId('plant-scene');
+    const species = getSpecies(scene.getAttribute('data-plant')!);
+    await user.click(screen.getByRole('button', { name: 'Chạm vào cây' }));
+    const bubble = await screen.findByTestId('speech-bubble');
+    await waitFor(() => expect(bubble).toHaveAttribute('data-kind', 'tap'));
+    const first = bubble.textContent!;
+    expect([...COMMON_TAPS, ...(species.taps ?? [])]).toContain(first);
+    expect(scene).toHaveAttribute('data-mood', 'smile');
+    await user.click(screen.getByRole('button', { name: 'Chạm vào cây' }));
+    await waitFor(() => expect(screen.getByTestId('speech-bubble').textContent).not.toBe(first));
+  });
+
+  it('ngày tiết kiệm năng lượng: chạm cây thì cây vẫn ngủ và nói câu ngái ngủ', async () => {
+    const { user } = setup();
+    await screen.findByTestId('plant-scene');
+    await user.click(screen.getByRole('button', { name: 'Ngày tiết kiệm năng lượng' }));
+    await screen.findByTestId('rest-message');
+    await user.click(screen.getByRole('button', { name: 'Chạm vào cây' }));
+    await waitFor(() => expect(SLEEPY_TAPS).toContain(screen.getByTestId('speech-bubble').textContent));
+    expect(screen.getByTestId('plant-scene')).toHaveAttribute('data-mood', 'sleep');
   });
 
   it('chưa gặp cây đặc biệt nào thì bảng chọn cây hiện lời gợi ý', async () => {

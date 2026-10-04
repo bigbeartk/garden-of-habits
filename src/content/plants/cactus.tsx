@@ -73,4 +73,5 @@ export const cactus: PlantSpecies = {
   },
   greetings: ['Mình ít uống nước thôi, nhưng thích bạn làm việc lắm 🌵', 'Gai góc bên ngoài, mềm mại bên trong nha!'],
   praises: ['Kiên trì như xương rồng, giỏi lắm! 🌵'],
+  taps: ['Cẩn thận gai nha! 🌵', 'Ngoài gai nhưng trong mềm lắm á 💚'],
 };

@@ -119,4 +119,5 @@ export const cherry: PlantSpecies = {
   },
   greetings: ['Hôm nay mình hồng hào lắm nè 🍒', 'Một quả cherry cho mỗi việc hoàn thành!'],
   praises: ['Thưởng bạn một quả cherry nè 🍒'],
+  taps: ['Một cặp cherry tặng bạn 🍒', 'Bạn ngọt như cherry vậy đó 🍒'],
 };

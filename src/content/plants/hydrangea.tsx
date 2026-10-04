@@ -95,4 +95,5 @@ export const hydrangea: PlantSpecies = {
   },
   greetings: ['Một chùm cẩm tú cầu xinh xắn chào bạn nè 💙', 'Mỗi bông nhỏ là một lời chúc cho bạn hôm nay!'],
   praises: ['Thêm một bông nhỏ nở trên chùm hoa của bạn 💐'],
+  taps: ['Mình đổi màu theo tâm trạng á 💐', 'Cả chùm hoa này cho bạn 💐'],
 };

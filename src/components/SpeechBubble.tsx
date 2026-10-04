@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from 'motion/react';
 
-export type SpeechKind = 'greeting' | 'praise' | 'note';
+export type SpeechKind = 'greeting' | 'praise' | 'tap' | 'note';
 
 /** Bong bóng thoại của cây; `kind` để test và để giới hạn số dòng khi cây nói ghi chú. */
 export function SpeechBubble({ text, kind }: { text: string | null; kind?: SpeechKind }) {

@@ -54,4 +54,5 @@ export const pothos: PlantSpecies = {
   },
   greetings: ['Lá hình trái tim tặng bạn nè 💚', 'Mình lớn chậm mà chắc, giống bạn đó!'],
   praises: ['Tặng bạn thêm một lá tim xanh 💚'],
+  taps: ['Cho mình leo theo bạn với 🌿', 'Lá tim này tặng bạn nè 💚'],
 };

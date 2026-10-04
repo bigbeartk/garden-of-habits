@@ -18,6 +18,7 @@ import { WateringCan } from '../components/WateringCan';
 import type { Mood } from '../content/Face';
 import { pickGreeting } from '../content/greetings';
 import { pickPraise } from '../content/praises';
+import { pickTap } from '../content/taps';
 import { getSpecies } from '../content/plants/registry';
 import { getSpecial } from '../content/specials/registry';
 import {
@@ -38,8 +39,10 @@ export function TodayScreen() {
   const nav = useNav();
   const { day, now, error: loadError } = useToday();
   const showReminder = useBackupReminder();
-  /** lời cây nói: chào đầu ngày hoặc khen khi xong việc */
-  const [speech, setSpeech] = useState<{ text: string; kind: 'greeting' | 'praise' } | null>(null);
+  /** lời cây nói: chào đầu ngày, khen khi xong việc, hoặc đáp lại khi bị chạm */
+  const [speech, setSpeech] = useState<{ text: string; kind: 'greeting' | 'praise' | 'tap' } | null>(null);
+  /** tăng mỗi lần chạm cây để cây nảy lên */
+  const [tapKey, setTapKey] = useState(0);
   const [celebrating, setCelebrating] = useState(false);
   const [waterKey, setWaterKey] = useState(0);
   const [burstKey, setBurstKey] = useState(0);
@@ -80,10 +83,17 @@ export function TodayScreen() {
   // chào/khen hiện tạm; ngoài lúc đó, nếu bật "Cây nói ghi chú" thì cây nói ghi chú hôm nay
   const noteText = plantSaysNote && !day.isRestDay ? day.note.trim() : '';
   const said: { text: string; kind: SpeechKind } | null = speech ?? (noteText ? { text: noteText, kind: 'note' } : null);
-  const mood: Mood = day.isRestDay ? 'sleep' : celebrating ? 'smile' : said ? 'talk' : 'normal';
+  const mood: Mood = day.isRestDay ? 'sleep' : celebrating || speech?.kind === 'tap' ? 'smile' : said ? 'talk' : 'normal';
   const currentPeriod = periodOf(now);
   const doneCount = day.todos.filter((t) => t.done).length;
   const special = day.isRestDay ? null : getSpecial(day.specialId);
+
+  /** Chạm cây: cây cười, nảy lên và nói một câu (đang ngủ thì nói câu ngái ngủ). */
+  function handleTapPlant() {
+    if (!day!.isRestDay) setTapKey((k) => k + 1);
+    const text = pickTap(getSpecies(day!.plantId), deps.rng, { last: speech?.text ?? null, sleeping: day!.isRestDay });
+    setSpeech({ text, kind: 'tap' });
+  }
 
   async function handleToggle(id: string) {
     try {
@@ -120,11 +130,12 @@ export function TodayScreen() {
             specialId={day.specialId}
             mood={mood}
             mode={day.isRestDay ? 'sleeping' : 'plant'}
-            bounceKey={waterKey}
+            bounceKey={waterKey + tapKey}
           >
             {!day.isRestDay && <WateringCan playKey={waterKey} />}
             <StageBurst playKey={burstKey} />
           </PlantScene>
+          <button type="button" className="today__plant-tap" aria-label="Chạm vào cây" onClick={handleTapPlant} />
           {special && <span className="today__badge">✨ Cây đặc biệt: {special.name}</span>}
         </div>
         <div className="today__actions">
