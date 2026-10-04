@@ -47,6 +47,7 @@ PWA todo cho iPhone, có phần "nuôi cây": mỗi việc làm xong là một l
 - **Nút Back của Android** (`src/app/back.ts`): màn/bảng đang mở đăng ký `useBackHandler(active, fn, layer)`, lớp `tab < screen < form < sheet`; Back gọi lớp cao nhất, hết thì thoát app. Đã đăng ký: `BottomSheet` (mọi bảng), menu nổi, ngày tương lai, màn Mẫu, form mẫu, tab khác Lịch → Lịch. **Thêm màn con / bảng / chế độ sửa mới thì nhớ đăng ký**, nếu không Back nhảy qua nó.
 - **Safe-area:** Android 15+ luôn tràn viền; SystemBars của Capacitor (`capacitor.config.ts`, `insetsHandling: 'css'`) bơm biến `--safe-area-inset-*`. Trong CSS **luôn viết `var(--safe-area-inset-x, env(safe-area-inset-x))`**, không viết `env()` trần (WebView cũ trả 0).
 - `appId` `io.github.bigbeartk.gardenofhabits` không đổi được sau khi lên Play. Thư mục `android/` được commit (trừ file sinh ra); web build được `cap sync` chép vào lúc build, không commit.
+- Job CI `android` chạy **Node 22** (Capacitor CLI 8 đòi Node ≥ 22); job PWA vẫn Node 20.
 - APK phải luôn ký **cùng một khoá** (secrets `ANDROID_KEYSTORE_*`), nếu không cài đè không được → gỡ app = mất dữ liệu. Chưa có secret thì CI chỉ build APK debug.
 - Dữ liệu PWA và app tách riêng; chuyển qua Sao lưu / Khôi phục (định dạng giống hệt).
 - Chưa có E2E trên Android: soát tay trên máy thật theo checklist trong `docs/android.md` khi đổi những chỗ thuộc `src/platform` hoặc bố cục.
