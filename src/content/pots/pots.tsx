@@ -1,3 +1,4 @@
+import { useId } from 'react';
 import { INK } from '../Face';
 import { BasicPot } from './BasicPot';
 
@@ -132,6 +133,73 @@ export function ConcretePot() {
       <path d="M112 178 L106 192 L114 200 L108 214" fill="none" stroke="#5E5A55" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
       <rect x={42} y={152} width={116} height={12} rx={2} fill="#B9B6B0" stroke={INK} strokeWidth={2.5} />
       <ellipse cx={100} cy={157} rx={52} ry={3.5} fill="#7A5A3E" />
+    </g>
+  );
+}
+
+/** Bể kính tròn: bình thuỷ tinh trong suốt, nhìn thấy lớp đất, cát, sỏi màu bên trong */
+export function GlassBowlPot() {
+  const clip = `glass-bowl-${useId().replace(/[^\w-]/g, '')}`;
+  const BOWL = 'M62 156 C34 176 38 232 100 234 C162 232 166 176 138 156 Z';
+  return (
+    <g data-part="pot">
+      <defs>
+        <clipPath id={clip}>
+          <path d={BOWL} />
+        </clipPath>
+      </defs>
+      <path d={BOWL} fill="#EAF6FF" />
+      <g clipPath={`url(#${clip})`}>
+        <rect x={30} y={157} width={140} height={30} fill="#8B5E3C" />
+        <path d="M30 187 q18 -5 35 0 t35 0 t35 0 t35 0 V206 H30 Z" fill="#F3D9A4" />
+        <path d="M30 206 q18 4 35 0 t35 0 t35 0 t35 0 V240 H30 Z" fill="#CDEFE3" />
+        <g stroke={INK} strokeWidth={1.2}>
+          {([[56, 216, '#FFD6DE'], [74, 224, '#E3D9FF'], [92, 214, '#FFF1C1'], [110, 226, '#FFD6DE'], [128, 216, '#D4ECFF'], [144, 222, '#E3D9FF'], [86, 230, '#D4ECFF'], [120, 232, '#FFF1C1']] as const).map(
+            ([x, y, c]) => <ellipse key={`${x}-${y}`} cx={x} cy={y} rx={6} ry={4.5} fill={c} />,
+          )}
+        </g>
+      </g>
+      <path d={BOWL} fill="#BFE3FF" fillOpacity={0.12} stroke={INK} strokeWidth={2.5} strokeLinejoin="round" />
+      <path d="M52 186 C48 200 52 214 62 222" stroke="#fff" strokeWidth={4} fill="none" strokeLinecap="round" opacity={0.8} />
+      <path d="M142 176 C146 182 148 188 148 194" stroke="#fff" strokeWidth={3} fill="none" strokeLinecap="round" opacity={0.7} />
+      <ellipse cx={100} cy={156} rx={40} ry={5} fill="#D4ECFF" fillOpacity={0.5} stroke={INK} strokeWidth={2.5} />
+      <ellipse cx={100} cy={157} rx={34} ry={3} fill="#8B5E3C" />
+    </g>
+  );
+}
+
+/** Chậu mèo mướp: thân tròn, tai nhô trên vành, mặt mèo nhắm mắt cười, hai chân trước */
+export function CatPot() {
+  const FUR = '#FFCF9E';
+  const STRIPE = '#F0A65E';
+  return (
+    <g data-part="pot" strokeLinejoin="round">
+      <g stroke={INK} strokeWidth={2.5}>
+        <path d="M40 166 L38 124 L78 154 Z" fill={FUR} />
+        <path d="M160 166 L162 124 L122 154 Z" fill={FUR} />
+      </g>
+      <path d="M46 156 L45 136 L64 152 Z M154 156 L155 136 L136 152 Z" fill="#FFB3C4" />
+      <path d="M44 160 C40 208 60 234 100 234 C140 234 160 208 156 160 Z" fill={FUR} stroke={INK} strokeWidth={2.5} />
+      <g stroke={STRIPE} strokeWidth={4} strokeLinecap="round" fill="none">
+        <path d="M90 166 L92 176 M100 166 L100 178 M110 166 L108 176" />
+        <path d="M48 186 L60 188 M152 186 L140 188 M50 202 L60 202 M150 202 L140 202" />
+      </g>
+      <g stroke={INK} strokeWidth={2.2} fill="none" strokeLinecap="round">
+        <path d="M74 194 q6 -6 12 0" />
+        <path d="M114 194 q6 -6 12 0" />
+        <path d="M94 206 q3 4 6 0 q3 4 6 0" />
+        <path d="M62 202 L80 204 M62 210 L80 208 M138 202 L120 204 M138 210 L120 208" strokeWidth={1.5} />
+      </g>
+      <path d="M97 200 L103 200 L100 203 Z" fill="#F27A93" stroke={INK} strokeWidth={1.2} />
+      <ellipse cx={68} cy={200} rx={5} ry={3} fill="#FF9FB2" opacity={0.75} />
+      <ellipse cx={132} cy={200} rx={5} ry={3} fill="#FF9FB2" opacity={0.75} />
+      <g fill={FUR} stroke={INK} strokeWidth={2.2}>
+        <ellipse cx={80} cy={230} rx={13} ry={7} />
+        <ellipse cx={120} cy={230} rx={13} ry={7} />
+      </g>
+      <path d="M76 228 L76 233 M84 228 L84 233 M116 228 L116 233 M124 228 L124 233" stroke={INK} strokeWidth={1.4} strokeLinecap="round" />
+      <ellipse cx={100} cy={160} rx={56} ry={6} fill="#FFDDB8" stroke={INK} strokeWidth={2.5} />
+      <ellipse cx={100} cy={159} rx={50} ry={4} fill="#8B5E3C" />
     </g>
   );
 }

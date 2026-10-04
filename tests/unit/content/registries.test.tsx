@@ -83,3 +83,11 @@ describe('hoa hồng quý cô', () => {
     expect(container.querySelector('[data-part="lashes"]')).toBeNull();
   });
 });
+
+describe('đủ 12 chậu', () => {
+  it('có Bể kính và Chậu mèo', () => {
+    expect(POTS).toHaveLength(12);
+    expect(getPot('glass-bowl').name).toBe('Bể kính');
+    expect(getPot('cat').name).toBe('Chậu mèo');
+  });
+});

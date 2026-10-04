@@ -164,7 +164,7 @@ interface PotStyle { id: string; name: string; art: Art }
 ```
 **Thêm chậu mới:** vẽ component trong `src/content/pots/pots.tsx` (nên dùng `BasicPot({ body, rim, soil?, children })` cho chậu hình thang, `children` là hoạ tiết trên thân), hoặc dùng `{ image }`. Sau đó thêm một dòng vào `POTS` trong `pots/registry.ts`.
 
-Chậu hiện có: `terracotta` (Đất nung, mặc định chung), `polka` (Sứ chấm bi), `mint` (Gốm mint), `rattan` (Giỏ mây), `wood` (Hộp gỗ), `pink-cup` (Cốc hồng), `rose-porcelain` (Sứ hoa hồng), `tin-bucket` (Xô thiếc), `blue-ceramic` (Gốm xanh lam), `concrete` (Bê tông).
+Chậu hiện có: `terracotta` (Đất nung, mặc định chung), `polka` (Sứ chấm bi), `mint` (Gốm mint), `rattan` (Giỏ mây), `wood` (Hộp gỗ), `pink-cup` (Cốc hồng), `rose-porcelain` (Sứ hoa hồng), `tin-bucket` (Xô thiếc), `blue-ceramic` (Gốm xanh lam), `concrete` (Bê tông), `glass-bowl` (Bể kính: bình tròn trong suốt thấy lớp đất/cát/sỏi, dùng `clipPath` có id riêng qua `useId`), `cat` (Chậu mèo: mèo mướp có tai, mặt, chân). Đủ 12 chậu; chậu mới nên khác dáng hẳn các chậu đã có.
 
 ### Hiệu ứng đặc biệt: `SpecialVariant`
 ```ts
