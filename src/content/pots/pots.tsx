@@ -76,7 +76,9 @@ function SmallRose({ x, y, s }: { x: number; y: number; s: number }) {
 export function RosePorcelainPot() {
   return (
     <BasicPot body="#FFFDF8" rim="#F7A8B8">
-      <path d="M50 182 L150 182" stroke="#F7A8B8" strokeWidth={3} />
+      <path d="M50 182 L150 182" stroke="#F6C945" strokeWidth={3} />
+      <path d="M57 224 L143 224" stroke="#F6C945" strokeWidth={2.5} />
+      {[60, 72, 84, 96, 108, 120, 132, 144].map((x) => <circle key={x} cx={x - 2} cy={177} r={2.2} fill="#FFFDF4" stroke="#D9C9B5" strokeWidth={1} />)}
       <SmallRose x={100} y={205} s={1} />
       <SmallRose x={72} y={210} s={0.7} />
       <SmallRose x={128} y={210} s={0.7} />

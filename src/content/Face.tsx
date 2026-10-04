@@ -1,13 +1,17 @@
 import type { FaceAnchor } from './types';
 
 export type Mood = 'normal' | 'smile' | 'talk' | 'sleep' | 'sad';
-export type FaceStyle = 'cute' | 'cool';
+export type FaceStyle = 'cute' | 'cool' | 'lady';
 export const INK = '#5B4636';
 
-/** `cool`: đeo kính râm, nhếch mép, không má hồng (ngủ/buồn thì vẫn hiện mắt như thường). */
+/**
+ * `cool`: đeo kính râm, nhếch mép, không má hồng (ngủ/buồn thì vẫn hiện mắt như thường).
+ * `lady`: hàng mi cong vút + môi son, vẫn má hồng (ngủ/buồn thì như thường).
+ */
 export function Face({ mood, x, y, scale, faceStyle = 'cute' }: { mood: Mood; faceStyle?: FaceStyle } & FaceAnchor) {
   const cool = faceStyle === 'cool';
   const shades = cool && mood !== 'sleep' && mood !== 'sad';
+  const lady = faceStyle === 'lady' && mood !== 'sleep' && mood !== 'sad';
   return (
     <g transform={`translate(${x} ${y}) scale(${scale})`} data-testid="face" data-mood={mood} data-style={faceStyle}>
       {!cool && (
@@ -17,7 +21,8 @@ export function Face({ mood, x, y, scale, faceStyle = 'cute' }: { mood: Mood; fa
         </>
       )}
       {shades ? <Shades /> : <Eyes mood={mood} />}
-      {shades ? <CoolMouth mood={mood} /> : <Mouth mood={mood} />}
+      {lady && <Lashes smile={mood === 'smile'} />}
+      {shades ? <CoolMouth mood={mood} /> : lady ? <LadyMouth mood={mood} /> : <Mouth mood={mood} />}
     </g>
   );
 }
@@ -31,6 +36,28 @@ function Shades() {
       <path d="M-14 -4 L-10 -4 M6 -4 L10 -4" stroke="#fff" strokeWidth={1.4} strokeLinecap="round" opacity={0.8} />
     </g>
   );
+}
+
+/** Ba sợi mi cong vút ở đuôi mỗi mắt (mắt nhắm cười thì mi bám theo vòng cung) */
+function Lashes({ smile }: { smile: boolean }) {
+  const y = smile ? -2 : -4;
+  return (
+    <g data-part="lashes" stroke={INK} strokeWidth={1.6} strokeLinecap="round" fill="none">
+      <path d={`M-12 ${y} q-3 -1 -4 -4 M-11 ${y - 2} q-2 -2 -2 -5 M12 ${y} q3 -1 4 -4 M11 ${y - 2} q2 -2 2 -5`} />
+    </g>
+  );
+}
+
+/** Môi son: chúm chím khi thường, cười tươi tô son khi vui, chữ O khi nói */
+function LadyMouth({ mood }: { mood: Mood }) {
+  switch (mood) {
+    case 'smile':
+      return <path d="M-5 5 q5 7 10 0 q-5 2 -10 0 z" fill="#E0475F" stroke={INK} strokeWidth={1.4} strokeLinejoin="round" />;
+    case 'talk':
+      return <ellipse cx={0} cy={7} rx={2.6} ry={3.2} fill="#E0475F" stroke={INK} strokeWidth={1.4} />;
+    default:
+      return <path d="M-3.5 6 q1.75 -2 3.5 -0.5 q1.75 -1.5 3.5 0.5 q-1.75 3 -3.5 3 q-1.75 0 -3.5 -3 z" fill="#E0475F" stroke={INK} strokeWidth={1.2} strokeLinejoin="round" />;
+  }
 }
 
 /** Miệng kiểu ngầu: nhếch một bên; khi cười thì cười nhếch lộ răng, khi nói thì hé miệng lệch */

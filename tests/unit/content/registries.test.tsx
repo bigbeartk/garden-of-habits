@@ -67,3 +67,19 @@ describe('xương rồng ngầu', () => {
     expect(container.querySelectorAll('[data-part="blush"]').length).toBe(2);
   });
 });
+
+describe('hoa hồng quý cô', () => {
+  it('mặt có hàng mi cong và môi son, vẫn giữ má hồng; đội vương miện, cành thắt nơ', () => {
+    for (const mood of ['normal', 'smile', 'talk'] as const) {
+      const { container, unmount } = render(<PlantScene plantId="rose" potId="rose-porcelain" stage="bloom" specialId={null} mood={mood} />);
+      expect(container.querySelector('[data-testid="face"]')!.getAttribute('data-style')).toBe('lady');
+      expect(container.querySelector('[data-part="lashes"]')).not.toBeNull();
+      expect(container.querySelectorAll('[data-part="blush"]').length).toBe(2);
+      expect(container.querySelector('[data-part="tiara"]')).not.toBeNull();
+      expect(container.querySelector('[data-part="bow"]')).not.toBeNull();
+      unmount();
+    }
+    const { container } = render(<PlantScene plantId="sunflower" potId="terracotta" stage="bloom" specialId={null} mood="normal" />);
+    expect(container.querySelector('[data-part="lashes"]')).toBeNull();
+  });
+});

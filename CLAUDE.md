@@ -129,7 +129,7 @@ interface PlantSpecies {
   sayings?: string[];                                // lời của ngày riêng của loài
   praises?: string[];                                // câu khen riêng khi xong việc
   taps?: string[];                                   // câu riêng khi bị chạm vào
-  faceStyle?: 'cute' | 'cool';                       // 'cool': kính râm + nhếch mép, không má hồng (ngủ/buồn vẫn mắt thường)
+  faceStyle?: 'cute' | 'cool' | 'lady';              // 'cool': kính râm + nhếch mép, không má hồng; 'lady': mi cong + môi son (ngủ/buồn vẫn mặt thường)
 }
 ```
 **Thêm cây mới** gồm 3 bước:
@@ -152,7 +152,7 @@ Các loài hiện có:
 | `pothos` | Monstera (trước là Trầu bà; giữ id `pothos` để không mất dữ liệu cũ) | `mint` | bụi lá to xẻ thuỳ có lỗ trên cuống dài, xoè hình quạt |
 | `orange` | Cây cam | `wood` | cây kẹo mút: thân thẳng mảnh + một khối cầu lá đậm, mép lá nhọn |
 | `cherry` | Cherry | `polka` | cây dù rộng và thấp: thân chẻ đôi, vòm bông cong, quả đôi treo cuống dài |
-| `rose` | Hoa hồng | `rose-porcelain` | một bông hồng trên cành có lá |
+| `rose` | Hoa hồng (phong cách **quý cô sang chảnh**, `faceStyle: 'lady'`) | `rose-porcelain` | một bông hồng nhiều lớp đội vương miện vàng lệch, cành mảnh thắt nơ satin hồng |
 | `watermelon` | Dưa hấu | `tin-bucket` | dây bò lá tim xoè ngang + quả dưa giữa |
 | `hydrangea` | Tulip (trước là Cẩm tú cầu; giữ id `hydrangea` để không mất dữ liệu cũ) | `blue-ceramic` | bó ba bông hình chén cao thấp (hồng giữa, vàng + tím hai bên), lá dài như dải ôm từ gốc |
 

@@ -21,7 +21,7 @@ export interface PlantSpecies {
   defaultPotId: string;
   stages: Record<GrowthStage, Art>;
   faceAnchor: Record<GrowthStage, FaceAnchor>;
-  /** kiểu mặt: mặc định 'cute' (mắt tròn, má hồng); 'cool' đeo kính râm, không má hồng */
+  /** kiểu mặt: mặc định 'cute' (mắt tròn, má hồng); 'cool' đeo kính râm, không má hồng; 'lady' mi cong + môi son */
   faceStyle?: FaceStyle;
   sayings?: string[];                                // câu cây nói mỗi ngày riêng của loài
   /** câu khen riêng khi xong một việc (gộp với câu khen chung) */
