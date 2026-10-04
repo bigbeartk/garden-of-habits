@@ -68,7 +68,7 @@ describe('Khu vườn (báo cáo từ ngày tới ngày)', () => {
     expect(tiles[0]).toHaveAttribute('data-testid', 'garden-plant-corn');
     expect(within(tiles[0]).getByTestId('plant-scene')).toHaveAttribute('data-stage', 'bloom');
     expect(within(garden).getByTestId('garden-summary')).toHaveTextContent('5 ngày');
-    expect(within(garden).getByTestId('garden-summary')).toHaveTextContent('1 ngày ra hoa');
+    expect(within(garden).getByTestId('garden-summary')).toHaveTextContent('1 ra hoa');
   });
 
   it('có luống Cây héo (ngày bỏ lỡ) và Ngày nghỉ, ngày nghỉ không tính cho cây', async () => {
@@ -106,6 +106,7 @@ describe('Khu vườn (báo cáo từ ngày tới ngày)', () => {
   it('công tắc "Chỉ hiện cây đã trồng" ẩn mọi luống 0 ngày và được nhớ lại', async () => {
     const { deps, user, garden } = await openGarden();
     await waitFor(() => expect(countOf(garden, 'corn')).toBe('3'));
+    await user.click(within(garden).getByRole('button', { name: 'Tuỳ chọn hiển thị' }));
     const toggle = within(garden).getByRole('switch', { name: 'Chỉ hiện cây đã trồng' });
     expect(toggle).toHaveAttribute('aria-checked', 'false');
     expect(within(garden).getByTestId('garden-plant-rose')).toBeInTheDocument();
@@ -120,6 +121,31 @@ describe('Khu vườn (báo cáo từ ngày tới ngày)', () => {
     fireEvent.change(within(garden).getByLabelText('Đến ngày'), { target: { value: '2026-09-10' } });
     expect(await within(garden).findByText('Chưa có cây nào trong khoảng này')).toBeInTheDocument();
     expect(within(garden).queryAllByRole('listitem')).toHaveLength(0);
+  });
+
+  it('2 công tắc mặc định thu gọn; nút Tuỳ chọn hiển thị xổ ra / thu lại', async () => {
+    const { user, garden } = await openGarden();
+    const btn = within(garden).getByRole('button', { name: 'Tuỳ chọn hiển thị' });
+    expect(btn).toHaveAttribute('aria-expanded', 'false');
+    expect(btn.querySelector('svg[data-icon="options"]')).not.toBeNull();
+    expect(within(garden).queryByRole('switch')).not.toBeInTheDocument();
+    await user.click(btn);
+    expect(btn).toHaveAttribute('aria-expanded', 'true');
+    expect(within(garden).getByRole('switch', { name: 'Chỉ hiện cây đã trồng' })).toBeInTheDocument();
+    expect(within(garden).getByRole('switch', { name: 'Tách riêng cây đặc biệt' })).toBeInTheDocument();
+    await user.click(btn);
+    expect(within(garden).queryByRole('switch')).not.toBeInTheDocument();
+  });
+
+  it('đang lọc mà thu gọn thì nút có chấm báo', async () => {
+    const { user, garden } = await openGarden();
+    const btn = within(garden).getByRole('button', { name: 'Tuỳ chọn hiển thị' });
+    expect(btn.querySelector('.icon-btn__badge')).toBeNull();
+    await user.click(btn);
+    await user.click(within(garden).getByRole('switch', { name: 'Tách riêng cây đặc biệt' }));
+    expect(btn.querySelector('.icon-btn__badge')).toBeNull(); // đang mở thì thấy công tắc rồi
+    await user.click(btn);
+    await waitFor(() => expect(btn.querySelector('.icon-btn__badge')).not.toBeNull());
   });
 
   it('nút Quay lại Lịch chuyển về tab Lịch', async () => {
@@ -140,10 +166,11 @@ describe('Khu vườn và cây đặc biệt', () => {
     const user = userEvent.setup();
     renderWithDeps(<GardenScreen />, deps);
     const garden = await screen.findByTestId('garden');
-    await waitFor(() => expect(within(garden).getByTestId('garden-summary')).toHaveTextContent('2 ngày cây đặc biệt'));
+    await waitFor(() => expect(within(garden).getByTestId('garden-summary')).toHaveTextContent('✨ 2 đặc biệt'));
     expect(countOf(garden, 'corn')).toBe('2');
     expect(within(garden).queryByTestId(/^garden-special-/)).not.toBeInTheDocument();
 
+    await user.click(within(garden).getByRole('button', { name: 'Tuỳ chọn hiển thị' }));
     const toggle = within(garden).getByRole('switch', { name: 'Tách riêng cây đặc biệt' });
     expect(toggle).toHaveAttribute('aria-checked', 'false');
     await user.click(toggle);

@@ -682,3 +682,37 @@ test('lời cây nói: chạm bong bóng để sửa, ẩn/hiện được nhớ
   await page.getByRole('button', { name: 'Hiện lời cây nói' }).click();
   await expect(page.getByTestId('speech-bubble')).toHaveText('Hôm nay mình cùng cố gắng nha');
 });
+
+test('Khu vườn gọn: công tắc thu trong nút Tuỳ chọn, tóm tắt một dòng kể cả số lớn (WebKit)', async ({ page }) => {
+  await page.clock.setFixedTime(at('2026-10-02T10:00:00'));
+  await page.goto('/');
+  await goTab(page, 'Khu vườn');
+  await closeMenu(page);
+  const garden = page.getByTestId('garden');
+  const optionsBtn = garden.getByRole('button', { name: 'Tuỳ chọn hiển thị' });
+  await expect(optionsBtn).toHaveAttribute('aria-expanded', 'false');
+  await expect(garden.getByRole('switch')).toHaveCount(0);
+  // nút nằm trên hàng tiêu đề, không đẩy thẻ chọn ngày xuống
+  const head = (await garden.getByRole('heading', { name: 'Khu vườn' }).boundingBox())!;
+  const btn = (await optionsBtn.boundingBox())!;
+  expect(Math.abs(btn.y + btn.height / 2 - (head.y + head.height / 2))).toBeLessThan(6);
+  // tóm tắt một dòng, kể cả khi số lớn nhất có thể
+  const summary = garden.getByTestId('garden-summary');
+  await expect(summary).toContainText('ra hoa');
+  await summary.evaluate((el) => {
+    const nums = ['365', '365', '2000', '99'];
+    el.querySelectorAll('b').forEach((b, i) => { b.textContent = nums[i]; });
+  });
+  const box = (await summary.boundingBox())!;
+  const lineH = await summary.evaluate((el) => parseFloat(getComputedStyle(el).lineHeight) || parseFloat(getComputedStyle(el).fontSize) * 1.6);
+  expect(box.height).toBeLessThan(lineH * 1.6 + 20);
+  const vw = page.viewportSize()!.width;
+  expect(box.x).toBeGreaterThanOrEqual(0);
+  expect(box.x + box.width).toBeLessThanOrEqual(vw);
+  // chữ không tràn khỏi viền của khung
+  expect(await summary.evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true);
+  await page.screenshot({ path: 'test-results/garden-compact.png' });
+  await optionsBtn.click();
+  await expect(garden.getByRole('switch', { name: 'Chỉ hiện cây đã trồng' })).toBeVisible();
+  await page.screenshot({ path: 'test-results/garden-options-open.png' });
+});

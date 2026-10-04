@@ -8,6 +8,9 @@
   padding-bottom: calc(var(--tabbar-h) + 56px + env(safe-area-inset-bottom));
 }
 .garden__head { display: flex; align-items: center; gap: 4px; }
+/* nút Tuỳ chọn hiển thị: cuối hàng tiêu đề, không chiếm dòng riêng */
+.garden__options-btn { margin-left: auto; width: 42px; height: 42px; }
+.garden__options { display: flex; flex-direction: column; gap: 2px; }
 .garden__range { display: flex; flex-direction: column; gap: 10px; background: rgba(255, 253, 251, 0.92); }
 .garden__dates { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .garden__date { display: flex; flex-direction: column; gap: 4px; min-width: 0; font-weight: 700; font-size: 0.85rem; }
@@ -19,8 +22,9 @@
 }
 .garden__preset:active { transform: translateY(2px); box-shadow: none; }
 .garden__summary {
-  margin: 0; align-self: center; padding: 6px 14px; border-radius: 999px; border: 2px solid var(--cocoa);
-  background: var(--butter); font-weight: 600; font-size: 0.9rem; box-shadow: var(--shadow-pop); text-align: center;
+  margin: 0; align-self: center; padding: 6px 12px; border-radius: 999px; border: 2px solid var(--cocoa);
+  background: var(--butter); font-weight: 600; font-size: 0.85rem; box-shadow: var(--shadow-pop); text-align: center;
+  white-space: nowrap; max-width: 100%; /* luôn một dòng */
 }
 .garden__beds { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
 .garden__bed {

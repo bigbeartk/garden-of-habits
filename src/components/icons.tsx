@@ -291,3 +291,15 @@ export function SpeechIcon({ size, off }: { size?: number; off?: boolean }) {
     </Svg>
   );
 }
+
+/** Tuỳ chọn hiển thị: ba thanh trượt có núm màu */
+export function OptionsIcon({ size }: { size?: number }) {
+  return (
+    <Svg name="options" size={size}>
+      <path d="M6 9 h20 M6 16 h20 M6 23 h20" {...STROKE} />
+      <circle cx={12} cy={9} r={3.2} fill="#FFD6DE" {...STROKE} />
+      <circle cx={20} cy={16} r={3.2} fill="#CDEFE3" {...STROKE} />
+      <circle cx={14} cy={23} r={3.2} fill="#FFF1C1" {...STROKE} />
+    </Svg>
+  );
+}

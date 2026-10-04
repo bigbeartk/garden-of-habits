@@ -3,6 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { useDeps } from '../app/deps';
 import { useNav } from '../app/nav';
 import { BackButton } from '../components/BackButton';
+import { OptionsIcon } from '../components/icons';
 import { PlantScene } from '../components/PlantScene';
 import { PLANTS, getSpecies } from '../content/plants/registry';
 import { DEFAULT_POT_ID } from '../content/pots/registry';
@@ -28,6 +29,8 @@ export function GardenScreen() {
   const monthStart = `${todayKey.slice(0, 8)}01`;
   const [from, setFrom] = useState(monthStart);
   const [to, setTo] = useState(todayKey);
+  /** 2 công tắc lọc thu gọn mặc định, để dành chỗ ngắm vườn */
+  const [optionsOpen, setOptionsOpen] = useState(false);
   const [lo, hi] = from <= to ? [from, to] : [to, from];
   const records = useLiveQuery(() => listDaysInRange(deps.db, lo, hi), [deps.db, lo, hi]);
   const firstKey = useLiveQuery(() => firstDayKey(deps.db), [deps.db]) ?? null;
@@ -48,6 +51,19 @@ export function GardenScreen() {
       <header className="garden__head">
         <BackButton inline onClick={() => nav('calendar')} />
         <h1 className="screen__title">Khu vườn</h1>
+        <button
+          type="button"
+          className="icon-btn garden__options-btn"
+          aria-label="Tuỳ chọn hiển thị"
+          title="Tuỳ chọn hiển thị"
+          aria-expanded={optionsOpen}
+          aria-controls="garden-options"
+          onClick={() => setOptionsOpen((o) => !o)}
+        >
+          <OptionsIcon size={24} />
+          {/* đang lọc mà công tắc đang ẩn thì báo bằng chấm nhỏ */}
+          {!optionsOpen && (onlyPlanted || separateSpecial) && <span className="icon-btn__badge" aria-hidden="true" />}
+        </button>
       </header>
 
       <div className="garden__range card">
@@ -66,12 +82,16 @@ export function GardenScreen() {
           <button type="button" className="garden__preset" onClick={() => preset(addDays(todayKey, -29))}>30 ngày</button>
           <button type="button" className="garden__preset" onClick={() => preset(firstKey ?? todayKey)}>Tất cả</button>
         </div>
-        <SettingSwitch settingKey="gardenOnlyPlanted" label="Chỉ hiện cây đã trồng" defaultOn={false} onError={() => {}} />
-        <SettingSwitch settingKey="gardenSeparateSpecial" label="Tách riêng cây đặc biệt" defaultOn={false} onError={() => {}} />
+        {optionsOpen && (
+          <div id="garden-options" className="garden__options">
+            <SettingSwitch settingKey="gardenOnlyPlanted" label="Chỉ hiện cây đã trồng" defaultOn={false} onError={() => {}} />
+            <SettingSwitch settingKey="gardenSeparateSpecial" label="Tách riêng cây đặc biệt" defaultOn={false} onError={() => {}} />
+          </div>
+        )}
       </div>
 
       <p className="garden__summary" data-testid="garden-summary">
-        <b>{report.days}</b> ngày · <b>{report.bloomDays}</b> ngày ra hoa · <b>{report.todosDone}</b> việc xong · ✨ <b>{report.specialDays}</b> ngày cây đặc biệt
+        <b>{report.days}</b> ngày · <b>{report.bloomDays}</b> ra hoa · <b>{report.todosDone}</b> việc · ✨ <b>{report.specialDays}</b> đặc biệt
       </p>
 
       {nothing && <p className="garden__empty">Chưa có cây nào trong khoảng này</p>}
