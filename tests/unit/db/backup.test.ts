@@ -269,3 +269,15 @@ describe('sao lưu công tắc cây nói ghi chú', () => {
     expect(await getSetting(dst2, 'plantSaysNote')).toBe(true);
   });
 });
+
+describe('sao lưu công tắc Khu vườn', () => {
+  it('giữ gardenOnlyPlanted khi khôi phục', async () => {
+    const src = makeDb();
+    await setSetting(src, 'gardenOnlyPlanted', true);
+    const r = parseBackup(serializeBackup(await createBackup(src, 1)));
+    if (!r.ok) throw new Error(r.error);
+    const dst = makeDb();
+    await restoreBackup(dst, r.backup, 'replace');
+    expect(await getSetting(dst, 'gardenOnlyPlanted')).toBe(true);
+  });
+});

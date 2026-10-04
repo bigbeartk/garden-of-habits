@@ -6,6 +6,8 @@ import { PlantScene } from '../components/PlantScene';
 import { PLANTS, getSpecies } from '../content/plants/registry';
 import { DEFAULT_POT_ID } from '../content/pots/registry';
 import { firstDayKey, listDaysInRange } from '../db/queries';
+import { getSetting } from '../db/settings';
+import { SettingSwitch } from '../components/SettingSwitch';
 import { addDays, dayKey } from '../domain/dayKey';
 import { gardenReport } from '../domain/garden';
 import { useNow } from '../hooks/useNow';
@@ -27,6 +29,12 @@ export function GardenScreen({ onBack }: { onBack: () => void }) {
   const records = useLiveQuery(() => listDaysInRange(deps.db, lo, hi), [deps.db, lo, hi]);
   const firstKey = useLiveQuery(() => firstDayKey(deps.db), [deps.db]) ?? null;
   const report = gardenReport(records ?? [], PLANT_IDS, lo, hi, { todayKey, firstKey });
+  const onlyPlanted = useLiveQuery(async () => (await getSetting(deps.db, 'gardenOnlyPlanted')) ?? false, [deps.db], false);
+  // bật "Chỉ hiện cây đã trồng" thì bỏ mọi luống 0 ngày (kể cả Cây héo / Ngày nghỉ)
+  const entries = onlyPlanted ? report.entries.filter((e) => e.count > 0) : report.entries;
+  const showWilted = !onlyPlanted || report.wiltedDays > 0;
+  const showRest = !onlyPlanted || report.restDays > 0;
+  const nothing = entries.length === 0 && !showWilted && !showRest;
 
   const preset = (start: string) => {
     setFrom(start);
@@ -56,14 +64,16 @@ export function GardenScreen({ onBack }: { onBack: () => void }) {
           <button type="button" className="garden__preset" onClick={() => preset(addDays(todayKey, -29))}>30 ngày</button>
           <button type="button" className="garden__preset" onClick={() => preset(firstKey ?? todayKey)}>Tất cả</button>
         </div>
+        <SettingSwitch settingKey="gardenOnlyPlanted" label="Chỉ hiện cây đã trồng" defaultOn={false} onError={() => {}} />
       </div>
 
       <p className="garden__summary" data-testid="garden-summary">
         <b>{report.days}</b> ngày · <b>{report.bloomDays}</b> ngày ra hoa · <b>{report.todosDone}</b> việc xong
       </p>
 
+      {nothing && <p className="garden__empty">Chưa có cây nào trong khoảng này</p>}
       <ul className="garden__beds">
-        {report.entries.map(({ plantId, count }) => {
+        {entries.map(({ plantId, count }) => {
           const species = getSpecies(plantId);
           return (
             <li key={plantId} className={`garden__bed${count === 0 ? ' is-empty' : ''}`} data-testid={`garden-plant-${plantId}`}>
@@ -82,8 +92,8 @@ export function GardenScreen({ onBack }: { onBack: () => void }) {
             </li>
           );
         })}
-        <SpecialBed testId="garden-wilted" mode="wilted" label="Cây héo" count={report.wiltedDays} />
-        <SpecialBed testId="garden-rest" mode="sleeping" label="Ngày nghỉ" count={report.restDays} />
+        {showWilted && <SpecialBed testId="garden-wilted" mode="wilted" label="Cây héo" count={report.wiltedDays} />}
+        {showRest && <SpecialBed testId="garden-rest" mode="sleeping" label="Ngày nghỉ" count={report.restDays} />}
       </ul>
     </section>
   );

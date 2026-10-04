@@ -10,6 +10,8 @@ export interface SettingsShape {
   showNoteDot: boolean;
   /** cây nói ghi chú hôm nay trong bong bóng thoại (mặc định: không) */
   plantSaysNote: boolean;
+  /** màn Khu vườn chỉ hiện luống có ít nhất 1 ngày (mặc định: không) */
+  gardenOnlyPlanted: boolean;
   lastBackupAt: number;
 }
 
@@ -25,3 +27,7 @@ export async function setSetting<K extends keyof SettingsShape>(db: PlantDB, key
 export async function deleteSetting(db: PlantDB, key: keyof SettingsShape): Promise<void> {
   await db.settings.delete(key);
 }
+
+/** Các công tắc bật/tắt; đều có trong file sao lưu (tuỳ chọn, file cũ có thể thiếu). */
+export const BOOLEAN_SETTINGS = ['showCalendarBgButton', 'showNoteDot', 'plantSaysNote', 'gardenOnlyPlanted'] as const;
+export type BooleanSetting = (typeof BOOLEAN_SETTINGS)[number];

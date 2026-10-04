@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { SCHEMA_VERSION, type PlantDB } from './db';
-import { deleteSetting, getSetting, setSetting } from './settings';
+import { deleteSetting, getSetting, setSetting, BOOLEAN_SETTINGS, type BooleanSetting } from './settings';
 import { GROWTH_STAGES } from '../domain/growth';
 import { PERIODS } from '../domain/period';
 import { formatDate } from '../domain/dayKey';
@@ -64,9 +64,11 @@ const BackupSchema = z.object({
   plannedGoals: z.array(z.object({ date: z.string(), title: z.string() })).default([]), // file phiên bản 1–3 chưa có
   calendarBg: z.object({ mime: z.string(), base64: z.string().regex(/^[A-Za-z0-9+/]*={0,2}$/) }).nullable(),
   calendarTheme: z.enum(['default', 'cat', 'grass', 'rain', 'gamer', 'photo']).optional(), // file cũ chưa có
-  showCalendarBgButton: z.boolean().optional(), // file cũ chưa có
-  showNoteDot: z.boolean().optional(), // file cũ chưa có
-  plantSaysNote: z.boolean().optional(), // file cũ chưa có
+  // các công tắc bật/tắt (BOOLEAN_SETTINGS); file cũ có thể chưa có
+  showCalendarBgButton: z.boolean().optional(),
+  showNoteDot: z.boolean().optional(),
+  plantSaysNote: z.boolean().optional(),
+  gardenOnlyPlanted: z.boolean().optional(),
 });
 
 export type BackupFile = z.infer<typeof BackupSchema>;
@@ -98,9 +100,11 @@ export async function createBackup(db: PlantDB, now: number): Promise<BackupFile
     const plannedGoals = await db.plannedGoals.toArray();
     const bg = await getSetting(db, 'calendarBg');
     const calendarTheme = await getSetting(db, 'calendarTheme');
-    const showCalendarBgButton = await getSetting(db, 'showCalendarBgButton');
-    const showNoteDot = await getSetting(db, 'showNoteDot');
-    const plantSaysNote = await getSetting(db, 'plantSaysNote');
+    const switches: Partial<Record<BooleanSetting, boolean>> = {};
+    for (const key of BOOLEAN_SETTINGS) {
+      const v = await getSetting(db, key);
+      if (v !== undefined) switches[key] = v;
+    }
     return {
       format: BACKUP_FORMAT,
       schemaVersion: SCHEMA_VERSION,
@@ -111,9 +115,7 @@ export async function createBackup(db: PlantDB, now: number): Promise<BackupFile
       plannedGoals,
       calendarBg: bg ? { mime: bg.mime, base64: bytesToBase64(bg.data) } : null,
       ...(calendarTheme ? { calendarTheme } : {}),
-      ...(showCalendarBgButton !== undefined ? { showCalendarBgButton } : {}),
-      ...(showNoteDot !== undefined ? { showNoteDot } : {}),
-      ...(plantSaysNote !== undefined ? { plantSaysNote } : {}),
+      ...switches,
     };
   });
 }
@@ -166,12 +168,11 @@ export async function restoreBackup(db: PlantDB, backup: BackupFile, mode: Resto
       else await deleteSetting(db, 'calendarBg');
       if (backup.calendarTheme) await setSetting(db, 'calendarTheme', backup.calendarTheme);
       else await deleteSetting(db, 'calendarTheme');
-      if (backup.showCalendarBgButton !== undefined) await setSetting(db, 'showCalendarBgButton', backup.showCalendarBgButton);
-      else await deleteSetting(db, 'showCalendarBgButton');
-      if (backup.showNoteDot !== undefined) await setSetting(db, 'showNoteDot', backup.showNoteDot);
-      else await deleteSetting(db, 'showNoteDot');
-      if (backup.plantSaysNote !== undefined) await setSetting(db, 'plantSaysNote', backup.plantSaysNote);
-      else await deleteSetting(db, 'plantSaysNote');
+      for (const key of BOOLEAN_SETTINGS) {
+        const v = backup[key];
+        if (v !== undefined) await setSetting(db, key, v);
+        else await deleteSetting(db, key);
+      }
       days = backup.days.length;
       templates = backup.templates.length;
     } else {
@@ -197,14 +198,9 @@ export async function restoreBackup(db: PlantDB, backup: BackupFile, mode: Resto
       }
       if (bg && !(await getSetting(db, 'calendarBg'))) await setSetting(db, 'calendarBg', bg);
       if (backup.calendarTheme && !(await getSetting(db, 'calendarTheme'))) await setSetting(db, 'calendarTheme', backup.calendarTheme);
-      if (backup.showCalendarBgButton !== undefined && (await getSetting(db, 'showCalendarBgButton')) === undefined) {
-        await setSetting(db, 'showCalendarBgButton', backup.showCalendarBgButton);
-      }
-      if (backup.showNoteDot !== undefined && (await getSetting(db, 'showNoteDot')) === undefined) {
-        await setSetting(db, 'showNoteDot', backup.showNoteDot);
-      }
-      if (backup.plantSaysNote !== undefined && (await getSetting(db, 'plantSaysNote')) === undefined) {
-        await setSetting(db, 'plantSaysNote', backup.plantSaysNote);
+      for (const key of BOOLEAN_SETTINGS) {
+        const v = backup[key];
+        if (v !== undefined && (await getSetting(db, key)) === undefined) await setSetting(db, key, v);
       }
     }
     const defaults = (await db.templates.toArray())

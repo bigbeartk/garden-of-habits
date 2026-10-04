@@ -1,9 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useDeps } from '../app/deps';
-import { getSetting, setSetting } from '../db/settings';
-
-type BooleanSetting = 'showCalendarBgButton' | 'showNoteDot' | 'plantSaysNote';
+import { getSetting, setSetting, type BooleanSetting } from '../db/settings';
 
 /** Công tắc bật/tắt một setting kiểu boolean; chưa lưu thì lấy `defaultOn`. */
 export function SettingSwitch({ settingKey, label, defaultOn = true, onError }: {

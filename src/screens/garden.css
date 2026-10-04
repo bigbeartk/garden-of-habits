@@ -48,3 +48,8 @@
 .garden__bed--wilted::before { background: radial-gradient(circle at 10% 100%, #B08A5E 4px, transparent 5px) 0 0 / 14px 10px repeat-x; }
 .garden__bed--sleeping { border-color: #8C7BC4; background: linear-gradient(180deg, rgba(255, 253, 251, 0.75) 0, rgba(255, 253, 251, 0.75) 62%, #D6CCF5 62%, #C5B8EE 100%); }
 .garden__bed--sleeping::before { background: radial-gradient(circle at 10% 100%, #A797DD 4px, transparent 5px) 0 0 / 14px 10px repeat-x; }
+.garden__range .switch-row { padding: 4px 2px 0; font-size: 0.9rem; }
+.garden__empty {
+  margin: 0; align-self: center; padding: 10px 16px; border-radius: var(--radius-md); background: rgba(255, 253, 251, 0.85);
+  border: 2px dashed #4E8A4A; font-weight: 600; color: var(--cocoa);
+}

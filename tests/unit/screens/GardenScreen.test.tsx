@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { CalendarScreen } from '../../../src/screens/CalendarScreen';
 import { CATALOG } from '../../../src/content/catalog';
 import { makeDay, makeDeps, renderWithDeps } from '../helpers';
+import { getSetting } from '../../../src/db/settings';
 
 async function openGarden() {
   const { deps } = makeDeps(new Date(2026, 9, 15, 10, 0), CATALOG);
@@ -79,6 +80,25 @@ describe('Khu vườn (báo cáo từ ngày tới ngày)', () => {
     expect(within(garden).getByLabelText('Từ ngày')).toHaveValue('2026-09-16');
     await user.click(within(garden).getByRole('button', { name: 'Tháng này' }));
     expect(within(garden).getByLabelText('Từ ngày')).toHaveValue('2026-10-01');
+  });
+
+  it('công tắc "Chỉ hiện cây đã trồng" ẩn mọi luống 0 ngày và được nhớ lại', async () => {
+    const { deps, user, garden } = await openGarden();
+    await waitFor(() => expect(countOf(garden, 'corn')).toBe('3'));
+    const toggle = within(garden).getByRole('switch', { name: 'Chỉ hiện cây đã trồng' });
+    expect(toggle).toHaveAttribute('aria-checked', 'false');
+    expect(within(garden).getByTestId('garden-plant-rose')).toBeInTheDocument();
+    await user.click(toggle);
+    await waitFor(() => expect(within(garden).queryByTestId('garden-plant-rose')).not.toBeInTheDocument());
+    expect(within(garden).queryByTestId('garden-plant-sunflower')).not.toBeInTheDocument();
+    const shown = within(garden).getAllByRole('listitem').map((li) => li.getAttribute('data-testid'));
+    expect(shown).toEqual(['garden-plant-corn', 'garden-plant-cactus', 'garden-wilted', 'garden-rest']);
+    await waitFor(async () => expect(await getSetting(deps.db, 'gardenOnlyPlanted')).toBe(true));
+    // khoảng không có ngày nào thì báo nhẹ thay vì để trống
+    fireEvent.change(within(garden).getByLabelText('Từ ngày'), { target: { value: '2026-09-01' } });
+    fireEvent.change(within(garden).getByLabelText('Đến ngày'), { target: { value: '2026-09-10' } });
+    expect(await within(garden).findByText('Chưa có cây nào trong khoảng này')).toBeInTheDocument();
+    expect(within(garden).queryAllByRole('listitem')).toHaveLength(0);
   });
 
   it('nút Quay lại Lịch trở về lưới lịch', async () => {
