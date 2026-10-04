@@ -1,5 +1,5 @@
 import type { PotStyle } from '../types';
-import { BlueCeramicPot, MintPot, PinkCupPot, PolkaPot, RattanPot, RosePorcelainPot, TerracottaPot, TinBucketPot, WoodPot } from './pots';
+import { BlueCeramicPot, MintPot, PinkCupPot, PolkaPot, RattanPot, RosePorcelainPot, TerracottaPot, TinBucketPot, WoodPot, ConcretePot } from './pots';
 
 /** Thêm chậu mới: tạo component trong pots.tsx (hoặc dùng { image }) rồi thêm 1 dòng ở đây. */
 export const POTS: PotStyle[] = [
@@ -12,6 +12,7 @@ export const POTS: PotStyle[] = [
   { id: 'rose-porcelain', name: 'Sứ hoa hồng', art: { svg: RosePorcelainPot } },
   { id: 'tin-bucket', name: 'Xô thiếc', art: { svg: TinBucketPot } },
   { id: 'blue-ceramic', name: 'Gốm xanh lam', art: { svg: BlueCeramicPot } },
+  { id: 'concrete', name: 'Bê tông', art: { svg: ConcretePot } },
 ];
 
 export const DEFAULT_POT_ID = 'terracotta';

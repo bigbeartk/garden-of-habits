@@ -1,56 +1,119 @@
 import { INK } from '../Face';
 import type { PlantSpecies } from '../types';
-import { Seed } from './parts';
+import { SOIL_Y, Seed } from './parts';
 
-const BODY = '#9ED9A0';
-const SPINE = '#5B8F5E';
+const BODY = '#4E8C5A';
+const RIB = '#3A6E46';
+const SHINE = '#6FAE78';
+const SPINE = '#F3E9C8';
 
-function Spines({ points }: { points: [number, number][] }) {
+/** Gai nhọn: gốc gai + hai gai dài chĩa ra ngoài theo góc `a` (độ, 0 = sang phải) */
+function Spikes({ points }: { points: [number, number, number][] }) {
   return (
     <g stroke={SPINE} strokeWidth={1.6} strokeLinecap="round">
-      {points.map(([x, y]) => <path key={`${x}-${y}`} d={`M${x - 3} ${y} l6 0 M${x} ${y - 3} l0 6`} />)}
+      {points.map(([x, y, a]) => (
+        <g key={`${x}-${y}`} transform={`translate(${x} ${y}) rotate(${a})`}>
+          <path d="M0 0 L10 -3.5 M0 0 L10 3.5" />
+          <circle r={1.6} fill={SPINE} stroke="none" />
+        </g>
+      ))}
     </g>
   );
 }
 
-function Column() {
+/** Thân cột saguaro: đỉnh tròn, các sống dọc, cao từ đất lên tới `top` */
+function Trunk({ top, w = 30 }: { top: number; w?: number }) {
+  const l = 100 - w / 2;
+  const r = 100 + w / 2;
   return (
     <g>
-      <path d="M78 130 Q58 128 60 104 Q62 94 70 96 Q72 112 80 116 Z" fill={BODY} stroke={INK} strokeWidth={2} />
-      <path d="M122 120 Q142 118 140 94 Q138 84 130 86 Q128 102 120 106 Z" fill={BODY} stroke={INK} strokeWidth={2} />
-      <rect x={76} y={78} width={48} height={86} rx={24} fill={BODY} stroke={INK} strokeWidth={2} />
-      <Spines points={[[84, 96], [116, 100], [86, 140], [114, 146], [100, 156]]} />
+      <path d={`M${l} ${SOIL_Y + 2} L${l} ${top + w / 2} A${w / 2} ${w / 2} 0 0 1 ${r} ${top + w / 2} L${r} ${SOIL_Y + 2} Z`} fill={BODY} stroke={INK} strokeWidth={2.2} />
+      <g stroke={RIB} strokeWidth={2} strokeLinecap="round" fill="none">
+        <path d={`M${100 - w / 5} ${top + 8} L${100 - w / 5} ${SOIL_Y}`} />
+        <path d={`M${100 + w / 5} ${top + 8} L${100 + w / 5} ${SOIL_Y}`} />
+      </g>
+      <path d={`M${l + 4} ${top + w / 2} L${l + 4} ${SOIL_Y - 6}`} stroke={SHINE} strokeWidth={2.2} strokeLinecap="round" />
+    </g>
+  );
+}
+
+/**
+ * Tay gập góc vuông kiểu saguaro: mọc ngang từ thân ở độ cao `y`, vươn ra `reach`, rồi dựng lên tới `top`.
+ * `side` = -1 bên trái, 1 bên phải.
+ */
+function Arm({ side, y, reach, top, w = 18 }: { side: 1 | -1; y: number; reach: number; top: number; w?: number }) {
+  const x0 = 100 + side * 10;
+  const xo = 100 + side * reach; // mép ngoài của cột dựng
+  const xi = xo - side * w; // mép trong
+  const bottom = y + w / 2;
+  const d =
+    `M${x0} ${y - w / 2} L${xi} ${y - w / 2} L${xi} ${top + w / 2} ` +
+    `A${w / 2} ${w / 2} 0 0 ${side > 0 ? 1 : 0} ${xo} ${top + w / 2} ` +
+    `L${xo} ${y} Q${xo} ${bottom} ${xo - side * w / 2} ${bottom} L${x0} ${bottom} Z`;
+  const mid = (xi + xo) / 2;
+  return (
+    <g>
+      <path d={d} fill={BODY} stroke={INK} strokeWidth={2.2} strokeLinejoin="round" />
+      <path d={`M${mid} ${top + 7} L${mid} ${y}`} stroke={RIB} strokeWidth={1.8} strokeLinecap="round" />
+    </g>
+  );
+}
+
+/** Hoa sa mạc đỏ thẫm, cánh nhọn */
+function DesertFlower({ x, y, s = 1 }: { x: number; y: number; s?: number }) {
+  return (
+    <g transform={`translate(${x} ${y}) scale(${s})`}>
+      {[-60, -30, 0, 30, 60].map((a) => (
+        <path key={a} d="M0 0 L-4 -8 L0 -16 L4 -8 Z" fill="#E0464E" stroke={INK} strokeWidth={1.4} strokeLinejoin="round" transform={`rotate(${a})`} />
+      ))}
+      <circle r={3.5} fill="#FFC94A" stroke={INK} strokeWidth={1.3} />
     </g>
   );
 }
 
 function CactusSeed() {
-  return <Seed color="#4F4038" />;
+  return <Seed color="#8A6E58" />;
 }
 function CactusSprout() {
   return (
     <g>
-      <circle cx={100} cy={140} r={20} fill={BODY} stroke={INK} strokeWidth={2} />
-      <Spines points={[[86, 132], [114, 132], [100, 124]]} />
+      <path d={`M84 ${SOIL_Y + 2} L84 132 A16 16 0 0 1 116 132 L116 ${SOIL_Y + 2} Z`} fill={BODY} stroke={INK} strokeWidth={2.2} />
+      <path d={`M94 124 L94 ${SOIL_Y} M106 124 L106 ${SOIL_Y}`} stroke={RIB} strokeWidth={2} strokeLinecap="round" />
+      <Spikes points={[[84, 136, 180], [116, 136, 0], [100, 116, -90], [84, 152, 180], [116, 152, 0]]} />
     </g>
   );
 }
 function CactusBud() {
   return (
     <g>
-      <Column />
-      <circle cx={100} cy={76} r={7} fill="#FFB8CF" stroke={INK} strokeWidth={2} />
+      <Arm side={-1} y={128} reach={34} top={100} />
+      <Arm side={1} y={116} reach={34} top={88} />
+      <Trunk top={70} />
+      <Spikes
+        points={[
+          [85, 92, 180], [115, 100, 0], [85, 140, 180], [115, 146, 0], [100, 70, -90],
+          [66, 106, 180], [134, 94, 0], [75, 100, -90], [125, 88, -90],
+        ]}
+      />
+      <path d="M100 71 C94 67 95 59 100 54 C105 59 106 67 100 71 Z" fill="#E0464E" stroke={INK} strokeWidth={1.6} />
     </g>
   );
 }
 function CactusBloom() {
   return (
     <g>
-      <Column />
-      {[0, 72, 144, 216, 288].map((a) => (
-        <ellipse key={a} cx={100} cy={62} rx={7} ry={11} fill="#FF9FC0" stroke={INK} strokeWidth={1.5} transform={`rotate(${a} 100 72)`} />
-      ))}
-      <circle cx={100} cy={72} r={6} fill="#FFE066" stroke={INK} strokeWidth={1.5} />
+      <Arm side={-1} y={126} reach={46} top={84} w={21} />
+      <Arm side={1} y={104} reach={46} top={62} w={21} />
+      <Arm side={1} y={144} reach={30} top={126} w={14} />
+      <Trunk top={50} w={36} />
+      <Spikes
+        points={[
+          [82, 80, 180], [118, 88, 0], [82, 116, 180], [118, 124, 0], [82, 146, 180], [100, 50, -90], [116, 60, -40], [84, 60, -140],
+          [54, 100, 180], [146, 76, 0], [64, 84, -90], [136, 62, -90], [130, 128, 0],
+        ]}
+      />
+      <DesertFlower x={100} y={52} s={1.15} />
+      <DesertFlower x={136} y={63} s={0.75} />
     </g>
   );
 }
@@ -58,7 +121,8 @@ function CactusBloom() {
 export const cactus: PlantSpecies = {
   id: 'cactus',
   name: 'Xương rồng',
-  defaultPotId: 'pink-cup',
+  defaultPotId: 'concrete',
+  faceStyle: 'cool',
   stages: {
     seed: { svg: CactusSeed },
     sprout: { svg: CactusSprout },
@@ -67,11 +131,11 @@ export const cactus: PlantSpecies = {
   },
   faceAnchor: {
     seed: { x: 100, y: 149, scale: 0.55 },
-    sprout: { x: 100, y: 143, scale: 0.55 },
-    bud: { x: 100, y: 118, scale: 0.75 },
-    bloom: { x: 100, y: 118, scale: 0.75 },
+    sprout: { x: 100, y: 140, scale: 0.6 },
+    bud: { x: 100, y: 102, scale: 0.72 },
+    bloom: { x: 100, y: 88, scale: 0.85 },
   },
-  sayings: ['Mình ít uống nước thôi, nhưng thích bạn làm việc lắm 🌵', 'Gai góc bên ngoài, mềm mại bên trong nha!'],
-  praises: ['Kiên trì như xương rồng, giỏi lắm! 🌵'],
-  taps: ['Cẩn thận gai nha! 🌵', 'Ngoài gai nhưng trong mềm lắm á 💚'],
+  sayings: ['Nắng sa mạc còn chưa làm khó được mình, việc hôm nay xá gì 😎', 'Gai góc là phong cách. Làm việc thôi 🌵'],
+  praises: ['Chuẩn bài. Ngầu đó 😎', 'Một việc nữa đã bị hạ gục 🌵'],
+  taps: ['Đụng vô là dính gai đó nha 😎', 'Bình tĩnh, mình chỉ ngầu thôi chứ không cắn đâu 🌵', 'Kính râm này là hàng hiệu đó 😎'],
 };

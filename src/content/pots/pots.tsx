@@ -117,3 +117,19 @@ export function TinBucketPot() {
     </g>
   );
 }
+
+/** Chậu bê tông xám kiểu công nghiệp: thành thẳng, vết nứt, đốm rỗ */
+export function ConcretePot() {
+  return (
+    <g data-part="pot">
+      <path d="M48 160 L56 230 L144 230 L152 160 Z" fill="#A9A6A0" stroke={INK} strokeWidth={2.5} strokeLinejoin="round" />
+      <path d="M50 178 L150 178" stroke="#8E8A84" strokeWidth={2.5} />
+      <g fill="#8E8A84">
+        {([[70, 196], [124, 204], [92, 218], [136, 188], [66, 220]] as const).map(([x, y]) => <circle key={`${x}-${y}`} cx={x} cy={y} r={2} />)}
+      </g>
+      <path d="M112 178 L106 192 L114 200 L108 214" fill="none" stroke="#5E5A55" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+      <rect x={42} y={152} width={116} height={12} rx={2} fill="#B9B6B0" stroke={INK} strokeWidth={2.5} />
+      <ellipse cx={100} cy={157} rx={52} ry={3.5} fill="#7A5A3E" />
+    </g>
+  );
+}

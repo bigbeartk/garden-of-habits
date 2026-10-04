@@ -2,6 +2,8 @@ import { render } from '@testing-library/react';
 import { ArtView } from '../../../src/content/ArtView';
 import { DEFAULT_POT_ID, POTS, getPot } from '../../../src/content/pots/registry';
 import { SPECIALS, getSpecial } from '../../../src/content/specials/registry';
+import { getSpecies } from '../../../src/content/plants/registry';
+import { PlantScene } from '../../../src/components/PlantScene';
 
 describe('pots', () => {
   it('id duy nhất và vẽ được tất cả', () => {
@@ -43,5 +45,25 @@ describe('specials', () => {
     expect(getSpecial(null)).toBeNull();
     expect(getSpecial('khong-co')).toBeNull();
     expect(getSpecial('glow')?.name).toBe('Phát sáng');
+  });
+});
+
+describe('xương rồng ngầu', () => {
+  it('có chậu Bê tông làm chậu mặc định của xương rồng', () => {
+    expect(getPot('concrete').name).toBe('Bê tông');
+    expect(getSpecies('cactus').defaultPotId).toBe('concrete');
+  });
+
+  it('xương rồng đeo kính râm, không có má hồng; loài khác vẫn mặt dễ thương', () => {
+    for (const mood of ['normal', 'smile', 'talk'] as const) {
+      const { container, unmount } = render(<PlantScene plantId="cactus" potId="concrete" stage="bloom" specialId={null} mood={mood} />);
+      expect(container.querySelector('[data-part="shades"]')).not.toBeNull();
+      expect(container.querySelector('[data-part="blush"]')).toBeNull();
+      expect(container.querySelector('[data-testid="face"]')!.getAttribute('data-style')).toBe('cool');
+      unmount();
+    }
+    const { container } = render(<PlantScene plantId="sunflower" potId="terracotta" stage="bloom" specialId={null} mood="normal" />);
+    expect(container.querySelector('[data-part="shades"]')).toBeNull();
+    expect(container.querySelectorAll('[data-part="blush"]').length).toBe(2);
   });
 });

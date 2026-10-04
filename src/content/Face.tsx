@@ -1,17 +1,48 @@
 import type { FaceAnchor } from './types';
 
 export type Mood = 'normal' | 'smile' | 'talk' | 'sleep' | 'sad';
+export type FaceStyle = 'cute' | 'cool';
 export const INK = '#5B4636';
 
-export function Face({ mood, x, y, scale }: { mood: Mood } & FaceAnchor) {
+/** `cool`: đeo kính râm, nhếch mép, không má hồng (ngủ/buồn thì vẫn hiện mắt như thường). */
+export function Face({ mood, x, y, scale, faceStyle = 'cute' }: { mood: Mood; faceStyle?: FaceStyle } & FaceAnchor) {
+  const cool = faceStyle === 'cool';
+  const shades = cool && mood !== 'sleep' && mood !== 'sad';
   return (
-    <g transform={`translate(${x} ${y}) scale(${scale})`} data-testid="face" data-mood={mood}>
-      <ellipse cx={-14} cy={6} rx={5} ry={3} fill="#FF9FB2" opacity={0.75} />
-      <ellipse cx={14} cy={6} rx={5} ry={3} fill="#FF9FB2" opacity={0.75} />
-      <Eyes mood={mood} />
-      <Mouth mood={mood} />
+    <g transform={`translate(${x} ${y}) scale(${scale})`} data-testid="face" data-mood={mood} data-style={faceStyle}>
+      {!cool && (
+        <>
+          <ellipse data-part="blush" cx={-14} cy={6} rx={5} ry={3} fill="#FF9FB2" opacity={0.75} />
+          <ellipse data-part="blush" cx={14} cy={6} rx={5} ry={3} fill="#FF9FB2" opacity={0.75} />
+        </>
+      )}
+      {shades ? <Shades /> : <Eyes mood={mood} />}
+      {shades ? <CoolMouth mood={mood} /> : <Mouth mood={mood} />}
     </g>
   );
+}
+
+function Shades() {
+  return (
+    <g data-part="shades" strokeLinejoin="round">
+      <path d="M-20 -6 L20 -6" stroke="#2B2420" strokeWidth={2.4} strokeLinecap="round" />
+      <path d="M-17 -6 L-2 -6 L-3 0 Q-5 4 -10 4 Q-16 4 -17 -1 Z" fill="#2B2420" stroke="#2B2420" strokeWidth={1.6} />
+      <path d="M17 -6 L2 -6 L3 0 Q5 4 10 4 Q16 4 17 -1 Z" fill="#2B2420" stroke="#2B2420" strokeWidth={1.6} />
+      <path d="M-14 -4 L-10 -4 M6 -4 L10 -4" stroke="#fff" strokeWidth={1.4} strokeLinecap="round" opacity={0.8} />
+    </g>
+  );
+}
+
+/** Miệng kiểu ngầu: nhếch một bên; khi cười thì cười nhếch lộ răng, khi nói thì hé miệng lệch */
+function CoolMouth({ mood }: { mood: Mood }) {
+  switch (mood) {
+    case 'smile':
+      return <path d="M-6 7 Q2 12 8 5 L-6 7 Z" fill="#fff" stroke={INK} strokeWidth={1.8} strokeLinejoin="round" />;
+    case 'talk':
+      return <ellipse cx={2} cy={8} rx={3.4} ry={2.6} fill="#7A3B3B" stroke={INK} strokeWidth={1.6} />;
+    default:
+      return <path d="M-5 9 Q2 10 7 6" fill="none" stroke={INK} strokeWidth={2} strokeLinecap="round" />;
+  }
 }
 
 function Eyes({ mood }: { mood: Mood }) {

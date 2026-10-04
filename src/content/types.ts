@@ -1,5 +1,6 @@
 import type { FC } from 'react';
 import type { GrowthStage } from '../domain/growth';
+import type { FaceStyle } from './Face';
 
 /**
  * Hình vẽ trong hệ toạ độ viewBox 0 0 200 240, mặt đất ở y = 160, tâm x = 100.
@@ -20,6 +21,8 @@ export interface PlantSpecies {
   defaultPotId: string;
   stages: Record<GrowthStage, Art>;
   faceAnchor: Record<GrowthStage, FaceAnchor>;
+  /** kiểu mặt: mặc định 'cute' (mắt tròn, má hồng); 'cool' đeo kính râm, không má hồng */
+  faceStyle?: FaceStyle;
   sayings?: string[];                                // câu cây nói mỗi ngày riêng của loài
   /** câu khen riêng khi xong một việc (gộp với câu khen chung) */
   praises?: string[];

@@ -129,6 +129,7 @@ interface PlantSpecies {
   sayings?: string[];                                // lời của ngày riêng của loài
   praises?: string[];                                // câu khen riêng khi xong việc
   taps?: string[];                                   // câu riêng khi bị chạm vào
+  faceStyle?: 'cute' | 'cool';                       // 'cool': kính râm + nhếch mép, không má hồng (ngủ/buồn vẫn mắt thường)
 }
 ```
 **Thêm cây mới** gồm 3 bước:
@@ -147,7 +148,7 @@ Các loài hiện có:
 |---|---|---|---|
 | `sunflower` | Hướng dương | `terracotta` | thân cao, một bông tròn cánh vàng ở đỉnh |
 | `corn` | Ngô | `rattan` | thân thẳng, lá dài xoè hai bên, bắp ở giữa |
-| `cactus` | Xương rồng | `pink-cup` | cột mập có hai tay, hoa nhỏ trên đỉnh |
+| `cactus` | Xương rồng (phong cách **ngầu**, `faceStyle: 'cool'`) | `concrete` | saguaro sa mạc: cột xanh đậm có sống dọc, tay gập góc vuông, gai kem dài, hoa đỏ trên đỉnh |
 | `pothos` | Monstera (trước là Trầu bà; giữ id `pothos` để không mất dữ liệu cũ) | `mint` | bụi lá to xẻ thuỳ có lỗ trên cuống dài, xoè hình quạt |
 | `orange` | Cây cam | `wood` | cây kẹo mút: thân thẳng mảnh + một khối cầu lá đậm, mép lá nhọn |
 | `cherry` | Cherry | `polka` | cây dù rộng và thấp: thân chẻ đôi, vòm bông cong, quả đôi treo cuống dài |
@@ -163,7 +164,7 @@ interface PotStyle { id: string; name: string; art: Art }
 ```
 **Thêm chậu mới:** vẽ component trong `src/content/pots/pots.tsx` (nên dùng `BasicPot({ body, rim, soil?, children })` cho chậu hình thang, `children` là hoạ tiết trên thân), hoặc dùng `{ image }`. Sau đó thêm một dòng vào `POTS` trong `pots/registry.ts`.
 
-Chậu hiện có: `terracotta` (Đất nung, mặc định chung), `polka` (Sứ chấm bi), `mint` (Gốm mint), `rattan` (Giỏ mây), `wood` (Hộp gỗ), `pink-cup` (Cốc hồng), `rose-porcelain` (Sứ hoa hồng), `tin-bucket` (Xô thiếc), `blue-ceramic` (Gốm xanh lam).
+Chậu hiện có: `terracotta` (Đất nung, mặc định chung), `polka` (Sứ chấm bi), `mint` (Gốm mint), `rattan` (Giỏ mây), `wood` (Hộp gỗ), `pink-cup` (Cốc hồng), `rose-porcelain` (Sứ hoa hồng), `tin-bucket` (Xô thiếc), `blue-ceramic` (Gốm xanh lam), `concrete` (Bê tông).
 
 ### Hiệu ứng đặc biệt: `SpecialVariant`
 ```ts

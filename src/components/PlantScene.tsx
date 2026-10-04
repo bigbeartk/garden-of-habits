@@ -68,7 +68,7 @@ export function PlantScene({
           transition={{ duration: 0.9, ease: 'easeOut' }}
         >
           <ArtView art={species.stages[stage]} />
-          <Face mood={mood} {...species.faceAnchor[stage]} />
+          <Face mood={mood} faceStyle={species.faceStyle} {...species.faceAnchor[stage]} />
         </motion.g>
         </g>
       )}
