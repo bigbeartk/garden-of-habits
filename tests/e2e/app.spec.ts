@@ -14,14 +14,19 @@ async function openToday(page: Page) {
   await expect(page.getByTestId('plant-scene')).toBeVisible();
 }
 
-async function addTodo(page: Page, text: string) {
-  if (!(await page.getByRole('dialog', { name: 'Thêm việc cần làm' }).isVisible())) {
-    await page.getByRole('button', { name: 'Thêm việc mới' }).click();
-  }
-  const dialog = page.getByRole('dialog', { name: 'Thêm việc cần làm' });
-  await dialog.getByLabel('Nội dung việc').fill(text);
-  await dialog.getByRole('button', { name: 'Thêm', exact: true }).click();
+/** Thêm việc bằng nút ＋ ở hàng tiêu đề của buổi; dòng trống vẫn mở sau Enter nên thêm liên tiếp được. */
+async function addTodo(page: Page, text: string, period: 'Sáng' | 'Chiều' | 'Tối' = 'Sáng') {
+  const draft = page.getByLabel(`Việc mới buổi ${period}`);
+  if (!(await draft.isVisible())) await page.getByRole('button', { name: `Thêm việc buổi ${period}` }).click();
+  await draft.fill(text);
+  await draft.press('Enter');
   await expect(page.getByRole('checkbox', { name: `Hoàn thành: ${text}` })).toBeVisible();
+}
+
+/** Đóng dòng việc trống đang mở (Escape). */
+async function closeDraft(page: Page) {
+  await page.keyboard.press('Escape');
+  await expect(page.locator('.todo__row--draft')).toHaveCount(0);
 }
 
 test('tick việc làm cây lớn và dữ liệu còn sau khi tải lại', async ({ page }) => {
@@ -30,8 +35,7 @@ test('tick việc làm cây lớn và dữ liệu còn sau khi tải lại', asy
   await openToday(page);
   await addTodo(page, 'Uống nước');
   await addTodo(page, 'Đọc sách');
-  await page.getByRole('dialog', { name: 'Thêm việc cần làm' }).getByRole('button', { name: 'Đóng' }).click();
-  await expect(page.getByRole('dialog', { name: 'Thêm việc cần làm' })).toBeHidden();
+  await closeDraft(page);
   const scene = page.getByTestId('plant-scene');
   await expect(scene).toHaveAttribute('data-stage', 'seed');
   await page.getByRole('checkbox', { name: 'Hoàn thành: Uống nước' }).click();
@@ -126,25 +130,37 @@ test('lịch nằm giữa màn hình (theo chiều dọc, phía trên thanh tab)
   expect(Math.abs(topGap - bottomGap), `trên ${topGap}px, dưới ${bottomGap}px`).toBeLessThan(40);
 });
 
-test('nút ＋ đứng yên ở góc phải dưới khi cuộn danh sách dài', async ({ page }) => {
+test('nút ＋ nằm ngoài cùng bên phải hàng Sáng/Chiều/Tối; thêm việc trống vào đúng buổi', async ({ page }) => {
   await page.clock.setFixedTime(at('2026-10-02T10:00:00'));
   await page.goto('/');
   await openToday(page);
-  for (let i = 1; i <= 12; i++) await addTodo(page, `Việc số ${i}`);
-  await page.getByRole('dialog', { name: 'Thêm việc cần làm' }).getByRole('button', { name: 'Đóng' }).click();
-  await expect(page.getByRole('dialog', { name: 'Thêm việc cần làm' })).toBeHidden();
-  const fab = page.getByRole('button', { name: 'Thêm việc mới' });
-  const before = (await fab.boundingBox())!;
-  const vp = page.viewportSize()!;
-  expect(before.x + before.width).toBeGreaterThan(vp.width - 40);
-  const tabbar = (await page.getByRole('navigation', { name: 'Điều hướng' }).boundingBox())!;
-  expect(before.y + before.height).toBeLessThanOrEqual(tabbar.y);
-  await page.locator('.today__list').evaluate((el) => el.scrollTo(0, el.scrollHeight));
-  await expect(page.getByRole('checkbox', { name: 'Hoàn thành: Việc số 12' })).toBeInViewport();
-  const after = (await fab.boundingBox())!;
-  expect(after.y).toBeCloseTo(before.y, 0);
-  await fab.click();
-  await expect(page.getByRole('dialog', { name: 'Thêm việc cần làm' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Thêm việc mới' })).toHaveCount(0);
+  for (const [p, label] of [['morning', 'Sáng'], ['afternoon', 'Chiều'], ['evening', 'Tối']] as const) {
+    const section = page.getByTestId(`todo-section-${p}`);
+    const add = (await section.getByRole('button', { name: `Thêm việc buổi ${label}` }).boundingBox())!;
+    const title = (await section.getByRole('heading', { name: new RegExp(label) }).boundingBox())!;
+    const box = (await section.boundingBox())!;
+    expect(Math.abs(add.y + add.height / 2 - (title.y + title.height / 2)), `${label}: cùng hàng tiêu đề`).toBeLessThan(4);
+    expect(box.x + box.width - (add.x + add.width), `${label}: sát mép phải`).toBeLessThan(16);
+    expect(add.width).toBeCloseTo(add.height, 0);
+  }
+  await addTodo(page, 'Đi chợ', 'Chiều');
+  await addTodo(page, 'Nấu cơm', 'Chiều');
+  // dòng trống buổi Chiều còn mở mà bấm ＋ buổi Tối (Safari không lấy focus khỏi ô khi chạm nút)
+  await addTodo(page, 'Đọc sách', 'Tối');
+  // gõ dở ở buổi Tối rồi bấm ＋ buổi Sáng (phía trên): chữ đã gõ được lưu, dòng Sáng mở ra
+  await page.getByLabel('Việc mới buổi Tối').fill('Tắm');
+  await page.getByRole('button', { name: 'Thêm việc buổi Sáng' }).click();
+  await expect(page.getByLabel('Việc mới buổi Sáng')).toBeFocused();
+  await expect(page.getByLabel('Việc mới buổi Tối')).toHaveCount(0);
+  // gõ dở ở buổi Sáng rồi bấm ＋ buổi Chiều (phía dưới): dòng Sáng đóng không được làm nút trượt khỏi ngón tay
+  await page.getByLabel('Việc mới buổi Sáng').fill('Tập thể dục');
+  await page.getByRole('button', { name: 'Thêm việc buổi Chiều' }).click();
+  await expect(page.getByLabel('Việc mới buổi Chiều')).toBeFocused();
+  await expect(page.getByTestId('todo-section-morning').locator('.todo__text')).toHaveText(['Tập thể dục']);
+  await closeDraft(page);
+  await expect(page.getByTestId('todo-section-afternoon').locator('.todo__text')).toHaveText(['Đi chợ', 'Nấu cơm']);
+  await expect(page.getByTestId('todo-section-evening').locator('.todo__text')).toHaveText(['Đọc sách', 'Tắm']);
 });
 
 test('ô đầu danh sách là tiêu đề ngày và còn sau khi tải lại', async ({ page }) => {
@@ -178,8 +194,8 @@ test('việc chia 3 buổi; tick xong thì cây khen', async ({ page }) => {
   await page.clock.setFixedTime(at('2026-10-02T19:00:00'));
   await page.goto('/');
   await openToday(page);
-  await addTodo(page, 'Đọc truyện');
-  await page.getByRole('dialog', { name: 'Thêm việc cần làm' }).getByRole('button', { name: 'Đóng' }).click();
+  await addTodo(page, 'Đọc truyện', 'Tối');
+  await closeDraft(page);
   const evening = page.getByTestId('todo-section-evening');
   await expect(evening.getByRole('checkbox', { name: 'Hoàn thành: Đọc truyện' })).toBeVisible();
   await expect(page.getByTestId('todo-section-morning').getByText('Chưa có việc')).toBeVisible();
@@ -187,7 +203,7 @@ test('việc chia 3 buổi; tick xong thì cây khen', async ({ page }) => {
   await expect(page.getByTestId('speech-bubble')).toBeVisible();
 });
 
-test('menu nổi: nút nằm dưới nút ＋, dải tab trượt ra bên trái rồi thu lại', async ({ page }) => {
+test('menu nổi: nút ở góc phải dưới, dải tab trượt ra bên trái rồi thu lại', async ({ page }) => {
   await page.clock.setFixedTime(at('2026-10-02T10:00:00'));
   await page.goto('/');
   await openToday(page);
@@ -202,9 +218,6 @@ test('menu nổi: nút nằm dưới nút ＋, dải tab trượt ra bên trái 
   await toggle.click();
   await expect(tabs).toHaveCount(0);
   const menu = (await page.getByRole('button', { name: 'Mở menu' }).boundingBox())!;
-  const fab = (await page.getByRole('button', { name: 'Thêm việc mới' }).boundingBox())!;
-  expect(fab.y + fab.height).toBeLessThanOrEqual(menu.y);
-  expect(Math.abs(fab.x + fab.width / 2 - (menu.x + menu.width / 2))).toBeLessThan(4);
   const vp = page.viewportSize()!;
   expect(menu.x + menu.width).toBeGreaterThan(vp.width - 24);
   expect(menu.y + menu.height).toBeGreaterThan(vp.height - 90);
@@ -215,7 +228,7 @@ test('việc đã xong không bị gạch ngang chữ', async ({ page }) => {
   await page.goto('/');
   await openToday(page);
   await addTodo(page, 'Uống nước');
-  await page.getByRole('dialog', { name: 'Thêm việc cần làm' }).getByRole('button', { name: 'Đóng' }).click();
+  await closeDraft(page);
   await page.getByRole('checkbox', { name: 'Hoàn thành: Uống nước' }).click();
   const text = page.locator('.todo__row.is-done .todo__text');
   await expect(text).toHaveText('Uống nước');
@@ -227,7 +240,7 @@ test('tab Hôm nay: cây đứng yên, chỉ danh sách việc cuộn', async ({
   await page.goto('/');
   await openToday(page);
   for (let i = 1; i <= 10; i++) await addTodo(page, `Việc số ${i}`);
-  await page.getByRole('dialog', { name: 'Thêm việc cần làm' }).getByRole('button', { name: 'Đóng' }).click();
+  await closeDraft(page);
   const sky = page.getByTestId('sky');
   const before = (await sky.boundingBox())!;
   const list = page.locator('.today__list');
@@ -246,12 +259,10 @@ test('chạm ngày tương lai mở màn giống Hôm nay để lên lịch; t�
   await page.getByTestId('day-2026-10-05').click();
   const future = page.getByTestId('future-day');
   await expect(future.getByRole('heading', { name: 'Thứ Hai, 05/10/2026' })).toBeVisible();
-  await future.getByRole('button', { name: 'Thêm việc mới' }).click();
-  const dialog = page.getByRole('dialog', { name: 'Thêm việc cần làm' });
-  await dialog.getByRole('radio', { name: /Tối/ }).click();
-  await dialog.getByLabel('Nội dung việc').fill('Gọi điện cho mẹ');
-  await dialog.getByRole('button', { name: 'Thêm', exact: true }).click();
-  await dialog.getByRole('button', { name: 'Đóng' }).click();
+  await future.getByRole('button', { name: 'Thêm việc buổi Tối' }).click();
+  await future.getByLabel('Việc mới buổi Tối').fill('Gọi điện cho mẹ');
+  await future.getByLabel('Việc mới buổi Tối').press('Enter');
+  await closeDraft(page);
   await expect(future.getByTestId('todo-section-evening').getByText('Gọi điện cho mẹ')).toBeVisible();
   await future.getByRole('button', { name: 'Quay lại Lịch' }).click();
   await expect(page.getByTestId('day-2026-10-05').getByTestId('planned-count')).toHaveText('1');
@@ -275,10 +286,10 @@ test('nút tròn vẫn tròn dù Safari gán padding mặc định lớn cho <bu
   await page.goto('/');
   await openToday(page);
   await addTodo(page, 'Dọn nhà');
-  await page.getByRole('dialog', { name: 'Thêm việc cần làm' }).getByRole('button', { name: 'Đóng' }).click();
+  await closeDraft(page);
   const round = [
     page.getByRole('button', { name: 'Đổi cây' }),
-    page.getByRole('button', { name: 'Thêm việc mới' }),
+    page.getByRole('button', { name: 'Thêm việc buổi Sáng' }),
     page.getByRole('checkbox', { name: 'Hoàn thành: Dọn nhà' }),
     page.getByRole('button', { name: /^(Mở|Đóng) menu$/ }),
   ];
@@ -304,13 +315,11 @@ test('kéo việc sang buổi khác và sắp xếp trong buổi; còn nguyên s
   await openToday(page);
   await addTodo(page, 'Tưới cây');
   await addTodo(page, 'Uống nước');
-  await page.getByRole('dialog', { name: 'Thêm việc cần làm' }).getByRole('button', { name: 'Đóng' }).click();
-  await expect(page.locator('.sheet__backdrop')).toHaveCount(0); // chờ bảng trượt xuống hẳn
+  await closeDraft(page);
   await page.getByRole('button', { name: 'Đóng menu' }).click(); // dải tab đang mở che mất nút kéo
   const morning = page.getByTestId('todo-section-morning');
   const afternoon = page.getByTestId('todo-section-afternoon');
 
-  // nút ＋ nổi che nút kéo của việc thứ hai trên khung 664px, nên luôn kéo việc trên cùng
   // kéo "Tưới cây" thả vào buổi Chiều (đang trống)
   const target = (await afternoon.boundingBox())!;
   await dragHandle(page, 'Tưới cây', { x: target.x + target.width / 2, y: target.y + target.height / 2 });

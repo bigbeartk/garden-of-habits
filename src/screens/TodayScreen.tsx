@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useDeps } from '../app/deps';
 import { useNav } from '../app/nav';
-import { AddTodoSheet } from '../components/AddTodoSheet';
 import { BackButton } from '../components/BackButton';
 import { GoalInput } from '../components/GoalInput';
 import { IconButton } from '../components/IconButton';
@@ -30,7 +29,7 @@ import { useBackupReminder } from '../hooks/useBackupReminder';
 import { useToday } from '../hooks/useToday';
 import './today.css';
 
-type Sheet = null | 'plant' | 'pot' | 'note' | 'add';
+type Sheet = null | 'plant' | 'pot' | 'note';
 
 export function TodayScreen() {
   const deps = useDeps();
@@ -166,22 +165,12 @@ export function TodayScreen() {
               onEdit={(id, t) => run(editTodo(deps, day.date, id, t))}
               onDelete={(id) => run(deleteTodo(deps, day.date, id))}
               onMove={(id, period, index) => run(moveTodo(deps, day.date, id, period, index))}
+              onAdd={(text, period) => run(addTodo(deps, day.date, text, period))}
             />
           </>
         )}
       </div>
 
-      {!day.isRestDay && (
-        <button type="button" className="fab" aria-label="Thêm việc mới" onClick={() => setSheet('add')}>
-          <span aria-hidden="true">＋</span>
-        </button>
-      )}
-      <AddTodoSheet
-        open={sheet === 'add'}
-        defaultPeriod={currentPeriod}
-        onClose={() => setSheet(null)}
-        onAdd={(t, p) => run(addTodo(deps, day.date, t, p))}
-      />
       <PlantPickerSheet
         open={sheet === 'plant'}
         currentId={day.plantId}

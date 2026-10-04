@@ -22,8 +22,8 @@
   margin: -18px 12px 0; position: relative; display: flex; flex-direction: column; gap: 12px;
   flex: 1 1 0; min-height: 0; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-  /* chừa chỗ cho nút ＋ và nút menu nổi */
-  padding-bottom: calc(var(--tabbar-h) * 2 + 48px + env(safe-area-inset-bottom));
+  /* chừa chỗ cho nút menu nổi */
+  padding-bottom: calc(var(--tabbar-h) + 48px + env(safe-area-inset-bottom));
 }
 .today__list > * { flex: none; }
 .today__head { display: flex; align-items: center; justify-content: space-between; }
@@ -54,16 +54,6 @@
 }
 .day-title__input:not(:placeholder-shown) { border-color: transparent; background: transparent; padding-left: 4px; }
 .day-title__input:focus { border-style: solid; border-color: var(--berry); background: #fff; padding-left: 14px; }
-/* Nút ＋ nổi: cố định góc phải dưới, ngay trên thanh tab, không cuộn theo danh sách */
-.fab {
-  position: fixed; z-index: 30;
-  right: 16px; bottom: calc(var(--tabbar-h) + 30px + env(safe-area-inset-bottom)); /* ngay trên nút menu */
-  width: var(--tabbar-h); height: var(--tabbar-h); padding: 0; border-radius: 50%;
-  border: 2.5px solid var(--cocoa); background: var(--peach);
-  box-shadow: 0 4px 0 rgba(91, 70, 54, 0.25), var(--shadow-soft);
-  font-size: 2rem; font-weight: 700; line-height: 1; color: var(--cocoa); cursor: pointer;
-}
-.fab:active { transform: translateY(3px) scale(0.95); box-shadow: 0 1px 0 rgba(91, 70, 54, 0.25); }
 /* Màn ngày tương lai */
 .future__spacer { flex: none; height: 32px; }
 .future__title { font-size: 1.25rem; }

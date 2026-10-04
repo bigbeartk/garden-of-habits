@@ -1,5 +1,4 @@
 import { render, screen, within } from '@testing-library/react';
-import { PeriodPicker } from '../../../src/components/PeriodPicker';
 import { PlannedList } from '../../../src/components/PlannedList';
 import { TodoList } from '../../../src/components/TodoList';
 import { DayDetailSheet } from '../../../src/components/DayDetailSheet';
@@ -30,18 +29,11 @@ describe('icon Sáng/Chiều/Tối là SVG tự vẽ, không phải emoji', () =
   });
 
   it('danh sách việc hôm nay và ngày tương lai', () => {
-    const { unmount } = render(<TodoList todos={[]} currentPeriod="morning" onToggle={() => {}} onEdit={() => {}} onDelete={() => {}} onMove={() => {}} />);
+    const { unmount } = render(<TodoList todos={[]} currentPeriod="morning" onToggle={() => {}} onEdit={() => {}} onDelete={() => {}} onMove={() => {}} onAdd={() => {}} />);
     for (const p of ['morning', 'afternoon', 'evening'] as const) expectCuteIcon(screen.getByTestId(`todo-section-${p}`).querySelector('h2')!, p);
     unmount();
-    render(<PlannedList items={[]} onEdit={() => {}} onDelete={() => {}} />);
+    render(<PlannedList items={[]} onEdit={() => {}} onDelete={() => {}} onAdd={() => {}} />);
     for (const p of ['morning', 'afternoon', 'evening'] as const) expectCuteIcon(screen.getByTestId(`todo-section-${p}`).querySelector('h2')!, p);
-  });
-
-  it('ô chọn buổi', () => {
-    render(<PeriodPicker value="evening" onChange={() => {}} />);
-    expectCuteIcon(screen.getByRole('radio', { name: /Sáng/ }), 'morning');
-    expectCuteIcon(screen.getByRole('radio', { name: /Chiều/ }), 'afternoon');
-    expectCuteIcon(screen.getByRole('radio', { name: /Tối/ }), 'evening');
   });
 });
 

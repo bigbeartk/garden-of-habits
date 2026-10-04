@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { DeleteWithConfirm } from './DeleteWithConfirm';
+import { DraftRow, SectionAddButton } from './InlineAdd';
 import { PERIODS, PERIOD_LABEL, type Period } from '../domain/period';
 import { PeriodIcon } from './icons';
 import type { Todo } from '../domain/types';
@@ -14,6 +15,8 @@ export interface TodoListProps {
   onDelete: (id: string) => void;
   /** kéo thả: chuyển việc sang buổi `period`, đứng ở vị trí `index` trong buổi đó */
   onMove: (id: string, period: Period, index: number) => void;
+  /** thêm việc (đã bỏ khoảng trắng, không rỗng) vào buổi `period` */
+  onAdd: (text: string, period: Period) => void;
 }
 
 interface DropTarget { period: Period; index: number; lineY: number | null }
@@ -40,8 +43,10 @@ function applyMove(todos: Todo[], id: string, period: Period, index: number): To
   return PERIODS.flatMap((p) => (p === period ? target : rest.filter((t) => t.period === p)));
 }
 
-export function TodoList({ todos, currentPeriod, onToggle, onEdit, onDelete, onMove }: TodoListProps) {
+export function TodoList({ todos, currentPeriod, onToggle, onEdit, onDelete, onMove, onAdd }: TodoListProps) {
   const [items, setItems] = useState(todos);
+  /** buổi đang có dòng việc trống để gõ */
+  const [draft, setDraft] = useState<Period | null>(null);
   useEffect(() => setItems(todos), [todos]);
   const rootRef = useRef<HTMLDivElement>(null);
   const [drag, setDrag] = useState<Drag | null>(null);
@@ -142,8 +147,9 @@ export function TodoList({ todos, currentPeriod, onToggle, onEdit, onDelete, onM
                 <PeriodIcon period={p} /> {PERIOD_LABEL[p]}
               </h2>
               {group.length > 0 && <span className="todo__section-count">{done}/{group.length}</span>}
+              <SectionAddButton period={p} onClick={() => setDraft(p)} />
             </header>
-            {group.length === 0 ? (
+            {group.length === 0 && draft !== p ? (
               <p className="todo__empty muted">Chưa có việc</p>
             ) : (
               <ul className="todo__list">
@@ -161,6 +167,7 @@ export function TodoList({ todos, currentPeriod, onToggle, onEdit, onDelete, onM
                     onHandleCancel={() => endDrag(false)}
                   />
                 ))}
+                {draft === p && <DraftRow period={p} onAdd={(text) => onAdd(text, p)} onDone={() => setDraft((d) => (d === p ? null : d))} />}
               </ul>
             )}
           </section>

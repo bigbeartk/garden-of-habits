@@ -1,5 +1,4 @@
 .todo { position: relative; display: flex; flex-direction: column; gap: 12px; }
-.todo__add { display: flex; gap: 8px; }
 .todo__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
 .todo__row {
   display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--cream);
@@ -22,20 +21,19 @@
 .todo__section--afternoon { background: rgba(212, 236, 255, 0.5); }
 .todo__section--evening { background: rgba(227, 217, 255, 0.5); }
 .todo__section.is-current { box-shadow: inset 0 0 0 2px var(--cocoa); }
-.todo__section-head { display: flex; align-items: center; justify-content: space-between; }
-.todo__section-title { margin: 0; font-family: var(--font-display); font-size: 1.05rem; font-weight: 700; }
+.todo__section-head { display: flex; align-items: center; gap: 8px; }
+.todo__section-title { flex: 1; margin: 0; font-family: var(--font-display); font-size: 1.05rem; font-weight: 700; }
 .todo__section-count { font-weight: 700; font-size: 0.85rem; padding: 2px 10px; border-radius: 999px; background: rgba(255, 253, 251, 0.85); }
 .todo__section .todo__empty { margin: 0; font-size: 0.9rem; text-align: left; padding-left: 4px; }
-.period-picker { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-.period-picker__item {
-  min-height: 44px; border: 2px solid var(--cocoa); border-radius: 999px; background: var(--white);
-  font-weight: 700; cursor: pointer; box-shadow: var(--shadow-pop);
+/* nút ＋ ở cuối hàng tiêu đề buổi: thêm dòng việc trống vào buổi đó */
+.todo__section-add {
+  flex: none; width: 34px; height: 34px; padding: 0; display: grid; place-items: center; cursor: pointer;
+  border: 2px solid var(--cocoa); border-radius: 50%; background: var(--white); box-shadow: var(--shadow-pop);
 }
-.period-picker__item.is-selected { background: var(--butter); transform: translateY(2px); box-shadow: none; }
-.todo__add .btn { flex: none; white-space: nowrap; }
+.todo__section-add:active { transform: translateY(2px); box-shadow: none; }
+.todo__row--draft .todo__edit .input { padding-top: 6px; padding-bottom: 6px; }
 .todo__bullet { flex: none; width: 14px; height: 14px; margin: 0 8px; border-radius: 50%; border: 2px dashed var(--cocoa-soft); }
-.todo__section-title, .period-picker__item { display: inline-flex; align-items: center; gap: 6px; }
-.period-picker__item { justify-content: center; }
+.todo__section-title { display: inline-flex; align-items: center; gap: 6px; }
 .todo__confirm { flex: none; display: inline-flex; gap: 6px; }
 .todo__confirm-yes, .todo__confirm-no {
   min-height: 34px; padding: 0 12px; border-radius: 999px; border: 2px solid var(--cocoa);

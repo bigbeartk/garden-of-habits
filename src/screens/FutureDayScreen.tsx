@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useDeps } from '../app/deps';
-import { AddTodoSheet } from '../components/AddTodoSheet';
 import { GoalInput } from '../components/GoalInput';
 import { BackButton } from '../components/BackButton';
 import { PlannedList } from '../components/PlannedList';
@@ -17,14 +16,13 @@ import './today.css';
 
 /**
  * Màn của một ngày tương lai: bố cục giống Hôm nay (trời + chậu đứng yên, danh sách cuộn),
- * hạt giống bí ẩn đang ngủ vì cây chỉ được random lúc 4:00 ngày đó; nút ＋ lên lịch việc.
+ * hạt giống bí ẩn đang ngủ vì cây chỉ được random lúc 4:00 ngày đó; nút ＋ ở mỗi buổi để lên lịch việc.
  */
 export function FutureDayScreen({ date, onBack }: { date: string; onBack: () => void }) {
   const deps = useDeps();
   const now = useNow();
   const items = useLiveQuery(() => listPlanned(deps.db, date), [deps.db, date]) ?? [];
   const goal = useLiveQuery(() => getPlannedGoal(deps.db, date), [deps.db, date]) ?? '';
-  const [adding, setAdding] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const label = longDateLabel(date);
   const weekday = label.split(',')[0];
@@ -69,18 +67,9 @@ export function FutureDayScreen({ date, onBack }: { date: string; onBack: () => 
           items={items}
           onEdit={(id, text) => run(editPlanned(deps.db, id, text))}
           onDelete={(id) => run(deletePlanned(deps.db, id))}
+          onAdd={(text, period) => run(addPlanned(deps, date, text, period))}
         />
       </div>
-
-      <button type="button" className="fab" aria-label="Thêm việc mới" onClick={() => setAdding(true)}>
-        <span aria-hidden="true">＋</span>
-      </button>
-      <AddTodoSheet
-        open={adding}
-        defaultPeriod="morning"
-        onClose={() => setAdding(false)}
-        onAdd={(text, period) => run(addPlanned(deps, date, text, period))}
-      />
     </section>
   );
 }

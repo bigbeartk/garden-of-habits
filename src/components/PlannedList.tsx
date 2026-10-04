@@ -1,16 +1,20 @@
 import { useState } from 'react';
 import { DeleteWithConfirm } from './DeleteWithConfirm';
-import { PERIODS, PERIOD_LABEL } from '../domain/period';
+import { DraftRow, SectionAddButton } from './InlineAdd';
+import { PERIODS, PERIOD_LABEL, type Period } from '../domain/period';
 import { PeriodIcon } from './icons';
 import type { PlannedTodo } from '../domain/types';
 import './todo.css';
 
 /** Danh sách việc đã lên lịch cho một ngày tương lai, chia 3 buổi; sửa/xoá được, không có ô tick. */
-export function PlannedList({ items, onEdit, onDelete }: {
+export function PlannedList({ items, onEdit, onDelete, onAdd }: {
   items: PlannedTodo[];
   onEdit: (id: string, text: string) => void;
   onDelete: (id: string) => void;
+  onAdd: (text: string, period: Period) => void;
 }) {
+  /** buổi đang có dòng việc trống để gõ */
+  const [draft, setDraft] = useState<Period | null>(null);
   return (
     <div className="todo">
       {items.length === 0 && <p className="todo__hint muted">Bấm ＋ để lên lịch việc cho ngày này 🌱</p>}
@@ -23,12 +27,14 @@ export function PlannedList({ items, onEdit, onDelete }: {
                 <PeriodIcon period={p} /> {PERIOD_LABEL[p]}
               </h2>
               {group.length > 0 && <span className="todo__section-count">{group.length}</span>}
+              <SectionAddButton period={p} onClick={() => setDraft(p)} />
             </header>
-            {group.length === 0 ? (
+            {group.length === 0 && draft !== p ? (
               <p className="todo__empty muted">Chưa có việc</p>
             ) : (
               <ul className="todo__list">
                 {group.map((t) => <PlannedRow key={t.id} item={t} onEdit={onEdit} onDelete={onDelete} />)}
+                {draft === p && <DraftRow period={p} onAdd={(text) => onAdd(text, p)} onDone={() => setDraft((d) => (d === p ? null : d))} />}
               </ul>
             )}
           </section>

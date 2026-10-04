@@ -140,10 +140,9 @@ describe('CalendarScreen lên lịch việc cho ngày tương lai', () => {
     const user = userEvent.setup();
     renderWithDeps(<CalendarScreen />, deps);
     await user.click(await screen.findByTestId('day-2026-10-20'));
-    await user.click(await screen.findByRole('button', { name: 'Thêm việc mới' }));
-    const dialog = await screen.findByRole('dialog', { name: 'Thêm việc cần làm' });
-    await user.click(within(dialog).getByRole('radio', { name: /Chiều/ }));
-    await user.type(within(dialog).getByLabelText('Nội dung việc'), 'Khám răng{Enter}');
+    expect(screen.queryByRole('button', { name: 'Thêm việc mới' })).not.toBeInTheDocument();
+    await user.click(await screen.findByRole('button', { name: 'Thêm việc buổi Chiều' }));
+    await user.type(screen.getByLabelText('Việc mới buổi Chiều'), 'Khám răng{Enter}');
     const afternoon = screen.getByTestId('todo-section-afternoon');
     expect(await within(afternoon).findByText('Khám răng')).toBeInTheDocument();
     expect(screen.getByText('1 việc')).toBeInTheDocument();
@@ -151,7 +150,6 @@ describe('CalendarScreen lên lịch việc cho ngày tương lai', () => {
     const saved = await deps.db.planned.toArray();
     expect(saved.map((p) => [p.date, p.text, p.period])).toEqual([['2026-10-20', 'Khám răng', 'afternoon']]);
 
-    await user.click(within(dialog).getByRole('button', { name: 'Đóng' }));
     await user.click(within(afternoon).getByText('Khám răng'));
     const edit = within(afternoon).getByLabelText('Sửa việc');
     await user.clear(edit);

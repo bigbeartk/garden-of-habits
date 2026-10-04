@@ -7,11 +7,10 @@ import { BLOOM_PRAISES, COMMON_PRAISES } from '../../../src/content/praises';
 import { getSpecies } from '../../../src/content/plants/registry';
 import { makeDay, makeDeps, renderWithDeps } from '../helpers';
 
-async function addTodoViaPopup(user: ReturnType<typeof userEvent.setup>, text: string) {
-  await user.click(await screen.findByRole('button', { name: 'Thêm việc mới' }));
-  const dialog = await screen.findByRole('dialog', { name: 'Thêm việc cần làm' });
-  await user.type(within(dialog).getByLabelText('Nội dung việc'), `${text}{Enter}`);
-  return dialog;
+/** Bấm ＋ ở hàng tiêu đề của buổi rồi gõ vào dòng việc trống vừa hiện. */
+async function addTodoInline(user: ReturnType<typeof userEvent.setup>, text: string, period: 'Sáng' | 'Chiều' | 'Tối' = 'Sáng') {
+  await user.click(await screen.findByRole('button', { name: `Thêm việc buổi ${period}` }));
+  await user.type(screen.getByLabelText(`Việc mới buổi ${period}`), `${text}{Enter}`);
 }
 
 const setup = () => {
@@ -25,7 +24,7 @@ const setup = () => {
 describe('TodayScreen', () => {
   it('thêm và tick việc làm cây lớn', async () => {
     const { user } = setup();
-    await addTodoViaPopup(user, 'Uống nước');
+    await addTodoInline(user, 'Uống nước');
     const box = await screen.findByRole('checkbox', { name: 'Hoàn thành: Uống nước' });
     expect(screen.getByTestId('plant-scene')).toHaveAttribute('data-stage', 'seed');
     await user.click(box);
@@ -41,11 +40,11 @@ describe('TodayScreen', () => {
 
   it('ngày tiết kiệm năng lượng: ẩn danh sách, cây ngủ, giữ việc', async () => {
     const { deps, user } = setup();
-    await addTodoViaPopup(user, 'Dọn nhà');
+    await addTodoInline(user, 'Dọn nhà');
     await screen.findByRole('checkbox', { name: 'Hoàn thành: Dọn nhà' });
     await user.click(screen.getByRole('button', { name: 'Ngày tiết kiệm năng lượng' }));
     expect(await screen.findByTestId('rest-message')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Thêm việc mới' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^Thêm việc/ })).not.toBeInTheDocument();
     expect(screen.queryByLabelText('Mục tiêu hôm nay')).not.toBeInTheDocument();
     expect(screen.getByTestId('plant-scene')).toHaveAttribute('data-mode', 'sleeping');
     expect((await deps.db.days.get('2026-10-02'))!.todos).toHaveLength(1);
@@ -115,20 +114,37 @@ describe('TodayScreen tiêu đề ngày và nút thêm việc', () => {
     await waitFor(async () => expect((await deps.db.days.get('2026-10-02'))!.title).toBe('Thứ Sáu vui vẻ'));
   });
 
-  it('popup thêm việc vẫn mở để thêm liên tiếp nhiều việc', async () => {
+  it('Enter lưu việc và mở ngay dòng trống mới để gõ tiếp', async () => {
     const { deps, user } = setup();
-    const dialog = await addTodoViaPopup(user, 'Việc một');
-    await user.type(within(dialog).getByLabelText('Nội dung việc'), 'Việc hai');
-    await user.click(within(dialog).getByRole('button', { name: 'Thêm' }));
+    await addTodoInline(user, 'Việc một');
+    const draft = screen.getByLabelText('Việc mới buổi Sáng');
+    expect(draft).toHaveValue('');
+    expect(draft).toHaveFocus();
+    await user.type(draft, 'Việc hai{Enter}');
     await waitFor(async () => expect((await deps.db.days.get('2026-10-02'))!.todos.map((t) => t.text)).toEqual(['Việc một', 'Việc hai']));
-    expect(within(dialog).getByLabelText('Nội dung việc')).toHaveValue('');
-    expect(screen.getByRole('dialog', { name: 'Thêm việc cần làm' })).toBeInTheDocument();
   });
 
-  it('nội dung trống thì không thêm việc', async () => {
+  it('dòng trống bỏ trống rồi chạm ra ngoài thì biến mất, không thêm việc', async () => {
     const { deps, user } = setup();
-    await addTodoViaPopup(user, '   ');
+    await addTodoInline(user, '   ');
+    await user.click(screen.getByRole('heading', { name: 'Hôm nay' }));
+    expect(screen.queryByLabelText('Việc mới buổi Sáng')).not.toBeInTheDocument();
     expect((await deps.db.days.get('2026-10-02'))!.todos).toHaveLength(0);
+  });
+
+  it('gõ dở rồi chạm ra ngoài thì vẫn lưu việc', async () => {
+    const { deps, user } = setup();
+    await user.click(await screen.findByRole('button', { name: 'Thêm việc buổi Chiều' }));
+    await user.type(screen.getByLabelText('Việc mới buổi Chiều'), 'Đi chợ');
+    await user.click(screen.getByRole('heading', { name: 'Hôm nay' }));
+    await waitFor(async () => expect((await deps.db.days.get('2026-10-02'))!.todos.map((t) => [t.text, t.period])).toEqual([['Đi chợ', 'afternoon']]));
+    expect(screen.queryByLabelText('Việc mới buổi Chiều')).not.toBeInTheDocument();
+  });
+
+  it('không còn nút ＋ nổi', async () => {
+    setup();
+    await screen.findByTestId('plant-scene');
+    expect(screen.queryByRole('button', { name: 'Thêm việc mới' })).not.toBeInTheDocument();
   });
 });
 
@@ -144,11 +160,15 @@ describe('TodayScreen chia việc theo buổi', () => {
     expect(within(screen.getByTestId('todo-section-evening')).getByRole('heading', { name: /Tối/ })).toBeInTheDocument();
   });
 
-  it('popup chọn buổi; việc hiện đúng mục và mỗi mục đếm riêng', async () => {
+  it('mỗi buổi có nút ＋ ở cuối hàng tiêu đề; việc vào đúng buổi và mỗi mục đếm riêng', async () => {
     const { deps, user } = setup();
-    const dialog = await addTodoViaPopup(user, 'Ăn sáng');
-    await user.click(within(dialog).getByRole('radio', { name: /Tối/ }));
-    await user.type(within(dialog).getByLabelText('Nội dung việc'), 'Đọc truyện{Enter}');
+    for (const [p, label] of [['morning', 'Sáng'], ['afternoon', 'Chiều'], ['evening', 'Tối']]) {
+      const head = within(await screen.findByTestId(`todo-section-${p}`)).getByRole('heading', { name: new RegExp(label) }).closest('header')!;
+      const add = within(head).getByRole('button', { name: `Thêm việc buổi ${label}` });
+      expect(head.lastElementChild).toBe(add); // ngoài cùng bên phải
+    }
+    await addTodoInline(user, 'Ăn sáng');
+    await addTodoInline(user, 'Đọc truyện', 'Tối');
     await waitFor(async () => expect((await deps.db.days.get('2026-10-02'))!.todos).toHaveLength(2));
     const morning = screen.getByTestId('todo-section-morning');
     const evening = screen.getByTestId('todo-section-evening');
@@ -156,23 +176,13 @@ describe('TodayScreen chia việc theo buổi', () => {
     expect(await within(evening).findByRole('checkbox', { name: 'Hoàn thành: Đọc truyện' })).toBeInTheDocument();
     expect(within(evening).getByText('0/1')).toBeInTheDocument();
   });
-
-  it('buổi mặc định trong popup là buổi hiện tại', async () => {
-    const { deps } = makeDeps(new Date(2026, 9, 2, 19, 30), CATALOG);
-    const user = userEvent.setup();
-    renderWithDeps(<TodayScreen />, deps);
-    await user.click(await screen.findByRole('button', { name: 'Thêm việc mới' }));
-    const dialog = await screen.findByRole('dialog', { name: 'Thêm việc cần làm' });
-    expect(within(dialog).getByRole('radio', { name: /Tối/ })).toHaveAttribute('aria-checked', 'true');
-  });
 });
 
 describe('TodayScreen cây khen', () => {
   it('xong một việc thì cây nói lời khen', async () => {
     const { user } = setup();
-    await addTodoViaPopup(user, 'Việc A');
-    await addTodoViaPopup(user, 'Việc B');
-    await user.click(screen.getByRole('button', { name: 'Đóng' }));
+    await addTodoInline(user, 'Việc A');
+    await addTodoInline(user, 'Việc B');
     await user.click(await screen.findByRole('checkbox', { name: 'Hoàn thành: Việc A' }));
     const species = getSpecies(screen.getByTestId('plant-scene').getAttribute('data-plant')!);
     const pool = [...COMMON_PRAISES, ...(species.praises ?? [])];
@@ -181,8 +191,7 @@ describe('TodayScreen cây khen', () => {
 
   it('xong việc cuối cùng (ra hoa) thì khen đặc biệt', async () => {
     const { user } = setup();
-    await addTodoViaPopup(user, 'Việc duy nhất');
-    await user.click(screen.getByRole('button', { name: 'Đóng' }));
+    await addTodoInline(user, 'Việc duy nhất');
     await user.click(await screen.findByRole('checkbox', { name: 'Hoàn thành: Việc duy nhất' }));
     await waitFor(() => expect(BLOOM_PRAISES).toContain(screen.getByTestId('speech-bubble').textContent));
   });
@@ -217,8 +226,7 @@ describe('TodayScreen nút quay lại', () => {
 describe('TodayScreen xoá việc cần xác nhận', () => {
   it('bấm × chưa xoá; bấm Thôi thì giữ; bấm Xoá mới xoá', async () => {
     const { deps, user } = setup();
-    await addTodoViaPopup(user, 'Rửa bát');
-    await user.click(screen.getByRole('button', { name: 'Đóng' }));
+    await addTodoInline(user, 'Rửa bát');
     await user.click(await screen.findByRole('button', { name: 'Xoá: Rửa bát' }));
     expect((await deps.db.days.get('2026-10-02'))!.todos).toHaveLength(1);
     await user.click(screen.getByRole('button', { name: 'Thôi' }));

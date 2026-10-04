@@ -34,6 +34,15 @@ function Blush({ x1, x2, y }: { x1: number; x2: number; y: number }) {
   );
 }
 
+/** Dấu cộng: thêm việc vào một buổi */
+export function PlusIcon({ size }: { size?: number }) {
+  return (
+    <Svg name="plus" size={size}>
+      <path d="M16 9 V23 M9 16 H23" stroke={INK} strokeWidth={3} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
 export function CalendarIcon({ size }: { size?: number }) {
   return (
     <Svg name="calendar" size={size}>
