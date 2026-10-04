@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useLiveQuery } from 'dexie-react-hooks';
 import { useDeps } from '../app/deps';
 import { useNav } from '../app/nav';
 import { BackButton } from '../components/BackButton';
@@ -10,7 +11,7 @@ import { PlantPickerSheet } from '../components/PlantPickerSheet';
 import { PlantScene } from '../components/PlantScene';
 import { PotPickerSheet } from '../components/PotPickerSheet';
 import { SkyBackground } from '../components/SkyBackground';
-import { SpeechBubble } from '../components/SpeechBubble';
+import { SpeechBubble, type SpeechKind } from '../components/SpeechBubble';
 import { StageBurst } from '../components/StageBurst';
 import { TodoList } from '../components/TodoList';
 import { WateringCan } from '../components/WateringCan';
@@ -25,6 +26,7 @@ import {
 import { stageIndex } from '../domain/growth';
 import { periodOf } from '../domain/period';
 import { timeOfDay } from '../domain/timeOfDay';
+import { getSetting } from '../db/settings';
 import { useBackupReminder } from '../hooks/useBackupReminder';
 import { useToday } from '../hooks/useToday';
 import './today.css';
@@ -44,6 +46,7 @@ export function TodayScreen() {
   const [sheet, setSheet] = useState<Sheet>(null);
   const [error, setError] = useState<string | null>(null);
   const greetedFor = useRef<string | null>(null);
+  const plantSaysNote = useLiveQuery(async () => (await getSetting(deps.db, 'plantSaysNote')) ?? false, [deps.db], false);
 
   useEffect(() => {
     if (!day || day.greetedAt !== null || greetedFor.current === day.date) return;
@@ -74,7 +77,10 @@ export function TodayScreen() {
   const run = (p: Promise<unknown>) => {
     p.catch((e: Error) => setError(e.message));
   };
-  const mood: Mood = day.isRestDay ? 'sleep' : celebrating ? 'smile' : speech ? 'talk' : 'normal';
+  // chào/khen hiện tạm; ngoài lúc đó, nếu bật "Cây nói ghi chú" thì cây nói ghi chú hôm nay
+  const noteText = plantSaysNote && !day.isRestDay ? day.note.trim() : '';
+  const said: { text: string; kind: SpeechKind } | null = speech ?? (noteText ? { text: noteText, kind: 'note' } : null);
+  const mood: Mood = day.isRestDay ? 'sleep' : celebrating ? 'smile' : said ? 'talk' : 'normal';
   const currentPeriod = periodOf(now);
   const doneCount = day.todos.filter((t) => t.done).length;
   const special = day.isRestDay ? null : getSpecial(day.specialId);
@@ -105,7 +111,7 @@ export function TodayScreen() {
               Hôm nay mình là cây đặc biệt: {special.name}!
             </div>
           )}
-          <SpeechBubble text={speech?.text ?? null} />
+          <SpeechBubble text={said?.text ?? null} kind={said?.kind} />
           <PlantScene
             className="today__plant"
             plantId={day.plantId}

@@ -8,6 +8,8 @@ export interface SettingsShape {
   showCalendarBgButton: boolean;
   /** hiện chấm đỏ ở ô lịch của ngày có ghi chú (mặc định: có) */
   showNoteDot: boolean;
+  /** cây nói ghi chú hôm nay trong bong bóng thoại (mặc định: không) */
+  plantSaysNote: boolean;
   lastBackupAt: number;
 }
 

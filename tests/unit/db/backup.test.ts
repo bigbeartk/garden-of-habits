@@ -254,3 +254,18 @@ describe('sao lưu công tắc chấm ghi chú', () => {
     expect(await getSetting(dst2, 'showNoteDot')).toBe(false);
   });
 });
+
+describe('sao lưu công tắc cây nói ghi chú', () => {
+  it('giữ plantSaysNote khi khôi phục (thay thế và gộp)', async () => {
+    const src = makeDb();
+    await setSetting(src, 'plantSaysNote', true);
+    const r = parseBackup(serializeBackup(await createBackup(src, 1)));
+    if (!r.ok) throw new Error(r.error);
+    const dst = makeDb();
+    await restoreBackup(dst, r.backup, 'replace');
+    expect(await getSetting(dst, 'plantSaysNote')).toBe(true);
+    const dst2 = makeDb();
+    await restoreBackup(dst2, r.backup, 'merge');
+    expect(await getSetting(dst2, 'plantSaysNote')).toBe(true);
+  });
+});

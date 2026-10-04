@@ -6,6 +6,7 @@ import { CATALOG } from '../../../src/content/catalog';
 import { BLOOM_PRAISES, COMMON_PRAISES } from '../../../src/content/praises';
 import { getSpecies } from '../../../src/content/plants/registry';
 import { makeDay, makeDeps, renderWithDeps } from '../helpers';
+import { getSetting, setSetting } from '../../../src/db/settings';
 
 /** Bấm ＋ ở hàng tiêu đề của buổi rồi gõ vào dòng việc trống vừa hiện. */
 async function addTodoInline(user: ReturnType<typeof userEvent.setup>, text: string, period: 'Sáng' | 'Chiều' | 'Tối' = 'Sáng') {
@@ -234,5 +235,76 @@ describe('TodayScreen xoá việc cần xác nhận', () => {
     await user.click(screen.getByRole('button', { name: 'Xoá: Rửa bát' }));
     await user.click(screen.getByRole('button', { name: 'Xác nhận xoá: Rửa bát' }));
     await waitFor(async () => expect((await deps.db.days.get('2026-10-02'))!.todos).toHaveLength(0));
+  });
+});
+
+describe('TodayScreen cây nói ghi chú', () => {
+  // ngày đã chào rồi, để bong bóng chào không che kết quả
+  const setupNote = async (note: string, extra: Partial<Parameters<typeof makeDay>[0]> = {}) => {
+    const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
+    await deps.db.days.put(makeDay({ date: '2026-10-02', greetedAt: 1, note, ...extra }));
+    const user = userEvent.setup();
+    renderWithDeps(<TodayScreen />, deps);
+    await screen.findByTestId('plant-scene');
+    return { deps, user };
+  };
+
+  it('mặc định tắt: có ghi chú nhưng cây không nói', async () => {
+    await setupNote('Trời đẹp');
+    expect(screen.queryByTestId('speech-bubble')).not.toBeInTheDocument();
+  });
+
+  it('bật công tắc trong bảng ghi chú thì cây nói ghi chú; tắt thì thôi', async () => {
+    const { deps, user } = await setupNote('Trời đẹp');
+    await user.click(screen.getByRole('button', { name: 'Ghi chú' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Ghi chú hôm nay' });
+    const toggle = within(dialog).getByRole('switch', { name: 'Cây nói ghi chú' });
+    expect(toggle).toHaveAttribute('aria-checked', 'false');
+    await user.click(toggle);
+    await waitFor(async () => expect(await getSetting(deps.db, 'plantSaysNote')).toBe(true));
+    const bubble = await screen.findByTestId('speech-bubble');
+    expect(bubble).toHaveTextContent('Trời đẹp');
+    expect(bubble).toHaveAttribute('data-kind', 'note');
+    expect(screen.getByTestId('plant-scene')).toHaveAttribute('data-mood', 'talk');
+    // gõ thêm thì cây nói theo ngay
+    await user.type(within(dialog).getByLabelText('Nội dung ghi chú'), ' quá');
+    await waitFor(() => expect(screen.getByTestId('speech-bubble')).toHaveTextContent('Trời đẹp quá'));
+    await user.click(toggle);
+    // bong bóng còn chạy hiệu ứng thu nhỏ trước khi rời DOM
+    await waitFor(() => expect(screen.queryByTestId('speech-bubble')).not.toBeInTheDocument(), { timeout: 3000 });
+    expect(await getSetting(deps.db, 'plantSaysNote')).toBe(false);
+  });
+
+  it('ghi chú trống hoặc ngày tiết kiệm năng lượng thì không nói', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
+    await setSetting(deps.db, 'plantSaysNote', true);
+    await deps.db.days.put(makeDay({ date: '2026-10-02', greetedAt: 1, note: '   ' }));
+    renderWithDeps(<TodayScreen />, deps);
+    await screen.findByTestId('plant-scene');
+    expect(screen.queryByTestId('speech-bubble')).not.toBeInTheDocument();
+    await deps.db.days.update('2026-10-02', { note: 'Ngủ thôi', isRestDay: true });
+    await waitFor(() => expect(screen.getByTestId('plant-scene')).toHaveAttribute('data-mode', 'sleeping'));
+    expect(screen.queryByTestId('speech-bubble')).not.toBeInTheDocument();
+  });
+
+  it('đang bật thì câu khen hiện tạm rồi cây quay lại nói ghi chú', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'], shouldAdvanceTime: true });
+    try {
+      const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
+      await setSetting(deps.db, 'plantSaysNote', true);
+      await deps.db.days.put(makeDay({
+        date: '2026-10-02', greetedAt: 1, note: 'Trời đẹp',
+        todos: [{ id: 'a', text: 'A', done: false, doneAt: null, order: 0, period: 'morning' }, { id: 'b', text: 'B', done: false, doneAt: null, order: 1, period: 'morning' }],
+      }));
+      const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+      renderWithDeps(<TodayScreen />, deps);
+      expect(await screen.findByTestId('speech-bubble')).toHaveTextContent('Trời đẹp');
+      await user.click(screen.getByRole('checkbox', { name: 'Hoàn thành: A' }));
+      await waitFor(() => expect(screen.getByTestId('speech-bubble')).toHaveAttribute('data-kind', 'praise'));
+      await vi.advanceTimersByTimeAsync(4000);
+      await waitFor(() => expect(screen.getByTestId('speech-bubble')).toHaveAttribute('data-kind', 'note'));
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

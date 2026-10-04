@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { BottomSheet } from './BottomSheet';
+import { SettingSwitch } from './SettingSwitch';
 
 const AUTOSAVE_MS = 400;
 
@@ -48,6 +49,7 @@ export function NoteSheet({ open, initial, onClose, onSave }: { open: boolean; i
   return (
     <BottomSheet open={open} title="Ghi chú hôm nay" onClose={close}>
       <textarea className="textarea" aria-label="Nội dung ghi chú" value={text} onChange={(e) => change(e.target.value)} onBlur={flush} placeholder="Hôm nay thế nào nè?" />
+      <SettingSwitch settingKey="plantSaysNote" label="Cây nói ghi chú" defaultOn={false} onError={() => {}} />
       <p className="sheet__hint">Ghi chú được tự động lưu</p>
     </BottomSheet>
   );

@@ -46,6 +46,7 @@ export function PlantScene({
       data-pot={pot.id}
       data-stage={stage}
       data-mode={mode}
+      data-mood={mood}
       data-special={special?.id ?? ''}
     >
       {Underlay && <Underlay />}

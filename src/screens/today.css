@@ -35,6 +35,9 @@
   padding: 10px 14px; background: var(--white); border: 2px solid var(--cocoa); border-radius: 18px;
   box-shadow: var(--shadow-soft); font-weight: 600; text-align: center; color: var(--cocoa);
 }
+/* cây nói ghi chú: ghi chú dài chỉ hiện 3 dòng để không che cây */
+.bubble--note { font-size: 0.95rem; white-space: pre-line; }
+.bubble--note .bubble__text { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; overflow: hidden; overflow-wrap: anywhere; }
 .bubble::after {
   content: ''; position: absolute; bottom: -10px; left: 50%; translate: -50% 0; width: 16px; height: 16px;
   background: var(--white); border-right: 2px solid var(--cocoa); border-bottom: 2px solid var(--cocoa); rotate: 45deg;

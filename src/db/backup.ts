@@ -66,6 +66,7 @@ const BackupSchema = z.object({
   calendarTheme: z.enum(['default', 'cat', 'grass', 'rain', 'gamer', 'photo']).optional(), // file cũ chưa có
   showCalendarBgButton: z.boolean().optional(), // file cũ chưa có
   showNoteDot: z.boolean().optional(), // file cũ chưa có
+  plantSaysNote: z.boolean().optional(), // file cũ chưa có
 });
 
 export type BackupFile = z.infer<typeof BackupSchema>;
@@ -99,6 +100,7 @@ export async function createBackup(db: PlantDB, now: number): Promise<BackupFile
     const calendarTheme = await getSetting(db, 'calendarTheme');
     const showCalendarBgButton = await getSetting(db, 'showCalendarBgButton');
     const showNoteDot = await getSetting(db, 'showNoteDot');
+    const plantSaysNote = await getSetting(db, 'plantSaysNote');
     return {
       format: BACKUP_FORMAT,
       schemaVersion: SCHEMA_VERSION,
@@ -111,6 +113,7 @@ export async function createBackup(db: PlantDB, now: number): Promise<BackupFile
       ...(calendarTheme ? { calendarTheme } : {}),
       ...(showCalendarBgButton !== undefined ? { showCalendarBgButton } : {}),
       ...(showNoteDot !== undefined ? { showNoteDot } : {}),
+      ...(plantSaysNote !== undefined ? { plantSaysNote } : {}),
     };
   });
 }
@@ -167,6 +170,8 @@ export async function restoreBackup(db: PlantDB, backup: BackupFile, mode: Resto
       else await deleteSetting(db, 'showCalendarBgButton');
       if (backup.showNoteDot !== undefined) await setSetting(db, 'showNoteDot', backup.showNoteDot);
       else await deleteSetting(db, 'showNoteDot');
+      if (backup.plantSaysNote !== undefined) await setSetting(db, 'plantSaysNote', backup.plantSaysNote);
+      else await deleteSetting(db, 'plantSaysNote');
       days = backup.days.length;
       templates = backup.templates.length;
     } else {
@@ -197,6 +202,9 @@ export async function restoreBackup(db: PlantDB, backup: BackupFile, mode: Resto
       }
       if (backup.showNoteDot !== undefined && (await getSetting(db, 'showNoteDot')) === undefined) {
         await setSetting(db, 'showNoteDot', backup.showNoteDot);
+      }
+      if (backup.plantSaysNote !== undefined && (await getSetting(db, 'plantSaysNote')) === undefined) {
+        await setSetting(db, 'plantSaysNote', backup.plantSaysNote);
       }
     }
     const defaults = (await db.templates.toArray())

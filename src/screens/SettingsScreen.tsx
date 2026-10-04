@@ -5,6 +5,7 @@ import { useNav } from '../app/nav';
 import { BackButton } from '../components/BackButton';
 import { BackgroundPicker } from '../components/BackgroundPicker';
 import { ConfirmButton } from '../components/ConfirmButton';
+import { SettingSwitch } from '../components/SettingSwitch';
 import {
   backupFileName, createBackup, parseBackup, restoreBackup, serializeBackup, type BackupFile, type RestoreMode,
 } from '../db/backup';
@@ -133,31 +134,5 @@ export function SettingsScreen() {
         Phiên bản {__APP_VERSION__} · {new Date(__BUILD_TIME__).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
       </p>
     </section>
-  );
-}
-
-/** Công tắc bật/tắt một setting kiểu boolean (chưa lưu = bật). */
-function SettingSwitch({ settingKey, label, onError }: { settingKey: 'showCalendarBgButton' | 'showNoteDot'; label: string; onError: (msg: string) => void }) {
-  const deps = useDeps();
-  const stored = useLiveQuery(async () => (await getSetting(deps.db, settingKey)) !== false, [deps.db, settingKey], true);
-  // giữ trạng thái ngay trên giao diện để bấm nhanh liên tiếp vẫn đổi đúng
-  const [on, setOn] = useState(stored);
-  useEffect(() => setOn(stored), [stored]);
-  return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={on}
-      aria-label={label}
-      className={`switch-row${on ? ' is-on' : ''}`}
-      onClick={() => {
-        const next = !on;
-        setOn(next);
-        setSetting(deps.db, settingKey, next).catch((e: Error) => onError(e.message));
-      }}
-    >
-      <span className="switch-row__text">{label}</span>
-      <span className="switch" aria-hidden="true"><span className="switch__knob" /></span>
-    </button>
   );
 }

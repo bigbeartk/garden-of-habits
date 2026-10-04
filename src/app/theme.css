@@ -100,3 +100,12 @@ button, input, textarea { font: inherit; color: inherit; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
 }
+/* Công tắc bật/tắt (SettingSwitch), dùng ở Cài đặt và bảng Ghi chú */
+.switch-row {
+  width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 10px 4px; border: none; background: transparent; font-weight: 600; text-align: left; cursor: pointer;
+}
+.switch { flex: none; width: 50px; height: 30px; border-radius: 999px; background: #E5DDD5; border: 2px solid var(--cocoa); position: relative; transition: background 0.2s; }
+.switch__knob { position: absolute; top: 2px; left: 2px; width: 22px; height: 22px; border-radius: 50%; background: #fff; border: 2px solid var(--cocoa); transition: transform 0.2s; }
+.switch-row.is-on .switch { background: var(--leaf); }
+.switch-row.is-on .switch__knob { transform: translateX(20px); }
