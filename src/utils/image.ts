@@ -10,8 +10,24 @@ export const MAX_ANIMATED_BG_BYTES = 25 * 1024 * 1024;
 
 const EXT_MIME: Record<string, string> = { gif: 'image/gif', mp4: 'video/mp4', m4v: 'video/mp4', mov: 'video/quicktime', webm: 'video/webm' };
 
-/** Loại tệp: lấy từ `file.type`, nếu trống thì đoán theo đuôi. */
-function mimeOf(file: File): string {
+/**
+ * Đoán loại theo vài byte đầu: điện thoại hay ghi sai `file.type` hoặc đặt tên không có đuôi
+ * (Android: "1000012345"), nên GIF bị coi là ảnh tĩnh, nén qua canvas và mất chuyển động.
+ */
+function sniffMime(head: Uint8Array): string {
+  const ascii = (from: number, to: number) => String.fromCharCode(...head.subarray(from, to));
+  if (ascii(0, 4) === 'GIF8') return 'image/gif';
+  if (ascii(4, 8) === 'ftyp') return ascii(8, 10) === 'qt' ? 'video/quicktime' : 'video/mp4';
+  if (head[0] === 0x1a && head[1] === 0x45 && head[2] === 0xdf && head[3] === 0xa3) return 'video/webm';
+  return '';
+}
+
+/** Loại tệp: theo nội dung trước, rồi `file.type`, cuối cùng đoán theo đuôi. */
+async function mimeOf(file: File): Promise<string> {
+  const sniffed = sniffMime(new Uint8Array(await file.slice(0, 16).arrayBuffer()));
+  // video đã ghi đúng loại (mp4 / mov) thì giữ loại đó; byte đầu chỉ để biết đây là video
+  if (isVideoMime(sniffed) && isVideoMime(file.type)) return file.type;
+  if (sniffed) return sniffed;
   if (file.type) return file.type;
   const ext = file.name.split('.').pop()?.toLowerCase() ?? '';
   return EXT_MIME[ext] ?? '';
@@ -25,7 +41,7 @@ export const isVideoMime = (mime: string) => mime.startsWith('video/');
  * - ảnh tĩnh: thu nhỏ + nén JPEG.
  */
 export async function prepareBackground(file: File): Promise<CalendarBg> {
-  const mime = mimeOf(file);
+  const mime = await mimeOf(file);
   if (mime === 'image/gif' || isVideoMime(mime)) {
     if (file.size > MAX_ANIMATED_BG_BYTES) {
       throw new Error(`${isVideoMime(mime) ? 'Video' : 'Ảnh động'} quá lớn, tối đa 25 MB. Thử cắt ngắn hoặc chọn tệp khác nhé.`);
