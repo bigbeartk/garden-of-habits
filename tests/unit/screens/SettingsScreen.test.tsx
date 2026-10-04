@@ -74,6 +74,16 @@ describe('SettingsScreen nút quay lại', () => {
   });
 });
 
+describe('SettingsScreen thứ tự thẻ', () => {
+  it('Mẫu việc → Lịch → Sao lưu & khôi phục → Cài app', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
+    renderWithDeps(<SettingsScreen />, deps);
+    await screen.findByRole('heading', { name: 'Lịch' });
+    const heads = [...document.querySelectorAll('.settings__section > h2')].map((h) => h.textContent);
+    expect(heads.slice(0, 4)).toEqual(['Mẫu việc', 'Lịch', 'Sao lưu & khôi phục', 'Cài app lên màn hình chính']);
+  });
+});
+
 describe('SettingsScreen thẻ Mẫu việc', () => {
   it('thẻ đầu trang ghi mẫu mặc định; Quản lý mẫu mở màn Mẫu, nút quay lại về Cài đặt', async () => {
     const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);

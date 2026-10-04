@@ -97,6 +97,13 @@ export function SettingsScreen() {
       </div>
 
       <div className="card settings__section">
+        <h2>Lịch</h2>
+        <BackgroundPicker />
+        <SettingSwitch settingKey="showCalendarBgButton" label="Hiện nút đổi hình nền ở trang Lịch" onError={setError} />
+        <SettingSwitch settingKey="showNoteDot" label="Hiện chấm đỏ ở ngày có ghi chú" onError={setError} />
+      </div>
+
+      <div className="card settings__section">
         <h2>Sao lưu & khôi phục</h2>
         <p className="muted">
           {lastBackupAt ? `Lần sao lưu gần nhất: ${formatDateTime(lastBackupAt)}` : 'Bạn chưa sao lưu lần nào.'}
@@ -124,13 +131,6 @@ export function SettingsScreen() {
             </div>
           </div>
         )}
-      </div>
-
-      <div className="card settings__section">
-        <h2>Lịch</h2>
-        <BackgroundPicker />
-        <SettingSwitch settingKey="showCalendarBgButton" label="Hiện nút đổi hình nền ở trang Lịch" onError={setError} />
-        <SettingSwitch settingKey="showNoteDot" label="Hiện chấm đỏ ở ngày có ghi chú" onError={setError} />
       </div>
 
       <div className="card settings__section">
