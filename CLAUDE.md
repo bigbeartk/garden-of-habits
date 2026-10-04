@@ -93,7 +93,7 @@ src/
   | `future` | ngày tương lai |
 
   Đi tới được tối đa **12 tháng sau** tháng hiện tại (`MAX_MONTHS_AHEAD`). **Chạm ô lịch:** ngày đã qua → `DayDetailSheet` (bảng cao, phủ gần hết màn Lịch) chỉ xem (việc chia 3 buổi `detail-section-*`, ghi chú `detail-note`); **hôm nay → chuyển thẳng sang tab Hôm nay**; **ngày tương lai → `FutureDayScreen`** (thay chỗ lưới lịch, nút `Quay lại Lịch`): bố cục giống Hôm nay (trời + chậu đứng yên, danh sách cuộn), chậu đất nung có **hạt giống bí ẩn đang ngủ** + bong bóng "Hẹn gặp bạn vào <thứ> nha!"; danh sách 3 buổi (`PlannedList`: sửa bằng chạm chữ, xoá; **không có ô tick**); nút ＋ ở mỗi buổi thêm dòng trống như Hôm nay, lưu thành việc đã lên lịch. Không có 4 nút đổi cây/chậu/ghi chú/ngày nghỉ. (`plannedService`: `addPlanned` chỉ nhận ngày **sau hôm nay**, `editPlanned`, `deletePlanned`.)  Ô có việc đã lên lịch hiện huy hiệu số việc (`planned-count`). Việc tương lai **chỉ thêm được từ Lịch** (mở ngày đó rồi bấm ＋ ở buổi).
-- **Khu vườn (báo cáo)**: nút tròn icon `garden` (nhãn `Khu vườn`) ở hàng dưới màn Lịch, cạnh nút đổi hình nền; mở `GardenScreen` thay chỗ lưới lịch (`data-testid="garden"`, nút `Quay lại Lịch`). Chọn `Từ ngày` / `Đến ngày` (mặc định đầu tháng → hôm nay; ngược thì tự đổi chỗ) hoặc nút nhanh `Tháng này` / `30 ngày` / `Tất cả`. Vườn cỏ xanh, mỗi loài một luống (`garden-plant-<id>`, số ngày ở `.garden__count`), vẽ dạng ra hoa trong chậu mặc định; nhiều nhất đứng trước, loài 0 ngày hiện mờ (`is-empty`). Sau các loài là 2 luống riêng: `garden-wilted` **Cây héo** (ngày bỏ lỡ, cùng định nghĩa `missed` của ô lịch: không bản ghi, từ ngày dùng app đầu tiên tới hôm qua) và `garden-rest` **Ngày nghỉ**. Công tắc `Chỉ hiện cây đã trồng` (`gardenOnlyPlanted`, nhớ lại, có trong sao lưu) ẩn mọi luống 0 ngày kể cả 2 luống riêng; không còn luống nào thì hiện "Chưa có cây nào trong khoảng này". Tóm tắt `garden-summary`: số ngày · ngày ra hoa · việc xong. Logic thuần ở `domain/garden.ts` (`gardenReport(records, ids, from, to, { todayKey, firstKey })`): ngày tiết kiệm năng lượng **không** tính cho loài cây (đếm riêng `restDays`); loài đã xoá khỏi nội dung không có luống.
+- **Khu vườn (báo cáo)**: nút tròn icon `garden` (nhãn `Khu vườn`) ở hàng dưới màn Lịch, cạnh nút đổi hình nền; mở `GardenScreen` thay chỗ lưới lịch (`data-testid="garden"`, nút `Quay lại Lịch`). Chọn `Từ ngày` / `Đến ngày` (mặc định đầu tháng → hôm nay; ngược thì tự đổi chỗ) hoặc nút nhanh `Tháng này` / `30 ngày` / `Tất cả`. Vườn cỏ xanh, mỗi loài một luống (`garden-plant-<id>`, số ngày ở `.garden__count`), vẽ dạng ra hoa trong chậu mặc định; nhiều nhất đứng trước, loài 0 ngày hiện mờ (`is-empty`). Sau các loài là 2 luống riêng: `garden-wilted` **Cây héo** (ngày bỏ lỡ, cùng định nghĩa `missed` của ô lịch: không bản ghi, từ ngày dùng app đầu tiên tới hôm qua) và `garden-rest` **Ngày nghỉ**. Công tắc `Chỉ hiện cây đã trồng` (`gardenOnlyPlanted`, nhớ lại, có trong sao lưu) ẩn mọi luống 0 ngày kể cả 2 luống riêng; không còn luống nào thì hiện "Chưa có cây nào trong khoảng này". Tóm tắt `garden-summary`: số ngày · ngày ra hoa · việc xong. Tóm tắt còn có `✨ N ngày cây đặc biệt`; công tắc `Tách riêng cây đặc biệt` (`gardenSeparateSpecial`) bỏ ngày đặc biệt khỏi loài thường và hiện luống `garden-special-<plant>-<special>` ("Ngô · Phát sáng", vẽ kèm hiệu ứng, viền vàng). Logic thuần ở `domain/garden.ts` (`gardenReport(records, ids, from, to, { todayKey, firstKey, separateSpecial })`): ngày tiết kiệm năng lượng **không** tính cho loài cây (đếm riêng `restDays`); loài đã xoá khỏi nội dung không có luống.
 - **Nền theo giờ** (`timeOfDay`): sáng 4–11h, trưa 11–14h, chiều 14–18h, tối 18–4h.
 - **Nhắc sao lưu:** khi đã quá 7 ngày kể từ lần sao lưu cuối, hoặc kể từ dữ liệu cũ nhất nếu chưa sao lưu lần nào.
 
@@ -166,11 +166,12 @@ interface SpecialVariant {
   weight: number;            // trọng số khi đã trúng 10%
   Overlay: FC;               // vẽ đè lên cây
   Underlay?: FC;             // vẽ sau chậu và cây
-  plantFilter?: string;      // CSS filter cho lớp cây
-  plantClassName?: string;   // class CSS động cho lớp cây (keyframes trong specials.css)
+  PlantFilter?: FC<{ id: string; animate: boolean }>;  // trả về <filter id={id}> SVG cho lớp cây (specials/filters.tsx)
 }
 ```
 **Thêm hiệu ứng mới:** viết overlay trong `src/content/specials/specials.tsx` rồi thêm một dòng vào `SPECIALS` trong `specials/registry.ts`.
+
+> **Đổi màu cây phải dùng `<filter>` SVG (`PlantFilter`), KHÔNG dùng `filter` CSS:** WebKit/Safari bỏ qua filter CSS đặt lên `<g>` bên trong SVG, nên trên iPhone cây không đổi màu (Chrome thì có, nên dễ không thấy). Quy đổi hàm CSS sang `feColorMatrix` (sepia/saturate/hueRotate), `feComponentTransfer` (brightness/opacity), blur + flood (drop-shadow); đặt `colorInterpolationFilters="sRGB"`. Hiệu ứng động dùng `<animate>` của SVG, tắt khi `animate=false` (giảm chuyển động). `PlantScene` cấp id riêng cho mỗi cảnh (`useId`) và bọc lớp cây trong `<g data-part="plant-layer" filter="url(#…)">`. Test E2E `hiệu ứng Vàng ròng đổi màu cây thật trên WebKit` vẽ SVG lên canvas để đo màu.
 
 Hiệu ứng hiện có: `glow` Phát sáng (3), `sparkle` Lấp lánh (3), `rainbow` Cầu vồng (2), `gold` Vàng ròng (1), `crystal` Pha lê (1). Số trong ngoặc là `weight`.
 
@@ -237,6 +238,7 @@ showCalendarBgButton: boolean                        // không có = bật
 showNoteDot:  boolean                                // chấm đỏ ở ô lịch ngày có ghi chú; không có = bật
 plantSaysNote: boolean                               // cây nói ghi chú hôm nay; không có = TẮT
 gardenOnlyPlanted: boolean                           // Khu vườn chỉ hiện luống > 0 ngày; không có = TẮT
+gardenSeparateSpecial: boolean                       // Khu vườn tách ngày cây đặc biệt thành luống riêng; không có = TẮT
 // mọi công tắc bật/tắt liệt kê ở BOOLEAN_SETTINGS (db/settings.ts): backup tự sao lưu/khôi phục theo danh sách này
 ```
 

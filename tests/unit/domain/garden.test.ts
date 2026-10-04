@@ -59,3 +59,32 @@ describe('gardenReport', () => {
     expect(gardenReport(records, IDS, '2026-10-05', '2026-10-01', CTX)).toEqual(gardenReport(records, IDS, '2026-10-01', '2026-10-05', CTX));
   });
 });
+
+describe('gardenReport với cây đặc biệt', () => {
+  const sp = [
+    makeDay({ date: '2026-10-01', plantId: 'corn', specialId: 'glow' }),
+    makeDay({ date: '2026-10-02', plantId: 'corn' }),
+    makeDay({ date: '2026-10-03', plantId: 'cactus', specialId: 'gold' }),
+    makeDay({ date: '2026-10-04', plantId: 'corn', specialId: 'glow' }),
+    makeDay({ date: '2026-10-05', plantId: 'corn', specialId: 'glow', isRestDay: true }), // ngày nghỉ: không phải cây đặc biệt
+  ];
+
+  it('mặc định: cây đặc biệt vẫn tính cho loài, nhưng tổng kết có số ngày cây đặc biệt', () => {
+    const r = gardenReport(sp, IDS, '2026-10-01', '2026-10-05', CTX);
+    expect(r.entries.find((e) => e.plantId === 'corn')!.count).toBe(3);
+    expect(r.specialDays).toBe(3);
+    expect(r.specials).toEqual([]);
+  });
+
+  it('tách riêng: ngày đặc biệt thành luống theo loài + hiệu ứng, không tính cho loài thường', () => {
+    const r = gardenReport(sp, IDS, '2026-10-01', '2026-10-05', { ...CTX, separateSpecial: true });
+    expect(r.entries.find((e) => e.plantId === 'corn')!.count).toBe(1);
+    expect(r.entries.find((e) => e.plantId === 'cactus')!.count).toBe(0);
+    expect(r.specials).toEqual([
+      { plantId: 'corn', specialId: 'glow', count: 2 },
+      { plantId: 'cactus', specialId: 'gold', count: 1 },
+    ]);
+    expect(r.specialDays).toBe(3);
+    expect(r.restDays).toBe(1);
+  });
+});

@@ -484,3 +484,46 @@ test('nền Mèo vươn vai: mèo nằm trên mép dưới (không sát thanh Ho
   const cat = (await scene.locator('.cat-head').boundingBox())!;
   expect(cat.y, 'mèo nằm dưới hàng nút').toBeGreaterThan(footer.y + footer.height);
 });
+
+test('hiệu ứng Vàng ròng đổi màu cây thật trên WebKit (Safari)', async ({ page }) => {
+  await page.clock.setFixedTime(at('2026-10-05T10:00:00'));
+  await page.goto('/');
+  await openToday(page);
+  // gieo một ngày Cherry Vàng ròng và bật tách riêng cây đặc biệt
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolve) => {
+        const req = indexedDB.open('chau-cay-chibi');
+        req.onsuccess = () => {
+          const tx = req.result.transaction(['days', 'settings'], 'readwrite');
+          tx.objectStore('days').put({ date: '2026-10-03', plantId: 'cherry', potId: 'polka', specialId: 'gold', isRestDay: false, greetedAt: 1, note: '', todos: [], finalStage: 'bloom', createdAt: 1, updatedAt: 1 });
+          tx.objectStore('settings').put({ key: 'gardenSeparateSpecial', value: true });
+          tx.oncomplete = () => resolve();
+        };
+      }),
+  );
+  await goTab(page, 'Lịch');
+  await closeMenu(page);
+  await page.getByRole('button', { name: 'Khu vườn' }).click();
+  const scene = page.getByTestId('garden-special-cherry-gold').getByTestId('plant-scene');
+  await expect(scene).toBeVisible();
+  // vẽ đúng SVG đó lên canvas (WebKit dựng hình) rồi lấy màu trung bình một dải giữa tán cây
+  const avg = await scene.evaluate(async (svg) => {
+    const markup = svg.outerHTML.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="240"');
+    const img = new Image();
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(markup);
+    await img.decode();
+    const c = document.createElement('canvas');
+    c.width = 200;
+    c.height = 240;
+    const ctx = c.getContext('2d')!;
+    ctx.drawImage(img, 0, 0);
+    const d = ctx.getImageData(60, 62, 80, 10).data;
+    let r = 0, g = 0, b = 0, n = 0;
+    for (let i = 0; i < d.length; i += 4) if (d[i + 3] > 200) { r += d[i]; g += d[i + 1]; b += d[i + 2]; n++; }
+    return { r: r / n, g: g / n, b: b / n };
+  });
+  // tán cherry gốc hồng (#FFC9DA, xanh dương ~218); vàng ròng thì xanh dương phải thấp hẳn
+  expect(avg.b, JSON.stringify(avg)).toBeLessThan(170);
+  expect(avg.r).toBeGreaterThan(avg.b + 60);
+});

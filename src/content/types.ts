@@ -40,8 +40,9 @@ export interface SpecialVariant {
   Overlay: FC;
   /** vẽ phía sau chậu và cây */
   Underlay?: FC;
-  /** CSS filter áp lên lớp cây */
-  plantFilter?: string;
-  /** class CSS áp lên lớp cây (cho hiệu ứng động) */
-  plantClassName?: string;
+  /**
+   * Bộ lọc màu cho lớp cây: component trả về một `<filter id={id}>` SVG (xem specials/filters.tsx).
+   * Không dùng filter CSS: Safari bỏ qua filter CSS trên <g> trong SVG. `animate=false` khi giảm chuyển động.
+   */
+  PlantFilter?: FC<{ id: string; animate: boolean }>;
 }

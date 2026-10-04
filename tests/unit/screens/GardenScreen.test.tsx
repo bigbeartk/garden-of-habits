@@ -107,3 +107,33 @@ describe('Khu vườn (báo cáo từ ngày tới ngày)', () => {
     expect(await screen.findByTestId('calendar-card')).toBeInTheDocument();
   });
 });
+
+describe('Khu vườn và cây đặc biệt', () => {
+  it('tổng kết có số ngày cây đặc biệt; công tắc tách riêng hiện luống theo loài + hiệu ứng', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 15, 10, 0), CATALOG);
+    await deps.db.days.bulkPut([
+      makeDay({ date: '2026-10-01', plantId: 'corn', specialId: 'glow' }),
+      makeDay({ date: '2026-10-02', plantId: 'corn' }),
+      makeDay({ date: '2026-10-03', plantId: 'cherry', specialId: 'gold' }),
+    ]);
+    const user = userEvent.setup();
+    renderWithDeps(<CalendarScreen />, deps);
+    await user.click(await screen.findByRole('button', { name: 'Khu vườn' }));
+    const garden = await screen.findByTestId('garden');
+    await waitFor(() => expect(within(garden).getByTestId('garden-summary')).toHaveTextContent('2 ngày cây đặc biệt'));
+    expect(countOf(garden, 'corn')).toBe('2');
+    expect(within(garden).queryByTestId(/^garden-special-/)).not.toBeInTheDocument();
+
+    const toggle = within(garden).getByRole('switch', { name: 'Tách riêng cây đặc biệt' });
+    expect(toggle).toHaveAttribute('aria-checked', 'false');
+    await user.click(toggle);
+    const glow = await within(garden).findByTestId('garden-special-corn-glow');
+    expect(glow.querySelector('.garden__count')!.textContent).toBe('1');
+    expect(within(glow).getByText('Ngô · Phát sáng')).toBeInTheDocument();
+    expect(within(glow).getByTestId('plant-scene')).toHaveAttribute('data-special', 'glow');
+    expect(within(garden).getByTestId('garden-special-cherry-gold')).toBeInTheDocument();
+    expect(countOf(garden, 'corn')).toBe('1');
+    expect(countOf(garden, 'cherry')).toBe('0');
+    await waitFor(async () => expect(await getSetting(deps.db, 'gardenSeparateSpecial')).toBe(true));
+  });
+});

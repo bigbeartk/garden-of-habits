@@ -53,3 +53,7 @@
   margin: 0; align-self: center; padding: 10px 16px; border-radius: var(--radius-md); background: rgba(255, 253, 251, 0.85);
   border: 2px dashed #4E8A4A; font-weight: 600; color: var(--cocoa);
 }
+/* luống cây đặc biệt: viền vàng, nền ánh vàng nhạt, dấu ✨ ở góc */
+.garden__bed--special { border-color: #D9A400; background: linear-gradient(180deg, #FFF8DC 0, #FFF3C4 62%, #F5D778 62%, #EBC352 100%); }
+.garden__bed--special::before { background: radial-gradient(circle at 10% 100%, #D9A400 4px, transparent 5px) 0 0 / 14px 10px repeat-x; }
+.garden__bed--special::after { content: '✨'; position: absolute; top: 4px; right: 6px; font-size: 0.9rem; }

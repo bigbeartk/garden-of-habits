@@ -281,3 +281,15 @@ describe('sao lưu công tắc Khu vườn', () => {
     expect(await getSetting(dst, 'gardenOnlyPlanted')).toBe(true);
   });
 });
+
+describe('sao lưu công tắc tách riêng cây đặc biệt', () => {
+  it('giữ gardenSeparateSpecial khi khôi phục', async () => {
+    const src = makeDb();
+    await setSetting(src, 'gardenSeparateSpecial', true);
+    const r = parseBackup(serializeBackup(await createBackup(src, 1)));
+    if (!r.ok) throw new Error(r.error);
+    const dst = makeDb();
+    await restoreBackup(dst, r.backup, 'replace');
+    expect(await getSetting(dst, 'gardenSeparateSpecial')).toBe(true);
+  });
+});

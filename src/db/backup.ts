@@ -69,6 +69,7 @@ const BackupSchema = z.object({
   showNoteDot: z.boolean().optional(),
   plantSaysNote: z.boolean().optional(),
   gardenOnlyPlanted: z.boolean().optional(),
+  gardenSeparateSpecial: z.boolean().optional(),
 });
 
 export type BackupFile = z.infer<typeof BackupSchema>;

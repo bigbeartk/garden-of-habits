@@ -40,3 +40,38 @@ describe('PlantScene', () => {
     expect(screen.getByTestId('sky')).toHaveAttribute('data-time', 'evening');
   });
 });
+
+describe('PlantScene hiệu ứng đổi màu cây dùng bộ lọc SVG (Safari không áp filter CSS lên <g> trong SVG)', () => {
+  it.each(['gold', 'crystal', 'glow', 'rainbow'])('%s: lớp cây trỏ tới <filter> SVG, không dùng filter CSS', (specialId) => {
+    const { container } = render(<PlantScene plantId="cherry" potId="polka" stage="bloom" specialId={specialId} mood="smile" />);
+    const plant = container.querySelector('[data-part="plant-layer"]') as SVGGElement;
+    const ref = plant.getAttribute('filter');
+    expect(ref).toMatch(/^url\(#[\w-]+\)$/);
+    const id = ref!.slice(5, -1);
+    expect(container.querySelector(`filter[id="${id}"]`)).not.toBeNull();
+    expect(plant.style.filter).toBe('');
+  });
+
+  it('cầu vồng xoay màu bằng animate của SVG', () => {
+    const { container } = render(<PlantScene plantId="cherry" potId="polka" stage="bloom" specialId="rainbow" mood="smile" />);
+    expect(container.querySelector('filter feColorMatrix[type="hueRotate"] animate')).not.toBeNull();
+  });
+
+  it('hai cảnh cùng hiệu ứng trên một trang có id bộ lọc khác nhau', () => {
+    const { container } = render(
+      <>
+        <PlantScene plantId="cherry" potId="polka" stage="bloom" specialId="gold" mood="smile" />
+        <PlantScene plantId="corn" potId="rattan" stage="bloom" specialId="gold" mood="smile" />
+      </>,
+    );
+    const ids = [...container.querySelectorAll('filter')].map((f) => f.id);
+    expect(ids).toHaveLength(2);
+    expect(new Set(ids).size).toBe(2);
+  });
+
+  it('cây thường và hiệu ứng không đổi màu (lấp lánh) thì không có bộ lọc', () => {
+    const { container } = render(<PlantScene plantId="cherry" potId="polka" stage="bloom" specialId="sparkle" mood="smile" />);
+    expect(container.querySelector('[data-part="plant-layer"]')!.hasAttribute('filter')).toBe(false);
+    expect(container.querySelector('filter')).toBeNull();
+  });
+});

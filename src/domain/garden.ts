@@ -8,9 +8,20 @@ export interface GardenEntry {
   count: number;
 }
 
+export interface GardenSpecialEntry {
+  plantId: string;
+  specialId: string;
+  /** số ngày loài này mang hiệu ứng này */
+  count: number;
+}
+
 export interface GardenReport {
   /** mọi loài trong `plantIds`, nhiều ngày nhất đứng trước (bằng nhau thì giữ thứ tự của `plantIds`) */
   entries: GardenEntry[];
+  /** chỉ có khi `separateSpecial`: luống riêng cho từng cặp loài + hiệu ứng, nhiều nhất đứng trước */
+  specials: GardenSpecialEntry[];
+  /** số ngày cây đặc biệt (không tính ngày tiết kiệm năng lượng) */
+  specialDays: number;
   /** số ngày tiết kiệm năng lượng */
   restDays: number;
   /** số ngày bỏ lỡ (cây héo trên Lịch): không có bản ghi, từ ngày dùng app đầu tiên tới hôm qua */
@@ -26,22 +37,39 @@ export interface GardenReport {
 /**
  * Báo cáo "Khu vườn" từ ngày `from` tới ngày `to` (khoá 'YYYY-MM-DD', tính cả hai đầu; ngược thì tự đổi chỗ).
  * `todayKey` / `firstKey` (ngày dùng app đầu tiên) để biết ngày nào là cây héo, giống ô lịch.
+ * `separateSpecial`: ngày cây đặc biệt không tính cho loài thường mà tách thành `specials`.
  */
 export function gardenReport(
   records: DayRecord[],
   plantIds: string[],
   from: string,
   to: string,
-  { todayKey, firstKey }: { todayKey: string; firstKey: string | null },
+  { todayKey, firstKey, separateSpecial = false }: { todayKey: string; firstKey: string | null; separateSpecial?: boolean },
 ): GardenReport {
   const [lo, hi] = from <= to ? [from, to] : [to, from];
   const inRange = records.filter((r) => r.date >= lo && r.date <= hi);
   const counts = new Map(plantIds.map((id) => [id, 0]));
+  const specialCounts = new Map<string, GardenSpecialEntry>();
+  let specialDays = 0;
   for (const r of inRange) {
     if (r.isRestDay) continue;
+    if (r.specialId) {
+      specialDays++;
+      if (separateSpecial) {
+        if (!counts.has(r.plantId)) continue; // loài đã xoá khỏi nội dung
+        const key = `${r.plantId}|${r.specialId}`;
+        const cur = specialCounts.get(key) ?? { plantId: r.plantId, specialId: r.specialId, count: 0 };
+        specialCounts.set(key, { ...cur, count: cur.count + 1 });
+        continue;
+      }
+    }
     const c = counts.get(r.plantId);
     if (c !== undefined) counts.set(r.plantId, c + 1);
   }
+  const order = (id: string) => plantIds.indexOf(id);
+  const specials = [...specialCounts.values()].sort(
+    (a, b) => b.count - a.count || order(a.plantId) - order(b.plantId) || a.specialId.localeCompare(b.specialId),
+  );
   const entries = plantIds
     .map((plantId, i) => ({ plantId, count: counts.get(plantId) ?? 0, i }))
     .sort((a, b) => b.count - a.count || a.i - b.i)
@@ -60,6 +88,8 @@ export function gardenReport(
 
   return {
     entries,
+    specials,
+    specialDays,
     restDays: inRange.filter((r) => r.isRestDay).length,
     wiltedDays,
     days: inRange.length,

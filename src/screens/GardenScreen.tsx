@@ -5,6 +5,7 @@ import { BackButton } from '../components/BackButton';
 import { PlantScene } from '../components/PlantScene';
 import { PLANTS, getSpecies } from '../content/plants/registry';
 import { DEFAULT_POT_ID } from '../content/pots/registry';
+import { getSpecial } from '../content/specials/registry';
 import { firstDayKey, listDaysInRange } from '../db/queries';
 import { getSetting } from '../db/settings';
 import { SettingSwitch } from '../components/SettingSwitch';
@@ -28,13 +29,14 @@ export function GardenScreen({ onBack }: { onBack: () => void }) {
   const [lo, hi] = from <= to ? [from, to] : [to, from];
   const records = useLiveQuery(() => listDaysInRange(deps.db, lo, hi), [deps.db, lo, hi]);
   const firstKey = useLiveQuery(() => firstDayKey(deps.db), [deps.db]) ?? null;
-  const report = gardenReport(records ?? [], PLANT_IDS, lo, hi, { todayKey, firstKey });
   const onlyPlanted = useLiveQuery(async () => (await getSetting(deps.db, 'gardenOnlyPlanted')) ?? false, [deps.db], false);
+  const separateSpecial = useLiveQuery(async () => (await getSetting(deps.db, 'gardenSeparateSpecial')) ?? false, [deps.db], false);
+  const report = gardenReport(records ?? [], PLANT_IDS, lo, hi, { todayKey, firstKey, separateSpecial });
   // bật "Chỉ hiện cây đã trồng" thì bỏ mọi luống 0 ngày (kể cả Cây héo / Ngày nghỉ)
   const entries = onlyPlanted ? report.entries.filter((e) => e.count > 0) : report.entries;
   const showWilted = !onlyPlanted || report.wiltedDays > 0;
   const showRest = !onlyPlanted || report.restDays > 0;
-  const nothing = entries.length === 0 && !showWilted && !showRest;
+  const nothing = entries.length === 0 && report.specials.length === 0 && !showWilted && !showRest;
 
   const preset = (start: string) => {
     setFrom(start);
@@ -65,10 +67,11 @@ export function GardenScreen({ onBack }: { onBack: () => void }) {
           <button type="button" className="garden__preset" onClick={() => preset(firstKey ?? todayKey)}>Tất cả</button>
         </div>
         <SettingSwitch settingKey="gardenOnlyPlanted" label="Chỉ hiện cây đã trồng" defaultOn={false} onError={() => {}} />
+        <SettingSwitch settingKey="gardenSeparateSpecial" label="Tách riêng cây đặc biệt" defaultOn={false} onError={() => {}} />
       </div>
 
       <p className="garden__summary" data-testid="garden-summary">
-        <b>{report.days}</b> ngày · <b>{report.bloomDays}</b> ngày ra hoa · <b>{report.todosDone}</b> việc xong
+        <b>{report.days}</b> ngày · <b>{report.bloomDays}</b> ngày ra hoa · <b>{report.todosDone}</b> việc xong · ✨ <b>{report.specialDays}</b> ngày cây đặc biệt
       </p>
 
       {nothing && <p className="garden__empty">Chưa có cây nào trong khoảng này</p>}
@@ -86,6 +89,19 @@ export function GardenScreen({ onBack }: { onBack: () => void }) {
                 mood={count > 0 ? 'smile' : 'sleep'}
               />
               <span className="garden__name">{species.name}</span>
+              <span className="garden__tally">
+                <span className="garden__count">{count}</span> ngày
+              </span>
+            </li>
+          );
+        })}
+        {report.specials.map(({ plantId, specialId, count }) => {
+          const species = getSpecies(plantId);
+          const special = getSpecial(specialId);
+          return (
+            <li key={`${plantId}-${specialId}`} className="garden__bed garden__bed--special" data-testid={`garden-special-${plantId}-${specialId}`}>
+              <PlantScene className="garden__plant" plantId={plantId} potId={species.defaultPotId} stage="bloom" specialId={specialId} mood="smile" />
+              <span className="garden__name">{special ? `${species.name} · ${special.name}` : species.name}</span>
               <span className="garden__tally">
                 <span className="garden__count">{count}</span> ngày
               </span>

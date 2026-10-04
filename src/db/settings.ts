@@ -12,6 +12,8 @@ export interface SettingsShape {
   plantSaysNote: boolean;
   /** màn Khu vườn chỉ hiện luống có ít nhất 1 ngày (mặc định: không) */
   gardenOnlyPlanted: boolean;
+  /** màn Khu vườn tách ngày cây đặc biệt thành luống riêng (mặc định: không) */
+  gardenSeparateSpecial: boolean;
   lastBackupAt: number;
 }
 
@@ -29,5 +31,5 @@ export async function deleteSetting(db: PlantDB, key: keyof SettingsShape): Prom
 }
 
 /** Các công tắc bật/tắt; đều có trong file sao lưu (tuỳ chọn, file cũ có thể thiếu). */
-export const BOOLEAN_SETTINGS = ['showCalendarBgButton', 'showNoteDot', 'plantSaysNote', 'gardenOnlyPlanted'] as const;
+export const BOOLEAN_SETTINGS = ['showCalendarBgButton', 'showNoteDot', 'plantSaysNote', 'gardenOnlyPlanted', 'gardenSeparateSpecial'] as const;
 export type BooleanSetting = (typeof BOOLEAN_SETTINGS)[number];
