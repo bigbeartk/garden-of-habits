@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useDeps } from '../app/deps';
+import { onAppResume } from '../platform';
 
 export function useNow(intervalMs = 30_000): Date {
   const deps = useDeps();
@@ -7,12 +8,10 @@ export function useNow(intervalMs = 30_000): Date {
   useEffect(() => {
     const tick = () => setNow(deps.now());
     const id = setInterval(tick, intervalMs);
-    document.addEventListener('visibilitychange', tick);
-    window.addEventListener('focus', tick);
+    const off = onAppResume(tick);
     return () => {
       clearInterval(id);
-      document.removeEventListener('visibilitychange', tick);
-      window.removeEventListener('focus', tick);
+      off();
     };
   }, [deps, intervalMs]);
   return now;

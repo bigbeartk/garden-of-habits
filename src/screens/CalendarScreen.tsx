@@ -10,6 +10,7 @@ import { firstDayKey, listDaysInRange } from '../db/queries';
 import { getSetting } from '../db/settings';
 import { plannedCountsInRange } from '../domain/plannedService';
 import { FutureDayScreen } from './FutureDayScreen';
+import { useBackHandler } from '../app/back';
 
 const MAX_MONTHS_AHEAD = 12;
 import { WEEKDAY_SHORT, buildMonthGrid, dayCellStatus, monthLabel, shiftMonth } from '../domain/calendar';
@@ -67,6 +68,8 @@ export function CalendarScreen() {
     else if (key > todayKey) setFutureDate(key);
     else setSelected(key);
   };
+
+  useBackHandler(futureDate !== null, () => setFutureDate(null), 'screen');
 
   if (futureDate) return <FutureDayScreen date={futureDate} onBack={() => setFutureDate(null)} />;
 

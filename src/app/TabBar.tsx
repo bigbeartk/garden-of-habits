@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
+import { useBackHandler } from './back';
 import { TABS, type Tab } from './nav';
 import { CloseIcon, MenuIcon } from '../components/icons';
 
@@ -14,6 +15,7 @@ const SHOWN = { clipPath: 'inset(0 0 0 0% round 999px)', opacity: 1 };
 export function TabBar({ current, onChange }: { current: Tab; onChange: (tab: Tab) => void }) {
   const [open, setOpen] = useState(false);
   const navRef = useRef<HTMLElement>(null);
+  useBackHandler(open, () => setOpen(false), 'sheet');
 
   // đang mở mà chạm ra ngoài menu thì thu dải tab lại (cú chạm vẫn tới chỗ được chạm)
   useEffect(() => {

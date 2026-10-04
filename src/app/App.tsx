@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { handleBack, useBackHandler } from './back';
 import { useDeps } from './deps';
 import { NavContext, type Tab } from './nav';
 import { TabBar } from './TabBar';
@@ -9,6 +10,7 @@ import { CalendarScreen } from '../screens/CalendarScreen';
 import { TodayScreen } from '../screens/TodayScreen';
 import { GardenScreen } from '../screens/GardenScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
+import { exitApp, onHardwareBack } from '../platform';
 
 export function App() {
   const deps = useDeps();
@@ -27,6 +29,12 @@ export function App() {
       alive = false;
     };
   }, [deps, todayKey]);
+
+  // Nút Back của Android: lùi lớp trên cùng (bảng → màn con → tab Lịch), hết thì thoát app.
+  useEffect(() => onHardwareBack(() => {
+    if (!handleBack()) exitApp();
+  }), []);
+  useBackHandler(tab !== 'calendar', () => setTab('calendar'), 'tab');
 
   return (
     <NavContext.Provider value={setTab}>

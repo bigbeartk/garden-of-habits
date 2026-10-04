@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'motion/react';
+import { useBackHandler } from '../app/back';
 import { CloseIcon } from './icons';
 import './sheet.css';
 
@@ -10,6 +11,7 @@ import './sheet.css';
  * (màn Lịch đặt `position: relative` cho mọi con trực tiếp để nằm trên nền động).
  */
 export function BottomSheet({ open, title, onClose, children, tall }: { open: boolean; title: string; onClose: () => void; children: ReactNode; tall?: boolean }) {
+  useBackHandler(open, onClose, 'sheet');
   return createPortal(
     <AnimatePresence>
       {open && (

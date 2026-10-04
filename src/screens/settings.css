@@ -1,4 +1,4 @@
-.screen--settings { display: flex; flex-direction: column; gap: 12px; padding-bottom: calc(var(--tabbar-h) + 56px + env(safe-area-inset-bottom)); }
+.screen--settings { display: flex; flex-direction: column; gap: 12px; padding-bottom: calc(var(--tabbar-h) + 56px + var(--safe-area-inset-bottom, env(safe-area-inset-bottom))); }
 .settings__section { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
 .settings__section h2 { font-family: var(--font-display); font-size: 1.2rem; margin: 0; }
 .settings__preview { width: 100%; background: var(--butter); border-radius: var(--radius-md); padding: 12px; }

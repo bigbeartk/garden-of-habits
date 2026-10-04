@@ -31,9 +31,9 @@ body {
   overscroll-behavior: none;
 }
 button, input, textarea { font: inherit; color: inherit; }
-.app { display: flex; flex-direction: column; height: 100dvh; padding-top: env(safe-area-inset-top); }
+.app { display: flex; flex-direction: column; height: 100dvh; padding-top: var(--safe-area-inset-top, env(safe-area-inset-top)); }
 .app__main { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
-.screen { min-height: 100%; padding: 16px 16px calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 24px); }
+.screen { min-height: 100%; padding: 16px 16px calc(var(--tabbar-h) + var(--safe-area-inset-bottom, env(safe-area-inset-bottom)) + 24px); }
 .screen__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
 .tpl-page__head { display: flex; align-items: center; gap: 4px; }
 .screen__title { font-family: var(--font-display); font-weight: 700; font-size: 1.6rem; margin: 0; }
@@ -63,7 +63,7 @@ button, input, textarea { font: inherit; color: inherit; }
 .empty { text-align: center; }
 /* Menu nổi: nút tròn ở góc phải dưới, dải tab trượt ra bên trái */
 .fnav {
-  position: fixed; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom)); z-index: 35;
+  position: fixed; right: 16px; bottom: calc(16px + var(--safe-area-inset-bottom, env(safe-area-inset-bottom))); z-index: 35;
   display: flex; align-items: center; gap: 8px; pointer-events: none;
 }
 .fnav > * { pointer-events: auto; }

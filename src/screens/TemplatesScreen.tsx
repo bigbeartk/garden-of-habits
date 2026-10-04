@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
+import { useBackHandler } from '../app/back';
 import { useDeps } from '../app/deps';
 import { useNav } from '../app/nav';
 import { BackButton } from '../components/BackButton';
@@ -18,6 +19,7 @@ export function TemplatesScreen({ onBack }: { onBack: () => void }) {
   const nav = useNav();
   const templates = useLiveQuery(() => listTemplates(deps.db), [deps.db]) ?? [];
   const [editing, setEditing] = useState<string | 'new' | null>(null);
+  useBackHandler(editing !== null, () => setEditing(null), 'form');
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const nowMs = () => deps.now().getTime();

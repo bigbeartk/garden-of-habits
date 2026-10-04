@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { SUPPORT } from '../content/support';
 import { shareOrDownload } from '../db/share';
+import { isNative, openExternal } from '../platform';
 
 /**
  * Mục "Ủng hộ tôi" trong Cài đặt: mã QR chuyển khoản + nút lưu mã QR + nút PayPal.
@@ -21,6 +22,13 @@ export function SupportCard() {
     }
   }
 
+  // app Android: mở PayPal bằng trình duyệt của máy thay vì ngay trong WebView
+  function onPaypal(e: React.MouseEvent) {
+    if (!isNative()) return;
+    e.preventDefault();
+    void openExternal(SUPPORT.paypalUrl);
+  }
+
   return (
     <section className="card settings__section support">
       <h2>Ủng hộ tôi</h2>
@@ -30,7 +38,7 @@ export function SupportCard() {
       {error && <p role="alert" className="error">{error}</p>}
       <div className="support__actions">
         <button type="button" className="btn" onClick={saveQr}>Lưu mã QR</button>
-        <a className="btn btn--primary support__paypal" href={SUPPORT.paypalUrl} target="_blank" rel="noopener noreferrer">
+        <a className="btn btn--primary support__paypal" href={SUPPORT.paypalUrl} target="_blank" rel="noopener noreferrer" onClick={onPaypal}>
           Ủng hộ qua PayPal
         </a>
       </div>

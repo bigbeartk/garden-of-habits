@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
+import { useBackHandler } from '../app/back';
 import { useDeps } from '../app/deps';
 import { useNav } from '../app/nav';
 import { BackButton } from '../components/BackButton';
@@ -15,6 +16,7 @@ import {
 import { getSetting, setSetting } from '../db/settings';
 import { shareOrDownload } from '../db/share';
 import { listTemplates } from '../domain/templateService';
+import { isNative } from '../platform';
 import { TemplatesScreen } from './TemplatesScreen';
 import './settings.css';
 
@@ -33,11 +35,14 @@ export function SettingsScreen() {
   const [showInstall, setShowInstall] = useState(false);
   /** đang mở màn Mẫu (nằm trong tab Cài đặt) */
   const [showTemplates, setShowTemplates] = useState(false);
+  /** app Android: đã là app cài sẵn, không cần hướng dẫn "Thêm vào MH chính" */
+  const native = isNative();
   const defaultTemplate = useLiveQuery(async () => (await listTemplates(deps.db)).find((t) => t.isDefault) ?? null, [deps.db]);
 
   useEffect(() => {
+    if (native) return;
     navigator.storage?.persisted?.().then(setPersisted).catch(() => setPersisted(null));
-  }, []);
+  }, [native]);
 
   async function doBackup() {
     setError(null);
@@ -48,7 +53,7 @@ export function SettingsScreen() {
       const file = new File([serializeBackup(await createBackup(deps.db, now.getTime()))], name, { type: 'application/json' });
       await shareOrDownload(file);
       await setSetting(deps.db, 'lastBackupAt', now.getTime());
-      setStatus(`Đã tạo file ${name} ✓ Nhớ lưu vào Tệp hoặc iCloud Drive nhé.`);
+      setStatus(`Đã tạo file ${name} ✓ ${native ? 'Nhớ lưu vào Google Drive hoặc Tệp nhé.' : 'Nhớ lưu vào Tệp hoặc iCloud Drive nhé.'}`);
     } catch (e) {
       if ((e as Error).name === 'AbortError') return;
       setError(`Không sao lưu được: ${(e as Error).message}`);
@@ -81,6 +86,8 @@ export function SettingsScreen() {
     }
   }
 
+  useBackHandler(showTemplates, () => setShowTemplates(false), 'screen');
+
   if (showTemplates) return <TemplatesScreen onBack={() => setShowTemplates(false)} />;
 
   return (
@@ -88,17 +95,19 @@ export function SettingsScreen() {
       <header className="tpl-page__head">
         <BackButton inline onClick={() => nav('calendar')} />
         <h1 className="screen__title">Cài đặt</h1>
-        <button
-          type="button"
-          className="icon-btn settings__help-btn"
-          aria-label="Hướng dẫn cài app"
-          title="Hướng dẫn cài app"
-          onClick={() => setShowInstall(true)}
-        >
-          <HelpIcon size={26} />
-          {/* dữ liệu chưa được lưu bền vững: nhắc nên cài app */}
-          {persisted === false && <span className="icon-btn__badge" aria-hidden="true" />}
-        </button>
+        {!native && (
+          <button
+            type="button"
+            className="icon-btn settings__help-btn"
+            aria-label="Hướng dẫn cài app"
+            title="Hướng dẫn cài app"
+            onClick={() => setShowInstall(true)}
+          >
+            <HelpIcon size={26} />
+            {/* dữ liệu chưa được lưu bền vững: nhắc nên cài app */}
+            {persisted === false && <span className="icon-btn__badge" aria-hidden="true" />}
+          </button>
+        )}
       </header>
       {status && <p role="status" className="toast">{status}</p>}
       {error && <p role="alert" className="error">{error}</p>}
@@ -150,7 +159,7 @@ export function SettingsScreen() {
 
       <SupportCard />
 
-      <BottomSheet open={showInstall} title="Cài app lên màn hình chính" onClose={() => setShowInstall(false)}>
+      <BottomSheet open={showInstall && !native} title="Cài app lên màn hình chính" onClose={() => setShowInstall(false)}>
         <ol className="settings__steps">
           <li>Mở trang này bằng <b>Safari</b> trên iPhone.</li>
           <li>Bấm nút <b>Chia sẻ</b> (ô vuông có mũi tên lên).</li>
@@ -165,6 +174,7 @@ export function SettingsScreen() {
 
       <p className="muted settings__version" data-testid="app-version">
         Phiên bản {__APP_VERSION__} · {new Date(__BUILD_TIME__).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+        {native && ' · Android'}
       </p>
     </section>
   );
