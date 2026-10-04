@@ -16,7 +16,7 @@ export function DayDetailSheet({ dateKey, status, record, onClose }: {
   const special = record && !record.isRestDay ? getSpecial(record.specialId) : null;
 
   return (
-    <BottomSheet open={open} title={dateKey ? longDateLabel(dateKey) : ''} onClose={onClose}>
+    <BottomSheet open={open} title={dateKey ? longDateLabel(dateKey) : ''} onClose={onClose} tall>
       {open && (
         <div className="detail">
           {record?.title && <h3 className="detail__title">{record.title}</h3>}

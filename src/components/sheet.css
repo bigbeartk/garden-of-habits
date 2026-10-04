@@ -4,6 +4,16 @@
   background: var(--white); border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   padding: 10px 16px calc(16px + env(safe-area-inset-bottom)); box-shadow: 0 -8px 24px rgba(91, 70, 54, 0.15);
 }
+/* bảng cao (chi tiết ngày đã qua): phủ gần hết màn hình; tiêu đề + nút X đứng yên, chỉ nội dung cuộn */
+.sheet--tall {
+  top: calc(env(safe-area-inset-top) + 48px); max-height: none; overflow: hidden;
+  display: flex; flex-direction: column; padding-bottom: 0;
+}
+.sheet--tall .sheet__grip, .sheet--tall .sheet__head { flex: none; }
+.sheet--tall .sheet__body {
+  flex: 1 1 0; min-height: 0; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
+  padding-bottom: calc(16px + env(safe-area-inset-bottom));
+}
 .sheet__grip { width: 44px; height: 5px; border-radius: 3px; background: var(--lavender); margin: 0 auto 10px; }
 /* hàng tiêu đề: chữ căn giữa, nút X ở góc phải trên như cửa sổ Windows */
 .sheet__head { position: relative; padding: 0 44px; margin: 0 0 12px; }

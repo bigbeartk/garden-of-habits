@@ -369,3 +369,29 @@ test('Khu vườn: mở từ Lịch, đếm cây hôm nay, bố cục vừa kh�
   await garden.getByRole('button', { name: 'Quay lại Lịch' }).click();
   await expect(page.getByTestId('calendar-card')).toBeVisible();
 });
+
+test('chạm ngày đã qua: bảng chi tiết phủ gần hết màn Lịch, tiêu đề và nút X luôn thấy', async ({ page }) => {
+  await page.clock.setFixedTime(at('2026-10-02T10:00:00'));
+  await page.goto('/');
+  await openToday(page);
+  for (let i = 1; i <= 12; i++) await addTodo(page, `Việc số ${i}`);
+  await closeDraft(page);
+  await page.clock.setFixedTime(at('2026-10-05T10:00:00'));
+  await page.reload();
+  await goTab(page, 'Lịch');
+  await page.getByRole('button', { name: 'Đóng menu' }).click();
+  await page.getByTestId('day-2026-10-02').click();
+  const sheet = page.getByRole('dialog');
+  await expect(sheet.getByTestId('detail-section-morning')).toBeVisible();
+  const vh = page.viewportSize()!.height;
+  // chờ bảng trượt lên xong rồi mới đo
+  await expect.poll(async () => (await sheet.boundingBox())!.y, { message: 'mép trên gần đỉnh màn hình' }).toBeLessThan(vh * 0.12);
+  await expect.poll(async () => { const b = (await sheet.boundingBox())!; return Math.round(b.y + b.height); }).toBe(vh);
+  // danh sách dài cuộn bên trong, tiêu đề và nút X vẫn ở trên cùng
+  await sheet.getByText('Việc số 12').scrollIntoViewIfNeeded();
+  await expect(sheet.getByText('Việc số 12')).toBeInViewport();
+  await expect(sheet.getByRole('heading', { level: 2 })).toBeInViewport();
+  await expect(sheet.getByRole('button', { name: 'Đóng' })).toBeInViewport();
+  await sheet.getByRole('button', { name: 'Đóng' }).click();
+  await expect(sheet).toHaveCount(0);
+});
