@@ -9,6 +9,7 @@ PWA todo cho iPhone, có phần "nuôi cây": mỗi việc làm xong là một l
 - Spec gốc: `docs/superpowers/specs/2026-10-02-chibi-plant-todo-design.md`
 - Kế hoạch triển khai: `docs/superpowers/plans/2026-10-02-chibi-plant-todo.md`
 - Deploy: push `main` lên https://github.com/bigbeartk/garden-of-habits, GitHub Actions chạy test, build rồi đăng lên https://bigbeartk.github.io/garden-of-habits/
+- **App Android** (Capacitor) dùng chung mã nguồn: cùng lần push, job `android` build APK (artifact của run). Xem mục *Android* bên dưới và `docs/android.md`.
 
 ## Lệnh
 
@@ -21,6 +22,8 @@ PWA todo cho iPhone, có phần "nuôi cây": mỗi việc làm xong là một l
 | `npm run e2e` | E2E Playwright, giả lập **iPhone 13 bằng WebKit** (engine của Safari) |
 | `PW_CHANNEL=chrome npm run e2e` | E2E bằng Chrome cài sẵn trên máy, dùng khi chưa tải được trình duyệt của Playwright |
 | `npm run icons` | Tạo lại icon PWA từ `public/favicon.svg` |
+| `npm run build:android` | Build web (base `/`) + `cap sync android` (không cần Android SDK) |
+| `npm run icons:android` | Tạo lại icon + màn chờ Android từ `public/favicon.svg` |
 
 - Chỉ commit và push khi mọi test đều pass. Nối lệnh bằng `&&`, không dùng `;`. Khi lọc output test qua `| grep`, bật `set -o pipefail` (nếu không, test fail vẫn đi tiếp tới commit/push).
 - **Đừng pipe Playwright vào `| head`** trên Windows: `head` đóng ống sớm thì Playwright treo vô hạn (giữ cả server preview cổng 4173). Ghi ra file (`> pw.log 2>&1`) rồi grep file; nếu đã treo thì tắt các tiến trình node của lần chạy đó.
@@ -36,11 +39,23 @@ PWA todo cho iPhone, có phần "nuôi cây": mỗi việc làm xong là một l
 - Push dùng tài khoản `bigbeartk` (remote `origin`).
 - Source Control của VS Code có thể còn đếm hàng nghìn file `node_modules` từ lúc vừa `npm install`, dù `git status` sạch. Bấm Refresh hoặc **Developer: Reload Window**.
 
+## Android (Capacitor)
+
+- **Mọi tính năng chỉ viết một lần trong `src/`**, PWA và app Android cùng dùng. Không fork giao diện cho Android.
+- Cái gì khác nhau giữa trình duyệt và app native thì **chỉ nằm trong `src/platform/index.ts`** (chỗ duy nhất gọi `isNative()` / plugin `@capacitor/*`, import động để PWA không phải tải): `shareFile` (Android: ghi cache bằng Filesystem rồi Share; huỷ → `AbortError`), `openExternal`, `onAppResume` (thêm sự kiện `resume`), `onHardwareBack`, `exitApp`, `setupNativeShell`. Màn hình chỉ được hỏi `isNative()` để ẩn/đổi chữ (vd. Cài đặt ẩn `Hướng dẫn cài app`, phiên bản ghi `· Android`, nhắc lưu "Google Drive" thay "iCloud").
+- Native không đăng ký service worker, không gọi `storage.persist()` (`main.tsx`).
+- **Nút Back của Android** (`src/app/back.ts`): màn/bảng đang mở đăng ký `useBackHandler(active, fn, layer)`, lớp `tab < screen < form < sheet`; Back gọi lớp cao nhất, hết thì thoát app. Đã đăng ký: `BottomSheet` (mọi bảng), menu nổi, ngày tương lai, màn Mẫu, form mẫu, tab khác Lịch → Lịch. **Thêm màn con / bảng / chế độ sửa mới thì nhớ đăng ký**, nếu không Back nhảy qua nó.
+- **Safe-area:** Android 15+ luôn tràn viền; SystemBars của Capacitor (`capacitor.config.ts`, `insetsHandling: 'css'`) bơm biến `--safe-area-inset-*`. Trong CSS **luôn viết `var(--safe-area-inset-x, env(safe-area-inset-x))`**, không viết `env()` trần (WebView cũ trả 0).
+- `appId` `io.github.bigbeartk.gardenofhabits` không đổi được sau khi lên Play. Thư mục `android/` được commit (trừ file sinh ra); web build được `cap sync` chép vào lúc build, không commit.
+- APK phải luôn ký **cùng một khoá** (secrets `ANDROID_KEYSTORE_*`), nếu không cài đè không được → gỡ app = mất dữ liệu. Chưa có secret thì CI chỉ build APK debug.
+- Dữ liệu PWA và app tách riêng; chuyển qua Sao lưu / Khôi phục (định dạng giống hệt).
+- Chưa có E2E trên Android: soát tay trên máy thật theo checklist trong `docs/android.md` khi đổi những chỗ thuộc `src/platform` hoặc bố cục.
+
 ## Kiến trúc
 
 ```
 src/
-  app/        App (tab + tự sang ngày mới), TabBar (menu nổi), nav (TABS + NavContext), deps (DepsContext), theme.css
+  app/        App (tab + tự sang ngày mới), TabBar (menu nổi), nav (TABS + NavContext), deps (DepsContext), back (nút Back Android), theme.css
   domain/     logic thuần TS, test độc lập: dayKey, growth, random, timeOfDay, dayService,
               templateService, calendar, garden, types
   db/         Dexie (db.ts), settings, queries, backup (export/import/merge), share
@@ -48,6 +63,7 @@ src/
   components/ PlantScene, SkyBackground, TodoList, BottomSheet, DayCell, ...
   screens/    CalendarScreen (màn mở đầu; mở FutureDayScreen cho ngày tương lai), TodayScreen, GardenScreen (tab Khu vườn), SettingsScreen (mở TemplatesScreen từ thẻ "Mẫu việc")
   hooks/      useNow, useToday, useBackupReminder, useCalendarBg
+  platform/   khác biệt PWA ⇄ Android (Capacitor): chia sẻ file, link ngoài, resume, nút Back
   dev/        ArtGallery.tsx — xem trước mọi cây/chậu (render tạm từ main.tsx khi cần)
 ```
 
@@ -257,7 +273,7 @@ unlockedSpecials: string[]                           // cây đặc biệt đã 
 
 ## Format file sao lưu
 
-Tên file: `chau-cay-backup-YYYY-MM-DD.json`. Khi lưu, app mở menu Chia sẻ của iOS; nếu Safari chặn (`NotAllowedError`) thì tải file xuống thay thế.
+Tên file: `chau-cay-backup-YYYY-MM-DD.json`. Khi lưu, app mở menu Chia sẻ của iOS; nếu Safari chặn (`NotAllowedError`) thì tải file xuống thay thế. App Android: ghi vào cache rồi mở menu Chia sẻ của Android (`shareFile` trong `src/platform`).
 
 ```json
 {
@@ -303,7 +319,7 @@ File thiếu `planned` (phiên bản 1–2) hoặc `plannedGoals` (phiên bản 
   - **Không dùng `height: 100%` + `width: auto` cho SVG**: Safari tính sai và đẩy hàng 4 nút ra khỏi khung.
 - **Điều hướng = menu nổi** (`app/TabBar.tsx`): không còn thanh tab ở đáy. Chỉ có một nút tròn (icon bông hoa) cố định ở góc phải dưới, có mặt ở cả 4 màn. Bấm vào thì dải 4 tab (Lịch, Hôm nay, Khu vườn, Cài đặt; `Tab = 'calendar' | 'today' | 'garden' | 'settings'`) **trượt từ nút ra bên trái** (`clipPath` + các tab hiện lần lượt, tab gần nút hiện trước), nút chuyển thành ✕; bấm lần nữa thì trượt ngược về. Mặc định thu gọn khi mở app. **Chọn tab không đóng dải tab; chạm ra ngoài menu thì dải tự thu** (cú chạm vẫn tới chỗ được chạm; test E2E dùng helper `closeMenu`). `--tabbar-h` (60px) là cỡ nút menu.
 - **Ủng hộ tôi** (cuối Cài đặt, `SupportCard`; dữ liệu ở `content/support.ts`): ảnh VietQR TPBank `public/support/qr-tpbank.jpg` (cắt từ ảnh gốc, đã kiểm tra quét được), nút `Lưu mã QR` (qua `shareOrDownload`, vì không thể quét mã trên chính màn hình điện thoại) và link `Ủng hộ qua PayPal` → `https://paypal.me/dattruong92`. Workbox precache thêm `jpg` để mã QR xem được khi offline.
-- **Phiên bản & cập nhật:** Cài đặt hiện `Phiên bản <sha7> · <giờ build>` (`__APP_VERSION__`/`__BUILD_TIME__` gắn trong `vite.config.ts`, CI dùng `GITHUB_SHA`). `main.tsx` gọi `registration.update()` mỗi khi app hiện lại (`visibilitychange`) và mỗi 30 phút, để PWA trên iPhone nhận bản mới mà không cần đóng hẳn app.
+- **Phiên bản & cập nhật:** Cài đặt hiện `Phiên bản <sha7> · <giờ build>` (app Android thêm `· Android`) (`__APP_VERSION__`/`__BUILD_TIME__` gắn trong `vite.config.ts`, CI dùng `GITHUB_SHA`). `main.tsx` gọi `registration.update()` mỗi khi app hiện lại (`visibilitychange`) và mỗi 30 phút, để PWA trên iPhone nhận bản mới mà không cần đóng hẳn app.
 - **Chuyển tab không có hiệu ứng** (theo yêu cầu): `App` render thẳng màn của tab, đổi ngay.
 - **Đóng bảng (`BottomSheet`)**: nút X (icon `close`, `aria-label="Đóng"`) ở góc phải trên hàng tiêu đề (`.sheet__head`) như cửa sổ Windows; không còn nút chữ "Đóng" ở đáy. Chạm nền mờ cũng đóng.
   - `BottomSheet` render qua **portal vào `<body>`**: màn Lịch đặt `position: relative` cho mọi con trực tiếp (`.screen--calendar > :not(.bg-scene)`), trước đây làm bảng mất `position: fixed` và nằm cuối trang. Đừng bỏ portal.
