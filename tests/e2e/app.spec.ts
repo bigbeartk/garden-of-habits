@@ -462,3 +462,21 @@ test('Cài đặt: mục Ủng hộ tôi có mã QR tải được và nút PayP
   const vw = page.viewportSize()!.width;
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(vw);
 });
+
+test('nền Mèo vươn vai: mèo nằm trên mép dưới (không sát thanh Home) và dưới các nút của Lịch', async ({ page }) => {
+  // app cài ra màn hình chính dùng đủ 844px của iPhone 13 (khung mặc định 664px là Safari còn thanh địa chỉ)
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+  await goTab(page, 'Lịch');
+  await closeMenu(page);
+  await page.getByRole('button', { name: /Đổi hình nền lịch/ }).click();
+  await page.getByRole('radio', { name: /Mèo vươn vai/ }).click();
+  const scene = page.getByTestId('calendar-theme-cat');
+  await expect(scene).toBeVisible();
+  const vh = page.viewportSize()!.height;
+  const rug = (await scene.locator('ellipse').first().boundingBox())!;
+  expect(vh - (rug.y + rug.height), 'thảm cách mép dưới').toBeGreaterThan(40);
+  const footer = (await page.getByRole('button', { name: 'Khu vườn' }).boundingBox())!;
+  const cat = (await scene.locator('.cat-head').boundingBox())!;
+  expect(cat.y, 'mèo nằm dưới hàng nút').toBeGreaterThan(footer.y + footer.height);
+});

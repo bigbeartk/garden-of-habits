@@ -1,6 +1,8 @@
 import './backgrounds.css';
 
 const INK = '#5B4636';
+/** nâng thảm + mèo + tim lên khỏi mép dưới (thanh vuốt Home của iPhone) */
+const CAT_LIFT = 72;
 
 /**
  * Nền động "Mèo vươn vai": nền pastel, một chú mèo chibi duỗi người theo nhịp,
@@ -33,6 +35,7 @@ export function CatStretchScene() {
             <circle key={i} className="cat-twinkle" style={{ animationDelay: `${i * 0.6}s` }} cx={x} cy={y} r={3} />
           ))}
         </g>
+        <g transform={`translate(0 ${-CAT_LIFT})`}>
         {/* thảm */}
         <ellipse cx={120} cy={826} rx={118} ry={20} fill="#FFC9D6" opacity={0.85} />
         <ellipse cx={120} cy={826} rx={92} ry={12} fill="none" stroke="#FFFDFB" strokeWidth={2.5} strokeDasharray="7 7" opacity={0.8} />
@@ -71,16 +74,18 @@ export function CatStretchScene() {
           </g>
         </g>
         {/* tim bay lên */}
+        {/* vị trí đặt ở thẻ g bao ngoài: transform của keyframes CSS đè lên thuộc tính transform của chính phần tử */}
         {[0, 1, 2].map((i) => (
-          <path
-            key={i}
-            className="cat-heart"
-            style={{ animationDelay: `${i * 1.4}s` }}
-            d="M0 6 C -8 0 -6 -8 0 -4 C 6 -8 8 0 0 6 Z"
-            transform={`translate(${118 + i * 18} 782)`}
-            fill="#FF8FA8"
-          />
+          <g key={i} transform={`translate(${118 + i * 18} 782)`}>
+            <path
+              className="cat-heart"
+              style={{ animationDelay: `${i * 1.4}s` }}
+              d="M0 6 C -8 0 -6 -8 0 -4 C 6 -8 8 0 0 6 Z"
+              fill="#FF8FA8"
+            />
+          </g>
         ))}
+        </g>
       </svg>
     </div>
   );
