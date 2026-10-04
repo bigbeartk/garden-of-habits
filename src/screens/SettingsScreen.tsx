@@ -4,7 +4,9 @@ import { useDeps } from '../app/deps';
 import { useNav } from '../app/nav';
 import { BackButton } from '../components/BackButton';
 import { BackgroundPicker } from '../components/BackgroundPicker';
+import { BottomSheet } from '../components/BottomSheet';
 import { ConfirmButton } from '../components/ConfirmButton';
+import { HelpIcon } from '../components/icons';
 import { SettingSwitch } from '../components/SettingSwitch';
 import { SupportCard } from '../components/SupportCard';
 import {
@@ -27,6 +29,8 @@ export function SettingsScreen() {
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState<BackupFile | null>(null);
   const [persisted, setPersisted] = useState<boolean | null>(null);
+  /** bảng hướng dẫn cài app lên màn hình chính (mở từ nút dấu hỏi ở hàng tiêu đề) */
+  const [showInstall, setShowInstall] = useState(false);
   /** đang mở màn Mẫu (nằm trong tab Cài đặt) */
   const [showTemplates, setShowTemplates] = useState(false);
   const defaultTemplate = useLiveQuery(async () => (await listTemplates(deps.db)).find((t) => t.isDefault) ?? null, [deps.db]);
@@ -84,6 +88,17 @@ export function SettingsScreen() {
       <header className="tpl-page__head">
         <BackButton inline onClick={() => nav('calendar')} />
         <h1 className="screen__title">Cài đặt</h1>
+        <button
+          type="button"
+          className="icon-btn settings__help-btn"
+          aria-label="Hướng dẫn cài app"
+          title="Hướng dẫn cài app"
+          onClick={() => setShowInstall(true)}
+        >
+          <HelpIcon size={26} />
+          {/* dữ liệu chưa được lưu bền vững: nhắc nên cài app */}
+          {persisted === false && <span className="icon-btn__badge" aria-hidden="true" />}
+        </button>
       </header>
       {status && <p role="status" className="toast">{status}</p>}
       {error && <p role="alert" className="error">{error}</p>}
@@ -133,8 +148,9 @@ export function SettingsScreen() {
         )}
       </div>
 
-      <div className="card settings__section">
-        <h2>Cài app lên màn hình chính</h2>
+      <SupportCard />
+
+      <BottomSheet open={showInstall} title="Cài app lên màn hình chính" onClose={() => setShowInstall(false)}>
         <ol className="settings__steps">
           <li>Mở trang này bằng <b>Safari</b> trên iPhone.</li>
           <li>Bấm nút <b>Chia sẻ</b> (ô vuông có mũi tên lên).</li>
@@ -145,8 +161,7 @@ export function SettingsScreen() {
           {persisted === true && 'Dữ liệu đang được lưu bền vững trên máy 🌱'}
           {persisted === false && 'Hãy cài app lên màn hình chính để dữ liệu không bị Safari tự xoá.'}
         </p>
-      </div>
-      <SupportCard />
+      </BottomSheet>
 
       <p className="muted settings__version" data-testid="app-version">
         Phiên bản {__APP_VERSION__} · {new Date(__BUILD_TIME__).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}

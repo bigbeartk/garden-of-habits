@@ -716,3 +716,24 @@ test('Khu vườn gọn: công tắc thu trong nút Tuỳ chọn, tóm tắt m�
   await expect(garden.getByRole('switch', { name: 'Chỉ hiện cây đã trồng' })).toBeVisible();
   await page.screenshot({ path: 'test-results/garden-options-open.png' });
 });
+
+test('Cài đặt: hướng dẫn cài app nằm sau nút dấu hỏi trên hàng tiêu đề (WebKit)', async ({ page }) => {
+  await page.clock.setFixedTime(at('2026-10-02T10:00:00'));
+  await page.goto('/');
+  await goTab(page, 'Cài đặt');
+  await closeMenu(page);
+  await expect(page.getByRole('heading', { name: 'Cài app lên màn hình chính' })).toHaveCount(0);
+  const help = page.getByRole('button', { name: 'Hướng dẫn cài app' });
+  const head = (await page.getByRole('heading', { name: 'Cài đặt' }).boundingBox())!;
+  const btn = (await help.boundingBox())!;
+  expect(Math.abs(btn.y + btn.height / 2 - (head.y + head.height / 2))).toBeLessThan(6);
+  expect(btn.x + btn.width).toBeLessThanOrEqual(page.viewportSize()!.width);
+  await page.screenshot({ path: 'test-results/settings-head.png' });
+  await help.click();
+  const sheet = page.getByRole('dialog', { name: 'Cài app lên màn hình chính' });
+  await expect(sheet.getByText(/Thêm vào MH chính/)).toBeVisible();
+  await page.waitForTimeout(600);
+  await page.screenshot({ path: 'test-results/settings-install-sheet.png' });
+  await sheet.getByRole('button', { name: 'Đóng' }).click();
+  await expect(sheet).toHaveCount(0);
+});

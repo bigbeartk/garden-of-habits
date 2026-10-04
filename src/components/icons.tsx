@@ -303,3 +303,14 @@ export function OptionsIcon({ size }: { size?: number }) {
     </Svg>
   );
 }
+
+/** Trợ giúp: dấu hỏi trong vòng tròn */
+export function HelpIcon({ size }: { size?: number }) {
+  return (
+    <Svg name="help" size={size}>
+      <circle cx={16} cy={16} r={11.5} fill="#D4ECFF" {...STROKE} />
+      <path d="M12.4 12.8 a3.8 3.6 0 1 1 5.6 3.2 c-1.3 0.8 -2 1.5 -2 3" fill="none" {...STROKE} strokeWidth={2.4} />
+      <circle cx={16} cy={23} r={1.5} fill={INK} />
+    </Svg>
+  );
+}

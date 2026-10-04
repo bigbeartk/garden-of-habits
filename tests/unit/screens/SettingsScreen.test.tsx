@@ -75,12 +75,26 @@ describe('SettingsScreen nút quay lại', () => {
 });
 
 describe('SettingsScreen thứ tự thẻ', () => {
-  it('Mẫu việc → Lịch → Sao lưu & khôi phục → Cài app', async () => {
+  it('Mẫu việc → Lịch → Sao lưu & khôi phục; hướng dẫn cài app không còn là thẻ', async () => {
     const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
     renderWithDeps(<SettingsScreen />, deps);
     await screen.findByRole('heading', { name: 'Lịch' });
     const heads = [...document.querySelectorAll('.settings__section > h2')].map((h) => h.textContent);
-    expect(heads.slice(0, 4)).toEqual(['Mẫu việc', 'Lịch', 'Sao lưu & khôi phục', 'Cài app lên màn hình chính']);
+    expect(heads.slice(0, 3)).toEqual(['Mẫu việc', 'Lịch', 'Sao lưu & khôi phục']);
+    expect(heads).not.toContain('Cài app lên màn hình chính');
+  });
+
+  it('nút dấu hỏi ở hàng tiêu đề mở bảng hướng dẫn cài app', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
+    const user = userEvent.setup();
+    renderWithDeps(<SettingsScreen />, deps);
+    const help = await screen.findByRole('button', { name: 'Hướng dẫn cài app' });
+    expect(help.querySelector('svg[data-icon="help"]')).not.toBeNull();
+    expect(help.closest('header')).not.toBeNull();
+    expect(screen.queryByText(/Thêm vào MH chính/)).not.toBeInTheDocument();
+    await user.click(help);
+    const dialog = await screen.findByRole('dialog', { name: 'Cài app lên màn hình chính' });
+    expect(within(dialog).getByText(/Thêm vào MH chính/)).toBeInTheDocument();
   });
 });
 
