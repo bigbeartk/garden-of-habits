@@ -5,7 +5,7 @@ import { useDeps } from '../app/deps';
 import { getSetting, setSetting } from '../db/settings';
 import type { CalendarTheme } from '../domain/types';
 import { useCalendarTheme } from '../hooks/useCalendarBg';
-import { compressImage } from '../utils/image';
+import { prepareBackground } from '../utils/image';
 
 const OPTIONS: { id: CalendarTheme; label: string }[] = [
   { id: 'default', label: 'Mặc định' },
@@ -90,11 +90,12 @@ export function BackgroundPicker() {
     setBusy(true);
     setError(null);
     try {
-      await setSetting(deps.db, 'calendarBg', await compressImage(file));
+      await setSetting(deps.db, 'calendarBg', await prepareBackground(file));
       await setSetting(deps.db, 'calendarTheme', 'photo');
       setOpen(false);
-    } catch {
-      setError('Không đọc được ảnh này, thử ảnh khác nhé.');
+    } catch (err) {
+      const msg = (err as Error).message;
+      setError(msg.includes('quá lớn') ? msg : 'Không đọc được tệp này, thử ảnh hoặc video khác nhé.');
     } finally {
       setBusy(false);
     }
@@ -116,7 +117,7 @@ export function BackgroundPicker() {
 
   return (
     <div className="bg-picker">
-      <input ref={inputRef} type="file" accept="image/*" hidden onChange={onFile} data-testid="bg-input" />
+      <input ref={inputRef} type="file" accept="image/*,video/*" hidden onChange={onFile} data-testid="bg-input" />
       <button
         type="button"
         className="bg-picker__toggle"

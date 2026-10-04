@@ -227,7 +227,7 @@ interface Template { id: string; name: string; items: TemplateItem[]; isDefault:
 // chỉ một mẫu được isDefault = true (setDefaultTemplate đảm bảo)
 
 // settings
-calendarBg:   { mime: string; data: ArrayBuffer }   // ảnh nền lịch, đã nén JPEG ≤ 1600px
+calendarBg:   { mime: string; data: ArrayBuffer }   // nền lịch: ảnh tĩnh nén JPEG ≤ 1600px, hoặc GIF / video giữ nguyên tệp (≤ 25 MB)
 lastBackupAt: number
 calendarTheme: 'default' | 'cat' | 'grass' | 'rain' | 'gamer' | 'photo'
 showCalendarBgButton: boolean                        // không có = bật
@@ -297,7 +297,7 @@ File thiếu `planned` (phiên bản 1–2) hoặc `plannedGoals` (phiên bản 
   - `rain` = **Mưa chill** (`RainChillScene.tsx`): cửa sổ đêm mưa xanh tím, giọt nước chảy trên kính, nến + tách trà bốc khói.
   - `gamer` = **Gaming pixel** (`PixelGamingRoomScene.tsx`): phòng gaming vẽ kiểu pixel trên lưới 130×282 (1 ô = 3px, `shapeRendering=crispEdges`), hiệu ứng `steps()` như game cổ: LED/bàn phím/tai nghe đổi màu, sao nhấp nháy, nhân vật trên màn hình nhảy, chữ màn phụ chạy, quạt case nháy, cô gái nhún đầu. Góc bàn máy đặt sát đáy để lộ ra dưới thẻ lịch.
   - Nền động vẽ bằng SVG khung 390×844 (`preserveAspectRatio="xMidYMax slice"`) + keyframes trong `backgrounds.css`; tắt chuyển động khi `prefers-reduced-motion`.
-  - `photo` = ảnh người dùng (`calendarBg`). Bản cũ chưa có `calendarTheme`: có ảnh → `photo`, không → `default` (`useCalendarTheme`). Đổi sang kiểu khác **không xoá ảnh**. `calendarTheme` có trong file sao lưu (tuỳ chọn).
+  - `photo` = ảnh **hoặc nền động** của người dùng (`calendarBg`, ô chọn `accept="image/*,video/*"`, `prepareBackground` trong `utils/image.ts`). Ảnh tĩnh nén JPEG; GIF và video (mp4, mov) lưu nguyên tệp vì nén qua canvas làm mất chuyển động, tối đa `MAX_ANIMATED_BG_BYTES` 25 MB (quá thì báo lỗi). GIF làm `background-image`; video phát bằng `<video data-testid="calendar-video">` trong lớp `bg-scene` (autoplay + muted + loop + playsInline, bắt buộc để Safari iOS tự phát; giảm chuyển động thì không tự phát). Bản cũ chưa có `calendarTheme`: có ảnh → `photo`, không → `default` (`useCalendarTheme`). Đổi sang kiểu khác **không xoá ảnh**. `calendarTheme` có trong file sao lưu (tuỳ chọn).
 - **Màn Lịch:** căn giữa theo chiều dọc. Khi hình nền khác `default`, thẻ tháng và lưới ngày nhận class `is-glass` (kính mờ trong suốt, `backdrop-filter`), chữ có viền sáng để dễ đọc.
 - **Tôn trọng** `prefers-reduced-motion`, safe-area (`env(safe-area-inset-*)`) và chiều cao `100dvh`.
 - **Các label và `data-testid` mà test dựa vào, không đổi tuỳ tiện:**

@@ -4,20 +4,21 @@ import { useDeps } from '../app/deps';
 import { getSetting } from '../db/settings';
 import type { CalendarTheme } from '../domain/types';
 
-export function useCalendarBgUrl(): string | null {
+/** Ảnh nền người dùng dưới dạng blob URL, kèm loại tệp (ảnh, GIF hay video). */
+export function useCalendarBg(): { url: string; mime: string } | null {
   const deps = useDeps();
   const bg = useLiveQuery(() => getSetting(deps.db, 'calendarBg'), [deps.db]);
-  const [url, setUrl] = useState<string | null>(null);
+  const [value, setValue] = useState<{ url: string; mime: string } | null>(null);
   useEffect(() => {
     if (!bg) {
-      setUrl(null);
+      setValue(null);
       return;
     }
-    const u = URL.createObjectURL(new Blob([bg.data], { type: bg.mime }));
-    setUrl(u);
-    return () => URL.revokeObjectURL(u);
+    const url = URL.createObjectURL(new Blob([bg.data], { type: bg.mime }));
+    setValue({ url, mime: bg.mime });
+    return () => URL.revokeObjectURL(url);
   }, [bg]);
-  return url;
+  return value;
 }
 
 /**

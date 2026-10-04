@@ -1,6 +1,8 @@
 /* Nền động của màn Lịch: phủ kín sau nội dung */
 .bg-scene { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
 .bg-scene__svg { width: 100%; height: 100%; display: block; }
+/* video người dùng chọn làm nền: phủ kín, cắt bớt mép như ảnh nền cover */
+.bg-scene__video { width: 100%; height: 100%; display: block; object-fit: cover; }
 
 /* --- Mèo vươn vai --- */
 .cat-body, .cat-paws, .cat-head, .cat-tail { transform-box: fill-box; }

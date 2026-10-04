@@ -408,3 +408,43 @@ test('chạm ngày đã qua: bảng chi tiết phủ gần hết màn Lịch, ti
   await sheet.getByRole('button', { name: 'Đóng' }).click();
   await expect(sheet).toHaveCount(0);
 });
+
+// GIF động 2 khung 1×1 px (đỏ rồi xanh), để kiểm tra GIF được lưu nguyên vẹn
+const ANIMATED_GIF = Buffer.from(
+  'R0lGODlhAQABAPAAAP8AAAAAACH/C05FVFNDQVBFMi4wAwEAAAAh+QQACgAAACwAAAAAAQABAAACAkQBACH5BAAKAAAALAAAAAABAAEAgAAA/wAAAAICRAEAOw==',
+  'base64',
+);
+
+test('nền Lịch động: chọn GIF thì giữ nguyên tệp làm ảnh nền; chọn video thì phát bằng thẻ video', async ({ page }) => {
+  await page.goto('/');
+  await goTab(page, 'Lịch');
+  await closeMenu(page);
+  const input = page.getByTestId('bg-input');
+  await expect(input).toHaveAttribute('accept', 'image/*,video/*');
+
+  await input.setInputFiles({ name: 'meo.gif', mimeType: 'image/gif', buffer: ANIMATED_GIF });
+  const screenEl = page.locator('.screen--calendar');
+  await expect(screenEl).toHaveAttribute('data-theme', 'photo');
+  await expect.poll(() => screenEl.evaluate((el) => getComputedStyle(el).backgroundImage)).toContain('blob:');
+  const stored = await page.evaluate(
+    () =>
+      new Promise<{ mime: string; size: number }>((resolve) => {
+        const req = indexedDB.open('chau-cay-chibi');
+        req.onsuccess = () => {
+          const get = req.result.transaction('settings').objectStore('settings').get('calendarBg');
+          get.onsuccess = () => resolve({ mime: get.result.value.mime, size: get.result.value.data.byteLength });
+        };
+      }),
+  );
+  expect(stored).toEqual({ mime: 'image/gif', size: ANIMATED_GIF.length });
+
+  await input.setInputFiles({ name: 'IMG_0001.mp4', mimeType: 'video/mp4', buffer: Buffer.from([0, 0, 0, 24, 102, 116, 121, 112, 109, 112, 52, 50]) });
+  const video = page.getByTestId('calendar-video');
+  await expect(video).toBeAttached();
+  expect(await video.evaluate((v: HTMLVideoElement) => ({ muted: v.muted, loop: v.loop, inline: v.playsInline }))).toEqual({ muted: true, loop: true, inline: true });
+  expect(await screenEl.evaluate((el) => getComputedStyle(el).backgroundImage)).not.toContain('blob:');
+  // video nằm sau thẻ lịch, phủ kín màn
+  const vb = (await video.boundingBox())!;
+  expect(vb.width).toBeGreaterThanOrEqual(page.viewportSize()!.width - 1);
+  await expect(page.getByTestId('calendar-card')).toBeVisible();
+});

@@ -91,6 +91,37 @@ describe('CalendarScreen trong suốt khi có ảnh nền', () => {
     await waitFor(() => expect(screen.getByTestId('calendar-card')).toHaveClass('is-glass'));
     expect(screen.getByTestId('calendar-head')).toHaveClass('is-glass');
   });
+
+  it('nền là video: phát bằng thẻ video tự chạy, không tiếng, lặp, phát ngay trong trang', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 15, 10, 0), CATALOG);
+    await setSetting(deps.db, 'calendarBg', { mime: 'video/mp4', data: new Uint8Array([1, 2, 3]).buffer });
+    await setSetting(deps.db, 'calendarTheme', 'photo');
+    renderWithDeps(<CalendarScreen />, deps);
+    const video = (await screen.findByTestId('calendar-video')) as HTMLVideoElement;
+    expect(video.tagName).toBe('VIDEO');
+    expect(video.muted).toBe(true);
+    expect(video.loop).toBe(true);
+    expect(video.autoplay).toBe(true);
+    expect(video).toHaveAttribute('playsinline');
+    expect(video.getAttribute('src')).toMatch(/^blob:/);
+    // video thay cho ảnh nền tĩnh
+    expect(document.querySelector('.screen--calendar')!.getAttribute('style') ?? '').not.toContain('background-image');
+    expect(screen.getByTestId('calendar-card')).toHaveClass('is-glass');
+  });
+
+  it('nền là GIF: dùng làm ảnh nền (tự chuyển động), không có thẻ video', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 15, 10, 0), CATALOG);
+    await setSetting(deps.db, 'calendarBg', { mime: 'image/gif', data: new Uint8Array([1, 2, 3]).buffer });
+    await setSetting(deps.db, 'calendarTheme', 'photo');
+    renderWithDeps(<CalendarScreen />, deps);
+    await waitFor(() => expect(document.querySelector('.screen--calendar')!.getAttribute('style') ?? '').toContain('background-image'));
+    expect(screen.queryByTestId('calendar-video')).not.toBeInTheDocument();
+  });
+
+  it('ô chọn tệp nhận cả ảnh và video', async () => {
+    await setup();
+    expect(screen.getByTestId('bg-input')).toHaveAttribute('accept', 'image/*,video/*');
+  });
 });
 
 describe('CalendarScreen tiêu đề ngày', () => {

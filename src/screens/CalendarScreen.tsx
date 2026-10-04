@@ -16,7 +16,8 @@ import { GardenIcon } from '../components/icons';
 const MAX_MONTHS_AHEAD = 12;
 import { WEEKDAY_SHORT, buildMonthGrid, dayCellStatus, monthLabel, shiftMonth } from '../domain/calendar';
 import { dayKey, formatDate, parseDayKey } from '../domain/dayKey';
-import { useCalendarBgUrl, useCalendarTheme } from '../hooks/useCalendarBg';
+import { useCalendarBg, useCalendarTheme } from '../hooks/useCalendarBg';
+import { isVideoMime } from '../utils/image';
 import { CatStretchScene } from '../components/backgrounds/CatStretchScene';
 import { GrassBloomScene } from '../components/backgrounds/GrassBloomScene';
 import { PixelGamingRoomScene } from '../components/backgrounds/PixelGamingRoomScene';
@@ -43,12 +44,16 @@ export function CalendarScreen() {
   const days = useLiveQuery(() => listDaysInRange(deps.db, from, to), [deps.db, from, to]) ?? [];
   const plannedCounts = useLiveQuery(() => plannedCountsInRange(deps.db, from, to), [deps.db, from, to]) ?? {};
   const firstKey = useLiveQuery(() => firstDayKey(deps.db), [deps.db]) ?? null;
-  const bgUrl = useCalendarBgUrl();
+  const userBg = useCalendarBg();
   const theme = useCalendarTheme();
   const showBgButton = useLiveQuery(async () => (await getSetting(deps.db, 'showCalendarBgButton')) !== false, [deps.db], true);
   const showNoteDot = useLiveQuery(async () => (await getSetting(deps.db, 'showNoteDot')) !== false, [deps.db], true);
-  const photoUrl = theme === 'photo' ? bgUrl : null;
+  const photo = theme === 'photo' ? userBg : null;
+  // ảnh tĩnh / GIF: làm ảnh nền (GIF tự chuyển động); video: phát bằng thẻ video phía sau
+  const videoUrl = photo && isVideoMime(photo.mime) ? photo.url : null;
+  const photoUrl = photo && !videoUrl ? photo.url : null;
   const glass = theme !== 'default' ? ' is-glass' : '';
+  const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true;
 
   const byKey = new Map(days.map((d) => [d.date, d]));
   // Đi tới tối đa 12 tháng sau để lên lịch việc tương lai
@@ -81,6 +86,21 @@ export function CalendarScreen() {
       {theme === 'grass' && <GrassBloomScene />}
       {theme === 'rain' && <RainChillScene />}
       {theme === 'gamer' && <PixelGamingRoomScene />}
+      {videoUrl && (
+        <div className="bg-scene" aria-hidden="true">
+          {/* Safari iOS chỉ tự phát video khi không tiếng + playsInline; giảm chuyển động thì đứng ở khung đầu */}
+          <video
+            className="bg-scene__video"
+            data-testid="calendar-video"
+            src={videoUrl}
+            autoPlay={!reducedMotion}
+            muted
+            loop
+            playsInline
+            preload="auto"
+          />
+        </div>
+      )}
       <header className={`cal__head card${glass}`} data-testid="calendar-head">
         <button type="button" className="btn btn--round" aria-label="Tháng trước" onClick={() => go(-1)}>‹</button>
         <h1 className="screen__title" aria-live="polite">{monthLabel(view.year, view.month)}</h1>
