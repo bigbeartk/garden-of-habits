@@ -193,6 +193,7 @@ Các loài hiện có:
 | `cherry` | `weeping` Rủ: thân cao, cành vồng rủ xuống như đài phun nước kết chuỗi bông, chỏm tròn mang mặt | `lantern` Cần câu: thân mảnh chéo lên như cần câu, dây treo chùm cherry to (quả giữa mang mặt) |
 | `rose` | `arch` Cổng vòm: vòm gỗ quấn dây phủ hồng nhỏ, bông đỉnh vòm mang mặt + vương miện | `dome` Chuông kính: hồng xanh đêm (`RoseHead` nhận bảng màu `p`) lơ lửng trong chuông kính lấp lánh |
 | `watermelon` | `square` Vuông: quả dưa khối vuông bo góc (mang mặt) ngồi giữa, lá tim hai bên | `trellis` Giàn leo: giàn thang dựng đứng, dây leo zigzag, dưa tí hon trong túi lưới, quả đỉnh to mang mặt |
+| `hydrangea` | `parrot` Vẹt: chén tulip loe miệng vàng, viền xoăn răng cưa, sọc lửa đỏ hai bên (đừng vẽ cánh toả tròn: thành hướng dương) | `bouquet` Bó hoa: ba tulip hồng/vàng/đỏ cao thấp buộc nơ xanh (`Cup`/`ClosedBud` nhận bảng màu `p`) |
 
 Hình dùng chung cho mọi loài: `common/SleepingSeed.tsx` (ngày nghỉ) và `common/WiltedPlant.tsx` (ngày bỏ lỡ).
 

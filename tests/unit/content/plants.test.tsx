@@ -56,6 +56,7 @@ describe('plants', () => {
       cherry: ['weeping', 'lantern'],
       rose: ['arch', 'dome'],
       watermelon: ['square', 'trellis'],
+      hydrangea: ['parrot', 'bouquet'],
     });
   });
 
