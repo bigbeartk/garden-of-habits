@@ -1,6 +1,7 @@
 import { deleteSetting, getSetting, setSetting } from '../../../src/db/settings';
 import { firstDayKey, listDaysInRange, oldestCreatedAt } from '../../../src/db/queries';
 import { makeDay, makeDb } from '../helpers';
+import { SCHEMA_VERSION } from '../../../src/db/db';
 
 describe('db', () => {
   it('lưu và đọc settings, kể cả ArrayBuffer', async () => {
@@ -28,5 +29,14 @@ describe('db', () => {
     await db.days.bulkPut([makeDay({ date: '2026-10-05', createdAt: 500 }), makeDay({ date: '2026-10-02', createdAt: 200 })]);
     expect(await firstDayKey(db)).toBe('2026-10-02');
     expect(await oldestCreatedAt(db)).toBe(200);
+  });
+});
+
+describe('DB v5: bảng nhắc việc', () => {
+  it('SCHEMA_VERSION là 5 và lưu/đọc được việc nhắc', async () => {
+    expect(SCHEMA_VERSION).toBe(5);
+    const db = makeDb();
+    await db.reminders.put({ id: 'r1', text: 'Mua quà', autoToday: false, doneAt: null, createdAt: 1, updatedAt: 1 });
+    expect((await db.reminders.get('r1'))?.text).toBe('Mua quà');
   });
 });

@@ -152,8 +152,8 @@ describe('file sao lưu phiên bản 1 (chưa có buổi)', () => {
     expect(r.backup.templates[0].items).toEqual([{ text: 'A', period: 'morning' }]);
   });
 
-  it('file mới ghi schemaVersion hiện tại (3)', async () => {
-    expect((await createBackup(makeDb(), 1)).schemaVersion).toBe(4);
+  it('file mới ghi schemaVersion hiện tại', async () => {
+    expect((await createBackup(makeDb(), 1)).schemaVersion).toBe(5);
   });
 });
 
@@ -164,7 +164,7 @@ describe('sao lưu việc đã lên lịch', () => {
     const src = makeDb();
     await src.planned.put(planned);
     const backup = await createBackup(src, 1);
-    expect(backup.schemaVersion).toBe(4);
+    expect(backup.schemaVersion).toBe(5);
     const r = parseBackup(serializeBackup(backup));
     expect(r.ok).toBe(true);
     if (!r.ok) return;

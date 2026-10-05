@@ -9,6 +9,8 @@ export interface Todo {
   order: number;
   /** buổi của việc: sáng / chiều / tối */
   period: Period;
+  /** việc đến từ màn Nhắc việc (id của `Reminder`); không có = việc thường */
+  reminderId?: string;
 }
 
 /** Id dáng gốc của mọi loài (dáng luôn có, không cần mở khoá). */
@@ -64,6 +66,18 @@ export interface PlannedTodo {
 export interface PlannedGoal {
   date: string;
   title: string;
+}
+
+/** Việc dài hạn ở màn Nhắc việc; bật `autoToday` thì mỗi ngày tự vào buổi Sáng của hôm nay cho tới khi xong. */
+export interface Reminder {
+  id: string;
+  text: string;
+  /** công tắc "Hôm nay" */
+  autoToday: boolean;
+  /** ms; null = chưa xong */
+  doneAt: number | null;
+  createdAt: number;
+  updatedAt: number;
 }
 
 /** Kiểu hình nền màn Lịch: mặc định, nền động (mèo vươn vai / cỏ nở) hoặc ảnh người dùng chọn. */
