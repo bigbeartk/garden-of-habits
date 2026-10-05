@@ -737,3 +737,45 @@ test('Cài đặt: hướng dẫn cài app nằm sau nút dấu hỏi trên hàn
   await sheet.getByRole('button', { name: 'Đóng' }).click();
   await expect(sheet).toHaveCount(0);
 });
+
+test('dáng cây: đủ 10 ngày ra hoa mở dáng 2; dáng 3 khoá và không lộ hình', async ({ page }) => {
+  await page.clock.setFixedTime(at('2026-10-05T10:00:00'));
+  await page.goto('/');
+  await openToday(page);
+  // gieo 12 ngày Hướng dương ra hoa
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolve) => {
+        const req = indexedDB.open('chau-cay-chibi');
+        req.onsuccess = () => {
+          const tx = req.result.transaction(['days'], 'readwrite');
+          for (let i = 1; i <= 12; i++) {
+            tx.objectStore('days').put({ date: `2026-09-${String(i).padStart(2, '0')}`, plantId: 'sunflower', potId: 'terracotta', specialId: null, isRestDay: false, greetedAt: 1, note: '', todos: [], finalStage: 'bloom', createdAt: 1, updatedAt: 1 });
+          }
+          tx.oncomplete = () => resolve();
+        };
+      }),
+  );
+  await page.reload();
+  await openToday(page);
+  await closeMenu(page);
+  await page.getByRole('button', { name: 'Đổi cây' }).click();
+  // nút dáng vẫn tròn trên Safari
+  const styleBtn = page.getByRole('button', { name: 'Dáng cây: Hướng dương (2/3)' });
+  const box = (await styleBtn.boundingBox())!;
+  expect(Math.abs(box.width - box.height)).toBeLessThan(2);
+  await styleBtn.click();
+  await expect(page.getByRole('dialog', { name: 'Dáng của Hướng dương' })).toBeVisible();
+  // thanh tiến độ phải trải ngang (khung bảng căn giữa từng làm nó co thành một vạch)
+  const bar = page.getByRole('progressbar', { name: 'Tiến độ mở dáng' });
+  await expect(bar).toContainText('12/20');
+  expect((await bar.boundingBox())!.width).toBeGreaterThan(150);
+  const locked = page.getByTestId('style-giant');
+  await expect(locked).toContainText('Dáng bí ẩn');
+  await expect(locked.getByTestId('picker-scene')).toHaveCount(0);
+  await page.getByTestId('style-mini').click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  const scene = page.getByTestId('plant-scene').first();
+  await expect(scene).toHaveAttribute('data-style', 'mini');
+  await expect(scene).toHaveAttribute('data-plant', 'sunflower');
+});

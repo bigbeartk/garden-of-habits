@@ -101,6 +101,7 @@ src/
 - **Thêm việc** (`components/InlineAdd.tsx`, dùng ở Hôm nay và ngày tương lai): không có nút ＋ nổi hay popup. Mỗi buổi có nút ＋ tròn 26px (cao bằng icon buổi để hàng không giãn, vùng chạm nới bằng `::after`; icon `plus`, nhãn `Thêm việc buổi Sáng|Chiều|Tối`) ngoài cùng bên phải hàng tiêu đề; bấm thì cuối buổi hiện **dòng việc trống** (`DraftRow`, ô `Việc mới buổi …`) đã focus. Enter: lưu rồi để trống gõ tiếp; rời ô hoặc bấm ＋ buổi khác: lưu nếu đã gõ chữ rồi đóng; Escape: đóng không lưu. **Việc rỗng không bao giờ được lưu** (cây sẽ tính sai). Bẫy Safari đã xử lý: nút ＋ chặn `mousedown` để không cướp focus (nếu không dòng cũ đóng, danh sách dịch và cú chạm trượt), mở dòng bằng `flushSync` để bàn phím iOS bật, và `onDone` chỉ đóng nếu dòng đang mở vẫn là của buổi đó. Ngày tiết kiệm năng lượng ẩn cả danh sách nên không thêm được.
 - **Đổi cây:** nếu đang dùng chậu mặc định của cây cũ thì chậu đổi theo cây mới; nếu người dùng đã tự chọn chậu khác thì giữ chậu đó. Chọn loài thường thì thành **cây thường** (`specialId = null`).
 - **Cây đặc biệt đã mở khoá** (`domain/specialUnlocks.ts`): khi `ensureToday` tung trúng cây đặc biệt thì ghi cặp `'plantId|specialId'` vào setting `unlockedSpecials`. Mở khoá theo **đúng cặp** (Ngô · Phát sáng), không theo hiệu ứng. `listUnlockedSpecials` = setting ∪ các cặp có trong lịch sử ngày (dữ liệu trước khi có tính năng), bỏ cặp có loài/hiệu ứng đã xoá, xếp theo thứ tự nội dung. Bảng `Chọn cây hôm nay` có mục `✨ Cây đặc biệt đã gặp` (`picker-specials`, nút `Ngô · Phát sáng`, viền vàng); chưa có thì hiện lời gợi ý 10%. `changePlant(deps, date, plantId, specialId)` từ chối cặp chưa mở khoá. Ngày tự chọn cây đặc biệt vẫn tính là ngày cây đặc biệt (✨ lịch, Khu vườn); khung ✨ giới thiệu chỉ hiện ở ngày tung trúng.
+- **Dáng cây mở khoá** (`domain/styleUnlocks.ts`, spec `docs/superpowers/specs/2026-10-05-plant-styles-design.md`): mỗi loài có dáng `base` (Gốc) + 2 dáng (`PlantSpecies.styles`), mở khi loài đó **ra hoa đủ 10 rồi 20 ngày** (`bloomCounts`: `finalStage === 'bloom'` và **không** phải ngày nghỉ; tính cả ngày đặc biệt và mọi dáng). Đã mở thì giữ: `mutateDay` (sau transaction) ghi `'plantId|styleId'` vào setting `unlockedStyles` khi hôm nay vừa ra hoa đủ mốc; `listUnlockedStyles` = setting ∪ suy từ số ngày ra hoa (dữ liệu cũ). `ensureToday` đọc danh sách **trước** transaction rồi random đều trong Gốc + dáng đã mở, **chỉ gọi RNG khi có ≥ 2 lựa chọn** (giữ chuỗi random cũ). Bài học: gọi hàm async lồng nhau (đọc setting, `days.each`) **bên trong** transaction rw của Dexie gây `PrematureCommitError` khi `App` và `useToday` cùng gọi `ensureToday` — đọc trước/ghi sau transaction. `changePlant(deps, date, plantId, specialId, styleId = 'base')` từ chối dáng khoá/không có. `DayRecord.styleId` (không có = Gốc); `PlantScene` nhận `styleId`, vẽ qua `getStageArt` (`content/plants/styles.ts`; `seed`/`sprout` và dáng lạ → Gốc), có `data-style`. Lịch/chi tiết ngày/Hôm nay vẽ đúng dáng của ngày; Khu vườn luôn vẽ Gốc. **Bảng Đổi cây:** ô loài có dáng thì có nút lá tròn ở góc (`Dáng cây: <loài> (n/3)`, icon `styles`, chấm hồng nếu hôm nay dùng dáng khác Gốc); bấm thì nội dung bảng thành **màn dáng** (`Dáng của <loài>`, nút `Quay lại chọn cây`, Back Android về lưới): dòng `Đã ra hoa N ngày`, thanh tiến độ `progressbar` `Tiến độ mở dáng` (`N/10` hoặc `N/20`), 3 ô `style-<id>`; dáng khoá là ô `is-locked` `Dáng bí ẩn` / `Ra hoa 10 ngày để mở` với `LockedStyleArt` (chậu trống + ? + ổ khoá) — **không render hình cây nào của dáng khoá**. Chọn loài ở lưới = Gốc; chọn cặp đặc biệt giữ dáng hôm nay nếu cùng loài. Hôm nay: dáng mới mở trong lúc màn đang mở → khung `style-unlock` ~5 giây (`Mở khoá dáng mới: <loài> · <dáng>!`); mở nhờ lịch sử cũ thì không mừng. Loài chưa vẽ dáng (chưa có `styles`) thì ẩn nút dáng.
 - **Ngày tiết kiệm năng lượng** (`isRestDay`): todo bị ẩn nhưng vẫn giữ, cây hiện hình hạt giống ôm gối ngủ.
 - **Chào hỏi:** lần đầu trong ngày (`greetedAt === null`), App tự chuyển sang tab Hôm nay, rồi ghi `greetedAt`; câu chào chính là lời của ngày. Nếu là cây đặc biệt thì hiện thêm khung ✨ giới thiệu ~5 giây.
 - **Lịch:** mỗi ô ngày mang một trạng thái (`dayCellStatus`):
@@ -147,6 +148,13 @@ interface PlantSpecies {
   praises?: string[];                                // câu khen riêng khi xong việc
   taps?: string[];                                   // câu riêng khi bị chạm vào
   faceStyle?: 'cute' | 'cool' | 'lady';              // 'cool': kính râm + nhếch mép, không má hồng; 'lady': mi cong + môi son (ngủ/buồn vẫn mặt thường)
+  styles?: PlantStyle[];                             // 2 dáng mở khoá (unlockAt 10, 20)
+}
+interface PlantStyle {                               // chỉ vẽ lại bud/bloom; seed/sprout dùng Gốc
+  id: string; name: string; unlockAt: number;
+  stages: Record<'bud'|'bloom', Art>;
+  faceAnchor: Record<'bud'|'bloom', FaceAnchor>;
+  faceStyle?: FaceStyle;                             // không có = theo loài
 }
 ```
 **Thêm cây mới** gồm 3 bước:
@@ -172,6 +180,12 @@ Các loài hiện có:
 | `rose` | Hoa hồng (phong cách **quý cô sang chảnh**, `faceStyle: 'lady'`) | `rose-porcelain` | một bông hồng nhiều lớp đội vương miện vàng lệch, cành mảnh thắt nơ satin hồng |
 | `watermelon` | Dưa hấu | `tin-bucket` | dây bò lá tim xoè ngang + quả dưa giữa |
 | `hydrangea` | Tulip (trước là Cẩm tú cầu; giữ id `hydrangea` để không mất dữ liệu cũ) | `blue-ceramic` | một bông tulip đỏ to mũm mĩm hình chén, mọi cánh bo tròn không mũi nhọn (mặt trên cánh trước), thân mập, hai lá to bản mũi nhọn xoè ở gốc |
+
+**Dáng mở khoá** (thêm vào `styles` của loài; mỗi dáng phải khác mọi loài khác và 2 dáng còn lại của chính loài, nhưng vẫn nhận ra loài; soát bằng `src/dev/ArtGallery.tsx` — ô cố định, có cả dáng — chụp WebKit). `tests/unit/content/plants.test.tsx` kiểm mọi loài có `styles`: đúng 2 dáng, mốc 10 rồi 20, đủ bud/bloom.
+
+| Loài | Dáng 2 (10 ngày) | Dáng 3 (20 ngày) |
+|---|---|---|
+| `sunflower` | `mini` Mini: bụi thấp phân nhánh, 5 bông nhỏ cam đỏ xoè quạt, bông giữa mang mặt | `giant` Khổng lồ: thân rất cao cong dấu hỏi, bông to cúi chào bên phải |
 
 Hình dùng chung cho mọi loài: `common/SleepingSeed.tsx` (ngày nghỉ) và `common/WiltedPlant.tsx` (ngày bỏ lỡ).
 
@@ -210,7 +224,7 @@ Với id không còn tồn tại (đã xoá khỏi nội dung, hoặc đến t�
 ### Ghép cảnh
 `components/PlantScene.tsx` vẽ theo thứ tự: Underlay → chậu → cây (hoặc hạt ngủ / cây héo) + mặt → Overlay → lớp phụ (bình tưới, hiệu ứng bung lá).
 
-Các thuộc tính để test bám vào: `data-testid` (mặc định `plant-scene`), `data-plant`, `data-pot`, `data-stage`, `data-mode` (`plant | sleeping | wilted`), `data-special`.
+Các thuộc tính để test bám vào: `data-testid` (mặc định `plant-scene`), `data-plant`, `data-pot`, `data-stage`, `data-mode` (`plant | sleeping | wilted`), `data-special`, `data-style` (`base` khi Gốc).
 
 ## Cơ sở dữ liệu (IndexedDB qua Dexie)
 
@@ -244,6 +258,7 @@ interface DayRecord {
   isRestDay: boolean;
   title?: string;            // MỤC TIÊU ngày (tên trường giữ là title); bản ghi cũ không có → coi là ''
   speech?: string;           // lời cây nói cả ngày; không có = chưa chọn (chọn khi mở Hôm nay), '' = không nói
+  styleId?: string;          // dáng cây của ngày; không có = 'base' (Gốc)
   greetedAt: number | null;  // ms; null = chưa chào hôm nay
   note: string;
   todos: Todo[];             // luôn lưu theo order tăng dần, order = 0..n-1
@@ -265,6 +280,7 @@ showPlantSpeech: boolean                             // hiện bong bóng lời 
 gardenOnlyPlanted: boolean                           // Khu vườn chỉ hiện luống > 0 ngày; không có = TẮT
 gardenSeparateSpecial: boolean                       // Khu vườn tách ngày cây đặc biệt thành luống riêng; không có = TẮT
 unlockedSpecials: string[]                           // cây đặc biệt đã tung trúng, 'plantId|specialId'; có trong sao lưu (gộp = hợp hai danh sách)
+unlockedStyles: string[]                             // dáng cây đã mở (đủ ngày ra hoa), 'plantId|styleId'; có trong sao lưu (gộp = hợp)
 // mọi công tắc bật/tắt liệt kê ở BOOLEAN_SETTINGS (db/settings.ts): backup tự sao lưu/khôi phục theo danh sách này
 ```
 
@@ -286,7 +302,8 @@ Tên file: `chau-cay-backup-YYYY-MM-DD.json`. Khi lưu, app mở menu Chia sẻ 
   "planned": [PlannedTodo, ...],
   "plannedGoals": [{ "date": "YYYY-MM-DD", "title": "..." }, ...],
   "calendarBg": { "mime": "image/jpeg", "base64": "..." } | null,
-  "unlockedSpecials": ["corn|glow", ...]          // tuỳ chọn; file cũ không có
+  "unlockedSpecials": ["corn|glow", ...],         // tuỳ chọn; file cũ không có
+  "unlockedStyles": ["sunflower|mini", ...]       // tuỳ chọn; file cũ không có (ngày có thể có "styleId")
 }
 ```
 
@@ -325,7 +342,7 @@ File thiếu `planned` (phiên bản 1–2) hoặc `plannedGoals` (phiên bản 
 - **Đóng bảng (`BottomSheet`)**: nút X (icon `close`, `aria-label="Đóng"`) ở góc phải trên hàng tiêu đề (`.sheet__head`) như cửa sổ Windows; không còn nút chữ "Đóng" ở đáy. Chạm nền mờ cũng đóng.
   - `BottomSheet` render qua **portal vào `<body>`**: màn Lịch đặt `position: relative` cho mọi con trực tiếp (`.screen--calendar > :not(.bg-scene)`), trước đây làm bảng mất `position: fixed` và nằm cuối trang. Đừng bỏ portal.
   - `tall`: bảng phủ gần hết màn hình (chừa 48px + safe-area ở trên), tiêu đề + X đứng yên, chỉ `.sheet__body` cuộn. Dùng cho `DayDetailSheet` (chạm ngày đã qua).
-- **Icon:** không dùng emoji cho icon chức năng; dùng bộ SVG tự vẽ trong `components/icons.tsx` (khung 32×32, viền cocoa, màu pastel, `data-icon` để test). Hiện có: `calendar`, `sprout`, `garden`, `gear` (4 tab), `clipboard` (chưa dùng), `menu`, `close`, `plus` (nút ＋ mỗi buổi, nền `--butter` giống nút bông hoa), `back`, `plant-swap`, `pot`, `note`, `sleep-seed` (hạt giống đội mũ ngủ), `sun` (4 nút dưới chậu; ngày nghỉ đổi `sleep-seed` → `sun`), `period-morning` / `period-afternoon` / `period-evening` (dùng qua `<PeriodIcon period>` ở mọi chỗ hiện buổi: Hôm nay, ngày tương lai, thẻ mẫu, bảng chi tiết). Ô đánh dấu việc trong bảng chi tiết là `.detail__check` tự vẽ, không dùng emoji ✅/⬜. `IconButton` nhận `icon: ReactNode`.
+- **Icon:** không dùng emoji cho icon chức năng; dùng bộ SVG tự vẽ trong `components/icons.tsx` (khung 32×32, viền cocoa, màu pastel, `data-icon` để test). Hiện có: `calendar`, `sprout`, `garden`, `gear` (4 tab), `clipboard` (chưa dùng), `menu`, `close`, `plus` (nút ＋ mỗi buổi, nền `--butter` giống nút bông hoa), `back`, `plant-swap`, `pot`, `note`, `sleep-seed` (hạt giống đội mũ ngủ), `sun` (4 nút dưới chậu; ngày nghỉ đổi `sleep-seed` → `sun`), `styles` (ba lá xoè quạt, nút dáng trong bảng Đổi cây), `period-morning` / `period-afternoon` / `period-evening` (dùng qua `<PeriodIcon period>` ở mọi chỗ hiện buổi: Hôm nay, ngày tương lai, thẻ mẫu, bảng chi tiết). Ô đánh dấu việc trong bảng chi tiết là `.detail__check` tự vẽ, không dùng emoji ✅/⬜. `IconButton` nhận `icon: ReactNode`.
 - **Hình nền Lịch** (`BackgroundPicker`, radiogroup `Hình nền lịch`, setting `calendarTheme`: `default | cat | grass | rain | gamer | photo`). Trên màn Lịch có **một nút tròn icon xem trước** (ẩn được bằng công tắc `Hiện nút đổi hình nền ở trang Lịch` trong Cài đặt, setting `showCalendarBgButton`, mặc định bật, có trong file sao lưu) (không chữ, nhãn `Đổi hình nền lịch (đang dùng: …)`) mở BottomSheet 6 lựa chọn (lưới 3 cột), chọn xong tự đóng; cùng bộ chọn có trong Cài đặt:
   - `cat` = **Mèo vươn vai** (`components/backgrounds/CatStretchScene.tsx`): nền pastel, mèo chibi duỗi người ở góc trái dưới (nâng lên `CAT_LIFT` 72 để không sát thanh Home), đuôi ve vẩy, tim bay lên (vị trí tim đặt ở `<g>` bao ngoài vì transform của keyframes đè transform của chính phần tử).
   - `grass` = **Cỏ nở** (`GrassBloomScene.tsx`): nền xanh, **chu kỳ 10s**: cỏ mọc lên, đung đưa, hoa nở, thu lại, mọc lại.
@@ -344,6 +361,7 @@ File thiếu `planned` (phiên bản 1–2) hoặc `plannedGoals` (phiên bản 
   - `💾 Sao lưu dữ liệu`
   - Ngày tương lai: `future-day`, nút `Quay lại Lịch`, `Thêm việc buổi …`, `Sửa việc`, `Xoá: <việc>`, `planned-count` (ô lịch)
   - `day-YYYY-MM-DD` (+ `data-status`), `calendar-card`, `calendar-head`, `speech-bubble` (`data-kind` `daily|praise|tap`), `Sửa lời cây nói`, `Lời cây nói`, `Ẩn lời cây nói` / `Hiện lời cây nói`, `special-intro`, `rest-message`
+  - Dáng cây: `Dáng cây: <loài> (n/3)`, `Dáng của <loài>`, `Quay lại chọn cây`, `style-<id>` (`style-base`), `locked-style-art`, `Dáng bí ẩn`, `Tiến độ mở dáng`, `style-unlock`
 
 ## Lỗi nhỏ đã biết (chưa sửa)
 

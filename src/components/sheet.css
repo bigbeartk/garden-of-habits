@@ -56,7 +56,7 @@
 .picker__progress { margin: 8px 0; text-align: center; font-weight: 700; }
 .picker__style-head .picker__progress { flex: 1; text-align: left; }
 .picker__bar {
-  position: relative; height: 18px; margin: 0 auto 12px; max-width: 260px;
+  position: relative; height: 18px; margin: 0 auto 12px; width: 100%; max-width: 260px; box-sizing: border-box;
   border: 2px solid var(--cocoa); border-radius: 999px; background: var(--cream); overflow: hidden;
 }
 .picker__bar-fill { height: 100%; background: var(--peach); }
