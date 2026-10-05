@@ -53,6 +53,7 @@ describe('plants', () => {
       cactus: ['bunny', 'barrel'],
       pothos: ['pole', 'trailing'],
       orange: ['kumquat', 'bonsai'],
+      cherry: ['weeping', 'lantern'],
     });
   });
 
