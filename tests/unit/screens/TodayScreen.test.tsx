@@ -25,6 +25,13 @@ const setup = () => {
 };
 
 describe('TodayScreen', () => {
+  it('cây hôm nay vẽ theo dáng đã lưu', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
+    await deps.db.days.put(makeDay({ date: '2026-10-02', plantId: 'sunflower', finalStage: 'bloom', styleId: 'giant', greetedAt: 1, speech: '' }));
+    renderWithDeps(<TodayScreen />, deps);
+    expect(await screen.findByTestId('plant-scene')).toHaveAttribute('data-style', 'giant');
+  });
+
   it('thêm và tick việc làm cây lớn', async () => {
     const { user } = setup();
     await addTodoInline(user, 'Uống nước');

@@ -1,23 +1,39 @@
 import { ArtView } from '../content/ArtView';
 import { Face } from '../content/Face';
 import { PLANTS } from '../content/plants/registry';
+import { getStageArt } from '../content/plants/styles';
 import { POTS, getPot } from '../content/pots/registry';
-import { GROWTH_STAGES } from '../domain/growth';
+import type { PlantSpecies } from '../content/types';
+import { GROWTH_STAGES, type GrowthStage } from '../domain/growth';
 
+const CELL = { width: 88, height: 106 };
+
+function Cell({ species, styleId, stage, label }: { species: PlantSpecies; styleId: string; stage: GrowthStage; label?: string }) {
+  const look = getStageArt(species, styleId, stage);
+  return (
+    <figure style={{ margin: 0, textAlign: 'center', fontSize: 10 }}>
+      <svg viewBox="0 0 200 240" {...CELL} style={{ background: '#fff', borderRadius: 12 }}>
+        <ArtView art={getPot(species.defaultPotId).art} />
+        <ArtView art={look.art} />
+        <Face mood="smile" faceStyle={look.faceStyle} {...look.faceAnchor} />
+      </svg>
+      {label && <figcaption>{label}</figcaption>}
+    </figure>
+  );
+}
+
+/** Xem trước mọi cây (4 giai đoạn), mọi dáng mở khoá (bud/bloom) và mọi chậu. Ô cố định cỡ để khổ hẹp không bị bóp. */
 export function ArtGallery() {
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, padding: 8 }}>
-      {PLANTS.flatMap((p) =>
-        GROWTH_STAGES.map((s) => (
-          <svg key={`${p.id}-${s}`} viewBox="0 0 200 240" style={{ background: '#fff', borderRadius: 12 }}>
-            <ArtView art={getPot(p.defaultPotId).art} />
-            <ArtView art={p.stages[s]} />
-            <Face mood="smile" {...p.faceAnchor[s]} />
-          </svg>
-        )),
-      )}
+    <div style={{ display: 'grid', gridTemplateColumns: `repeat(4, ${CELL.width}px)`, gap: 6, padding: 6 }}>
+      {PLANTS.flatMap((p) => [
+        ...GROWTH_STAGES.map((s) => <Cell key={`${p.id}-${s}`} species={p} styleId="base" stage={s} label={s === 'seed' ? p.name : undefined} />),
+        ...(p.styles ?? []).flatMap((st) =>
+          (['bud', 'bloom'] as const).map((s) => <Cell key={`${p.id}-${st.id}-${s}`} species={p} styleId={st.id} stage={s} label={`${st.name} · ${s}`} />),
+        ),
+      ])}
       {POTS.map((pot) => (
-        <svg key={pot.id} viewBox="0 0 200 240" style={{ background: '#fff', borderRadius: 12 }}>
+        <svg key={pot.id} viewBox="0 0 200 240" {...CELL} style={{ background: '#fff', borderRadius: 12 }}>
           <ArtView art={pot.art} />
         </svg>
       ))}
