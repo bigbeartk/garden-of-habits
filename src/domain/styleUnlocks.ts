@@ -72,15 +72,19 @@ export async function styleProgress(deps: Deps, plantId: string): Promise<StyleP
 /**
  * Hôm nay vừa ra hoa: lưu các dáng của loài đủ mốc với số ngày = ngày đã qua + hôm nay.
  * Không đọc lại trạng thái hôm nay (lỡ bị bỏ tick ngay sau đó thì vẫn mở, đúng luật "mở rồi giữ").
+ * Mỗi ngày chỉ góp một lần (`styleBloomCredit`): ra hoa, bỏ tick, đổi loài rồi tick lại không mở thêm cho loài khác.
  * Ghi setting trong transaction riêng chỉ dùng lệnh Dexie trực tiếp (không lồng hàm async). Trả về khoá mới ghi.
  */
 export async function unlockStylesFor({ db, catalog, now }: Deps, plantId: string): Promise<string[]> {
+  const today = dayKey(now());
   const plant = catalog.plants.find((p) => p.id === plantId);
-  if (!plant?.styles?.length) return [];
-  const count = ((await bloomCounts(db, dayKey(now()))).get(plantId) ?? 0) + 1;
-  const reached = plant.styles.filter((s) => count >= s.unlockAt).map((s) => styleKey({ plantId, styleId: s.id }));
-  if (!reached.length) return [];
+  const count = ((await bloomCounts(db, today)).get(plantId) ?? 0) + 1;
+  const reached = (plant?.styles ?? []).filter((s) => count >= s.unlockAt).map((s) => styleKey({ plantId, styleId: s.id }));
   return db.transaction('rw', db.settings, async () => {
+    const credit = await db.settings.get('styleBloomCredit');
+    if (credit?.value === today) return [];
+    await db.settings.put({ key: 'styleBloomCredit', value: today });
+    if (!reached.length) return [];
     const row = await db.settings.get('unlockedStyles');
     const saved = (row?.value as string[] | undefined) ?? [];
     const added = reached.filter((k) => !saved.includes(k));

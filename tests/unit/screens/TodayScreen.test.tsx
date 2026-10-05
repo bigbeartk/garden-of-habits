@@ -54,6 +54,21 @@ describe('TodayScreen', () => {
     expect(screen.queryByTestId('style-unlock')).toBeNull();
   });
 
+  it('sang ngày mới mà dáng đủ mốc nhờ ngày hôm qua (chưa ghi setting) thì không mừng', async () => {
+    const { deps, clock } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
+    // 9 ngày cũ + hôm nay đã ra hoa từ trước (không qua lần tick nên chưa ghi setting)
+    await deps.db.days.bulkPut([...blooms('sunflower', 9), makeDay({ date: '2026-10-02', plantId: 'sunflower', finalStage: 'bloom', greetedAt: 1, speech: '' })]);
+    renderWithDeps(<TodayScreen />, deps);
+    await waitFor(() => expect(screen.getByTestId('plant-scene')).toHaveAttribute('data-stage', 'bloom'));
+    await new Promise((r) => setTimeout(r, 300));
+    clock.current = new Date(2026, 9, 3, 10, 0);
+    document.dispatchEvent(new Event('visibilitychange'));
+    await waitFor(async () => expect(await deps.db.days.get('2026-10-03')).toBeDefined());
+    await waitFor(() => expect(screen.getByTestId('plant-scene')).toHaveAttribute('data-stage', 'seed'));
+    await new Promise((r) => setTimeout(r, 500));
+    expect(screen.queryByTestId('style-unlock')).toBeNull();
+  });
+
   it('cây hôm nay vẽ theo dáng đã lưu', async () => {
     const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
     await deps.db.days.put(makeDay({ date: '2026-10-02', plantId: 'sunflower', finalStage: 'bloom', styleId: 'giant', greetedAt: 1, speech: '' }));

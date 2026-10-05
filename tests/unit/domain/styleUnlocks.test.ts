@@ -2,7 +2,7 @@ import { availableStyles, bloomCounts, listUnlockedStyles, styleProgress, unlock
 import { getSetting, setSetting } from '../../../src/db/settings';
 import { addTodo, changePlant, ensureToday, toggleTodo } from '../../../src/domain/dayService';
 import { mulberry32 } from '../../../src/domain/random';
-import { makeDay, makeDeps } from '../helpers';
+import { makeDay, makeDeps, TEST_CATALOG } from '../helpers';
 
 /** n ngày ra hoa của một loài, bắt đầu từ 2026-08-01 */
 const blooms = (plantId: string, n: number) =>
@@ -144,6 +144,22 @@ describe('mở khoá ổn định (review)', () => {
       bloomDays: 9,
       styles: [{ id: 'mini', unlockAt: 10, unlocked: false }, { id: 'giant', unlockAt: 20, unlocked: false }],
     });
+  });
+
+  it('một ngày chỉ góp một lần: ra hoa, bỏ tick, đổi loài rồi tick lại không mở dáng cho loài thứ hai', async () => {
+    const plants = [TEST_CATALOG.plants[0], { id: 'corn', defaultPotId: 'rattan', styles: [{ id: 'popcorn', unlockAt: 10 }] }];
+    const { deps } = makeDeps(undefined, { ...TEST_CATALOG, plants });
+    await deps.db.days.bulkPut([...blooms('sunflower', 9), ...blooms('corn', 9).map((d) => ({ ...d, date: d.date.replace('2026-08', '2026-09') }))]);
+    deps.rng = () => 0; // sunflower
+    await ensureToday(deps);
+    const day = await addTodo(deps, TODAY, 'Uống nước');
+    const id = day.todos[0].id;
+    await toggleTodo(deps, TODAY, id);
+    expect(await getSetting(deps.db, 'unlockedStyles')).toEqual(['sunflower|mini']);
+    await toggleTodo(deps, TODAY, id);
+    await changePlant(deps, TODAY, 'corn');
+    await toggleTodo(deps, TODAY, id);
+    expect(await getSetting(deps.db, 'unlockedStyles')).toEqual(['sunflower|mini']);
   });
 
   it('tick tới ra hoa thì tính hôm nay: 9 ngày cũ + hôm nay = mở dáng 2, kể cả khi bỏ tick ngay sau đó', async () => {

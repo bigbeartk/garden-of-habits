@@ -19,6 +19,8 @@ export interface SettingsShape {
   unlockedSpecials: string[];
   /** dáng cây đã mở khoá (đủ ngày ra hoa), dạng 'plantId|styleId'; mở rồi giữ luôn */
   unlockedStyles: string[];
+  /** ngày ('YYYY-MM-DD') đã góp vào mở dáng; mỗi ngày chỉ góp một lần dù bỏ tick, đổi loài rồi tick lại */
+  styleBloomCredit: string;
 }
 
 export async function getSetting<K extends keyof SettingsShape>(db: PlantDB, key: K): Promise<SettingsShape[K] | undefined> {

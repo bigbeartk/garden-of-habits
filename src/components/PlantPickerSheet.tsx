@@ -32,7 +32,8 @@ export function PlantPickerSheet({ open, currentId, currentSpecialId, currentSty
   // dáng không thuộc loài hôm nay (file sao lưu, nội dung đã đổi) coi như Gốc
   const currentStyleId = getStyle(getSpecies(currentId), rawStyleId)?.id ?? BASE_STYLE_ID;
   const unlocked = useLiveQuery(() => listUnlockedSpecials(deps), [deps]) ?? [];
-  const unlockedStyles = useLiveQuery(async () => (open ? listUnlockedStyles(deps) : undefined), [deps, open]);
+  // đọc cả lúc bảng đóng: mở bảng là có số dáng ngay, không nháy "1/3"
+  const unlockedStyles = useLiveQuery(() => listUnlockedStyles(deps), [deps]);
   /** loài đang xem màn dáng; null = lưới loài */
   const [styleFor, setStyleFor] = useState<string | null>(null);
   useEffect(() => {

@@ -83,18 +83,24 @@ export function TodayScreen() {
     return () => clearTimeout(t);
   }, [intro]);
 
-  /** dáng vừa mở khoá trong lúc màn đang mở (không tính lần nạp đầu, nên mở nhờ lịch sử cũ không mừng) */
-  const unlockedStyles = useLiveQuery(() => listUnlockedStyles(deps), [deps]);
+  /**
+   * dáng vừa mở khoá trong lúc màn đang mở. Không tính lần nạp đầu, và chỉ mừng dáng vừa được ghi vào
+   * `unlockedStyles` (mở nhờ tick ra hoa); dáng suy ra từ lịch sử (vd. lúc sang ngày mới) không mừng.
+   */
+  const unlockedStyles = useLiveQuery(
+    async () => ({ all: await listUnlockedStyles(deps), saved: new Set((await getSetting(deps.db, 'unlockedStyles')) ?? []) }),
+    [deps],
+  );
   const seenStyles = useRef<Set<string> | null>(null);
   const [newStyles, setNewStyles] = useState<string[]>([]);
   useEffect(() => {
     if (!unlockedStyles) return;
     const seen = seenStyles.current;
     if (seen) {
-      const added = [...unlockedStyles].filter((k) => !seen.has(k));
+      const added = [...unlockedStyles.all].filter((k) => !seen.has(k) && unlockedStyles.saved.has(k));
       if (added.length) setNewStyles(added);
     }
-    seenStyles.current = unlockedStyles;
+    seenStyles.current = unlockedStyles.all;
   }, [unlockedStyles]);
   useEffect(() => {
     if (!newStyles.length) return;

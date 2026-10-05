@@ -5,6 +5,8 @@ import { PlantPickerSheet } from '../../../src/components/PlantPickerSheet';
 import { CATALOG } from '../../../src/content/catalog';
 import { handleBack } from '../../../src/app/back';
 import { setSetting } from '../../../src/db/settings';
+import { DepsProvider } from '../../../src/app/deps';
+import { NavContext } from '../../../src/app/nav';
 import { makeDay, makeDeps, renderWithDeps } from '../helpers';
 
 /** chờ useLiveQuery đọc xong số ngày ra hoa: chạy cả bộ (hoặc trên CI) có thể lâu hơn 1 giây mặc định */
@@ -34,6 +36,22 @@ describe('PlantPickerSheet: dáng cây', () => {
     expect(await screen.findByRole('button', { name: 'Dáng cây: Hướng dương (2/3)' }, LIVE)).toBeInTheDocument();
     // loài chưa có dáng (chưa vẽ) thì không có nút: số nút = số loài có styles
     expect(screen.getAllByRole('button', { name: /^Dáng cây:/ })).toHaveLength(CATALOG.plants.filter((p) => p.styles?.length).length);
+  });
+
+  it('vừa mở bảng đã ghi đúng số dáng (không nháy 1/3)', async () => {
+    const { deps, onPick, onClose } = setup();
+    await deps.db.days.bulkPut(blooms('sunflower', 12));
+    const props = { currentId: 'sunflower', currentSpecialId: null, currentStyleId: 'base', onClose, onPick };
+    const { rerender } = renderWithDeps(<PlantPickerSheet open={false} {...props} />, deps);
+    await new Promise((r) => setTimeout(r, 500));
+    rerender(
+      <DepsProvider value={deps}>
+        <NavContext.Provider value={() => {}}>
+          <PlantPickerSheet open {...props} />
+        </NavContext.Provider>
+      </DepsProvider>,
+    );
+    expect(screen.getByRole('button', { name: /^Dáng cây: Hướng dương/ })).toHaveAccessibleName('Dáng cây: Hướng dương (2/3)');
   });
 
   it('màn dáng: dáng đã mở có hình và chọn được; dáng khoá không có hình cây', async () => {
