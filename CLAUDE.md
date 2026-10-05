@@ -27,6 +27,7 @@ PWA todo cho iPhone, có phần "nuôi cây": mỗi việc làm xong là một l
 
 - Chỉ commit và push khi mọi test đều pass. Nối lệnh bằng `&&`, không dùng `;`. Khi lọc output test qua `| grep`, bật `set -o pipefail` (nếu không, test fail vẫn đi tiếp tới commit/push).
 - **Đừng pipe Playwright vào `| head`** trên Windows: `head` đóng ống sớm thì Playwright treo vô hạn (giữ cả server preview cổng 4173). Ghi ra file (`> pw.log 2>&1`) rồi grep file; nếu đã treo thì tắt các tiến trình node của lần chạy đó.
+- E2E: sau khi đổi `page.clock.setFixedTime` rồi reload và thao tác một lúc, animation đóng menu nổi của WebKit có thể đứng ~5 giây (đồng hồ giả lệch timeline Web Animations, không phải lỗi app), làm `closeMenu` hết hạn. Khi đó đừng chờ dải tab thu lại: bấm thẳng nút cần bấm (chạm ra ngoài cũng tự thu menu).
 - Thay đổi giao diện phải chạy E2E trên **WebKit**: Chrome không bắt được lỗi bố cục riêng của Safari.
 - Làm theo TDD: viết test đỏ trước, rồi mới sửa code. Soát hình bằng ảnh chụp WebKit khổ iPhone 13.
 - Test E2E/unit hay chập chờn khi chưa chờ ghi IndexedDB xong (reload ngay sau khi gõ) hoặc chờ một trong hai `useLiveQuery`: chờ trạng thái cuối cùng hiện ra trên giao diện. Nút gạt/toggle đọc từ DB phải giữ state cục bộ (optimistic), nếu không bấm nhanh hai lần sẽ sai.
@@ -44,7 +45,7 @@ PWA todo cho iPhone, có phần "nuôi cây": mỗi việc làm xong là một l
 - **Mọi tính năng chỉ viết một lần trong `src/`**, PWA và app Android cùng dùng. Không fork giao diện cho Android.
 - Cái gì khác nhau giữa trình duyệt và app native thì **chỉ nằm trong `src/platform/index.ts`** (chỗ duy nhất gọi `isNative()` / plugin `@capacitor/*`, import động để PWA không phải tải): `shareFile` (Android: ghi cache bằng Filesystem rồi Share; huỷ → `AbortError`), `openExternal`, `onAppResume` (thêm sự kiện `resume`), `onHardwareBack`, `exitApp`, `setupNativeShell`. Màn hình chỉ được hỏi `isNative()` để ẩn/đổi chữ (vd. Cài đặt ẩn `Hướng dẫn cài app`, phiên bản ghi `· Android`, nhắc lưu "Google Drive" thay "iCloud").
 - Native không đăng ký service worker, không gọi `storage.persist()` (`main.tsx`).
-- **Nút Back của Android** (`src/app/back.ts`): màn/bảng đang mở đăng ký `useBackHandler(active, fn, layer)`, lớp `tab < screen < form < sheet`; Back gọi lớp cao nhất, hết thì thoát app. Đã đăng ký: `BottomSheet` (mọi bảng), menu nổi, ngày tương lai, màn Mẫu, form mẫu, tab khác Lịch → Lịch. **Thêm màn con / bảng / chế độ sửa mới thì nhớ đăng ký**, nếu không Back nhảy qua nó.
+- **Nút Back của Android** (`src/app/back.ts`): màn/bảng đang mở đăng ký `useBackHandler(active, fn, layer)`, lớp `tab < screen < form < sheet`; Back gọi lớp cao nhất, hết thì thoát app. Đã đăng ký: `BottomSheet` (mọi bảng), menu nổi, ngày tương lai, màn Mẫu, form mẫu, màn Nhắc việc (+ dòng thêm/sửa việc nhắc), tab khác Lịch → Lịch. **Thêm màn con / bảng / chế độ sửa mới thì nhớ đăng ký**, nếu không Back nhảy qua nó.
 - **Safe-area:** Android 15+ luôn tràn viền; SystemBars của Capacitor (`capacitor.config.ts`, `insetsHandling: 'css'`) bơm biến `--safe-area-inset-*`. Trong CSS **luôn viết `var(--safe-area-inset-x, env(safe-area-inset-x))`**, không viết `env()` trần (WebView cũ trả 0).
 - `appId` `io.github.bigbeartk.gardenofhabits` không đổi được sau khi lên Play. Thư mục `android/` được commit (trừ file sinh ra); web build được `cap sync` chép vào lúc build, không commit.
 - Job CI `android` chạy **Node 22** (Capacitor CLI 8 đòi Node ≥ 22); job PWA vẫn Node 20.
@@ -58,11 +59,11 @@ PWA todo cho iPhone, có phần "nuôi cây": mỗi việc làm xong là một l
 src/
   app/        App (tab + tự sang ngày mới), TabBar (menu nổi), nav (TABS + NavContext), deps (DepsContext), back (nút Back Android), theme.css
   domain/     logic thuần TS, test độc lập: dayKey, growth, random, timeOfDay, dayService,
-              templateService, calendar, garden, types
+              templateService, plannedService, reminderService, reminderView, calendar, garden, types
   db/         Dexie (db.ts), settings, queries, backup (export/import/merge), share
   content/    NỘI DUNG mở rộng được: plants/, pots/, specials/, common/, Face, ArtView, catalog, sayings, praises, taps
   components/ PlantScene, SkyBackground, TodoList, BottomSheet, DayCell, ...
-  screens/    CalendarScreen (màn mở đầu; mở FutureDayScreen cho ngày tương lai), TodayScreen, GardenScreen (tab Khu vườn), SettingsScreen (mở TemplatesScreen từ thẻ "Mẫu việc")
+  screens/    CalendarScreen (màn mở đầu; mở FutureDayScreen cho ngày tương lai), TodayScreen, GardenScreen (tab Khu vườn), SettingsScreen (mở RemindersScreen từ thẻ "Nhắc việc", TemplatesScreen từ thẻ "Mẫu việc")
   hooks/      useNow, useToday, useBackupReminder, useCalendarBg
   platform/   khác biệt PWA ⇄ Android (Capacitor): chia sẻ file, link ngoài, resume, nút Back
   dev/        ArtGallery.tsx — xem trước mọi cây/chậu (render tạm từ main.tsx khi cần)
@@ -89,14 +90,18 @@ src/
 - **Ngày đã qua bị khoá** (`LockedDayError` cho todo). Trên giao diện ngày đã qua **chỉ để xem**, kể cả ghi chú (tầng domain `setNote` vẫn cho phép, nhưng UI không còn ô sửa).
 - **Chỉ hôm nay** mới được: thêm/sửa/xoá/tick/sắp xếp todo, đặt **mục tiêu ngày** (`setTitle`), đổi cây, đổi chậu, bật ngày tiết kiệm năng lượng.
 - **Mục tiêu ngày** (lưu ở trường `title`, giao diện gọi là "Mục tiêu"): ô ở đầu danh sách (`GoalInput`), lưu khi rời ô hoặc Enter, tối đa 60 ký tự. Ngày tương lai có mục tiêu đặt trước (bảng `plannedGoals`, `setPlannedGoal`/`getPlannedGoal`), đến 4:00 ngày đó `ensureToday` chuyển thành `title` rồi xoá. Ngày đã qua chỉ xem mục tiêu trong bảng chi tiết.
-- **Nút quay lại** (`BackButton`, class `back-btn`, icon `back`, nhãn mặc định `Quay lại Lịch`, đổi được qua `label`): có ở **Hôm nay, ngày tương lai, Khu vườn, Cài đặt** (về màn Lịch) và **Mẫu** (nhãn `Quay lại Cài đặt`, về Cài đặt); **chỉ mũi tên, không nền/viền**. Trên trời (Hôm nay/tương lai) nó nổi ở góc trái trên (trời tối thì mũi tên trắng); ở Khu vườn/Mẫu/Cài đặt nằm đầu hàng tiêu đề (`inline`).
-- **Màn Mẫu nằm trong Cài đặt** (không còn là tab): thẻ đầu tiên của Cài đặt là **"Mẫu việc"**, ghi `⭐ Đang dùng: <tên>` (hoặc `Chưa có mẫu mặc định`) + nút `Quản lý mẫu`; bấm thì `SettingsScreen` hiện `TemplatesScreen` (prop `onBack`) thay chỗ trang Cài đặt. Thứ tự thẻ Cài đặt: Mẫu việc → Lịch → Sao lưu & khôi phục → Ủng hộ tôi. Hướng dẫn cài app không còn là thẻ: nút tròn `Hướng dẫn cài app` (icon `help`) ở cuối hàng tiêu đề mở BottomSheet `Cài app lên màn hình chính` (các bước + trạng thái lưu bền vững); dữ liệu chưa lưu bền vững thì nút có chấm hồng.
+- **Nút quay lại** (`BackButton`, class `back-btn`, icon `back`, nhãn mặc định `Quay lại Lịch`, đổi được qua `label`): có ở **Hôm nay, ngày tương lai, Khu vườn, Cài đặt** (về màn Lịch) và **Mẫu**, **Nhắc việc** (nhãn `Quay lại Cài đặt`, về Cài đặt); **chỉ mũi tên, không nền/viền**. Trên trời (Hôm nay/tương lai) nó nổi ở góc trái trên (trời tối thì mũi tên trắng); ở Khu vườn/Mẫu/Cài đặt nằm đầu hàng tiêu đề (`inline`).
+- **Màn Mẫu nằm trong Cài đặt** (không còn là tab): thẻ thứ hai của Cài đặt (sau "Nhắc việc") là **"Mẫu việc"**, ghi `⭐ Đang dùng: <tên>` (hoặc `Chưa có mẫu mặc định`) + nút `Quản lý mẫu`; bấm thì `SettingsScreen` hiện `TemplatesScreen` (prop `onBack`) thay chỗ trang Cài đặt. Thứ tự thẻ Cài đặt: Nhắc việc → Mẫu việc → Lịch → Sao lưu & khôi phục → Ủng hộ tôi. Hướng dẫn cài app không còn là thẻ: nút tròn `Hướng dẫn cài app` (icon `help`) ở cuối hàng tiêu đề mở BottomSheet `Cài app lên màn hình chính` (các bước + trạng thái lưu bền vững); dữ liệu chưa lưu bền vững thì nút có chấm hồng.
 - **Màn Mẫu:** nút `＋ Mẫu mới` rộng nét đứt; thẻ mẫu có tên + nút ngôi sao SVG (`star`, chữ "Mặc định"/"Đặt mặc định", thẻ mặc định viền vàng), 3 khối màu theo buổi (icon + tên + số việc), hàng nút [Thêm vào hôm nay][Sửa][Xoá]; form có 3 khối màu kèm icon. Mẫu/Cài đặt chừa `padding-bottom` cho nút menu nổi.
 - **Buổi Sáng / Chiều / Tối** (`domain/period.ts`): mỗi todo và mỗi việc trong mẫu có `period`. Màn Hôm nay luôn hiện đủ 3 mục (mục trống ghi "Chưa có việc"); mỗi mục có số việc xong/tổng riêng; mục của buổi hiện tại (`periodOf`: 4–11h sáng, 11–18h chiều, còn lại tối) có viền đậm. **Kéo thả** (nắm `⋮⋮`) chuyển được việc sang buổi khác, kể cả buổi trống, hoặc sắp xếp trong buổi: `TodoList` tự viết bằng pointer events (không dùng `Reorder` của motion vì nó không kéo qua danh sách khác), buổi đích viền hồng (`is-drop-target`), vạch `todo__drop-line` báo vị trí, kéo gần mép thì vùng danh sách tự cuộn; lưu bằng `moveTodo(deps, date, id, period, index)`. Test E2E kéo phải đóng menu nổi trước. Cây vẫn lớn theo tỉ lệ việc xong của **cả ngày**.
 - **Chạm vào cây** (màn Hôm nay): nút trong suốt `Chạm vào cây` (`.today__plant-tap`, phủ đúng khung 200×240 của cây, không lấn hàng 4 nút). Chạm thì cây cười (`data-mood="smile"`), nảy lên (`bounceKey`) và nói một câu ~3,5 giây (`data-kind="tap"`): `pickTap` lấy từ `COMMON_TAPS` (`content/taps.ts`) + `species.taps`, không lặp câu vừa nói. Ngày tiết kiệm năng lượng: cây vẫn ngủ, nói câu `SLEEPY_TAPS`. Câu tạm (khen/chạm) và khung ✨ giới thiệu có `pointer-events: none`, vì câu dài phủ xuống thân cây và từng nuốt mất cú chạm; riêng bong bóng lời của ngày bắt chạm (để sửa), nó chỉ 3 dòng và ẩn được.
 - **Cây khen:** xong một việc thì cây cười và nói một câu khen khoảng 3,5 giây (`pickPraise`: câu chung `COMMON_PRAISES` + `species.praises`); xong việc cuối cùng (cây vừa ra hoa) thì dùng `BLOOM_PRAISES`. Câu khen/chạm hiện tạm trong cùng bong bóng rồi quay về lời của ngày.
 - **Ghi chú tự lưu** (`NoteSheet`): không có nút Lưu; lưu sau khi ngừng gõ 400ms, khi rời ô và khi đóng bảng. Bảng chỉ nạp lại nội dung từ DB lúc vừa mở, nên lúc đang gõ DB cập nhật không ghi đè chữ.
 - **Lời cây nói của ngày** (`DayRecord.speech`, `content/sayings.ts`): mỗi ngày cây nói một câu suốt cả ngày (`data-kind="daily"`, tối đa 3 dòng, mặt `talk`). Lần đầu mở Hôm nay mà ngày chưa có `speech` (ngày mới hoặc bản ghi cũ), `TodayScreen` chọn ngẫu nhiên bằng `pickSaying` (`COMMON_SAYINGS` + `species.sayings`) rồi lưu qua `setDaySpeech` (chỉ hôm nay, cắt khoảng trắng, tối đa `SPEECH_MAX` = 100). Đã có `speech` (kể cả `''`) thì không chọn lại; rỗng thì bong bóng mờ `Chạm để viết lời cây nói ✎` (`data-empty`). **Chạm bong bóng** (nút `Sửa lời cây nói`) thì thành ô `Lời cây nói` ngay tại chỗ (viền hồng): Enter/rời ô lưu, Shift+Enter xuống dòng, Escape huỷ; trong lúc sửa câu tạm không chen vào. **Nút ẩn/hiện** tròn ở góc phải trên khung trời (icon `speech`, nhãn `Ẩn lời cây nói` / `Hiện lời cây nói`, setting `showPlantSpeech`, mặc định bật, có trong sao lưu; giữ state cục bộ, chưa đọc xong setting thì chưa hiện bong bóng để khỏi nháy). Đang ẩn thì câu khen/chạm vẫn hiện tạm. Ngày tiết kiệm năng lượng: không có lời của ngày, không có nút ẩn/hiện. **Ghi chú chỉ để lưu thông tin**: bảng ghi chú không còn công tắc `Cây nói ghi chú` (setting `plantSaysNote` cũ bỏ, file sao lưu cũ có nó vẫn khôi phục được).
+- **Nhắc việc** (spec `docs/superpowers/specs/2026-10-05-reminders-design.md`; `domain/reminderService.ts`, `reminderView.ts`, `screens/RemindersScreen.tsx`): danh sách việc dài hạn chưa cần làm ngay, **không có hạn chót**, xếp theo thứ tự thêm. Mở từ thẻ đầu tiên của Cài đặt (`N việc đang theo dõi` + nút `Mở nhắc việc`; màn có `Quay lại Cài đặt`). Mỗi dòng: ô tick `Hoàn thành nhắc: <việc>`, chữ (chạm để sửa, ô `Sửa việc nhắc`), công tắc `Thêm vào hôm nay: <việc>` (state cục bộ), xoá có xác nhận. Mục `Đã hoàn thành tuần này` (từ 4:00 thứ Hai, `doneThisWeek`), bỏ tick bằng `Bỏ hoàn thành nhắc: <việc>`.
+  - **Bật Hôm nay:** thêm ngay vào **cuối buổi Sáng** hôm nay (nếu chưa xong và hôm nay chưa có todo cùng `reminderId`; hôm nay chưa có bản ghi thì chỉ đặt cờ). `ensureToday` thêm lại mọi việc `autoToday && doneAt === null` mỗi ngày mới (sau mẫu và việc đã lên lịch), nên chưa xong thì mai lại có; ngày cũ đã khoá giữ nguyên. **Tắt:** gỡ todo chưa xong khỏi hôm nay.
+  - **Đồng bộ hai chiều** qua `Todo.reminderId`: tick/bỏ tick ở Hôm nay ↔ `doneAt` của việc nhắc; tick ở Nhắc việc mà việc đang ở hôm nay thì tick luôn todo (cây lớn); sửa chữ một bên thì bên kia (chỉ hôm nay) đổi theo; **xoá ở Hôm nay tự tắt Hôm nay**; xoá việc nhắc gỡ todo chưa xong ở hôm nay (todo đã xong giữ lại). Todo có `reminderId` hiện icon `bell` trước chữ.
+  - Đồng bộ chạy trong `mutateDay(deps, date, kind, fn, sync)`: `sync` chạy trong cùng transaction `[days, reminders]` sau khi lưu ngày; chỉ được đụng 2 bảng đó.
 - **Xoá việc phải xác nhận** (`DeleteWithConfirm`, dùng ở Hôm nay và ngày tương lai): bấm `Xoá: <việc>` thì hàng hiện `Xác nhận xoá: <việc>` (nút "Xoá") và `Thôi`; chỉ nút Xoá mới xoá thật.
 - **Thêm việc** (`components/InlineAdd.tsx`, dùng ở Hôm nay và ngày tương lai): không có nút ＋ nổi hay popup. Mỗi buổi có nút ＋ tròn 26px (cao bằng icon buổi để hàng không giãn, vùng chạm nới bằng `::after`; icon `plus`, nhãn `Thêm việc buổi Sáng|Chiều|Tối`) ngoài cùng bên phải hàng tiêu đề; bấm thì cuối buổi hiện **dòng việc trống** (`DraftRow`, ô `Việc mới buổi …`) đã focus. Enter: lưu rồi để trống gõ tiếp; rời ô hoặc bấm ＋ buổi khác: lưu nếu đã gõ chữ rồi đóng; Escape: đóng không lưu. **Việc rỗng không bao giờ được lưu** (cây sẽ tính sai). Bẫy Safari đã xử lý: nút ＋ chặn `mousedown` để không cướp focus (nếu không dòng cũ đóng, danh sách dịch và cú chạm trượt), mở dòng bằng `flushSync` để bàn phím iOS bật, và `onDone` chỉ đóng nếu dòng đang mở vẫn là của buổi đó. Ngày tiết kiệm năng lượng ẩn cả danh sách nên không thêm được.
 - **Đổi cây:** nếu đang dùng chậu mặc định của cây cũ thì chậu đổi theo cây mới; nếu người dùng đã tự chọn chậu khác thì giữ chậu đó. Chọn loài thường thì thành **cây thường** (`specialId = null`).
@@ -236,12 +241,13 @@ Các thuộc tính để test bám vào: `data-testid` (mặc định `plant-sce
 
 ## Cơ sở dữ liệu (IndexedDB qua Dexie)
 
-Tên DB: `chau-cay-chibi`, `SCHEMA_VERSION = 4` (`src/db/db.ts`).
+Tên DB: `chau-cay-chibi`, `SCHEMA_VERSION = 5` (`src/db/db.ts`).
 
 - **v1**: bản đầu tiên.
 - **v2**: thêm buổi. Bước `upgrade` gán `period: 'morning'` cho todo cũ và chuyển `items: string[]` của mẫu cũ thành `{ text, period: 'morning' }[]`.
 - **v3**: thêm bảng `planned` (việc đã lên lịch cho ngày tương lai).
 - **v4**: thêm bảng `plannedGoals` (mục tiêu đặt trước cho ngày tương lai).
+- **v5**: thêm bảng `reminders` (việc nhắc, màn Nhắc việc).
 
 | Bảng | Khoá / index | Nội dung |
 |---|---|---|
@@ -250,13 +256,15 @@ Tên DB: `chau-cay-chibi`, `SCHEMA_VERSION = 4` (`src/db/db.ts`).
 | `settings` | `key` | `{ key, value }` |
 | `planned` | `id`, index `date` | `PlannedTodo` (việc đã lên lịch) |
 | `plannedGoals` | `date` | `{ date, title }` (mục tiêu đặt trước) |
+| `reminders` | `id` | `Reminder` (việc nhắc dài hạn) |
 
 ```ts
 // src/domain/types.ts
 type Period = 'morning' | 'afternoon' | 'evening';
-interface Todo { id: string; text: string; done: boolean; doneAt: number | null; order: number; period: Period }
+interface Todo { id: string; text: string; done: boolean; doneAt: number | null; order: number; period: Period; reminderId?: string } // reminderId: việc đến từ Nhắc việc
 interface TemplateItem { text: string; period: Period }
 interface PlannedTodo { id: string; date: string; text: string; period: Period; createdAt: number } // createdAt tăng dần trong một ngày
+interface Reminder { id: string; text: string; autoToday: boolean; doneAt: number | null; createdAt: number; updatedAt: number } // việc nhắc; autoToday = công tắc "Hôm nay"
 
 interface DayRecord {
   date: string;              // 'YYYY-MM-DD' theo mốc 4:00
@@ -304,19 +312,20 @@ Tên file: `chau-cay-backup-YYYY-MM-DD.json`. Khi lưu, app mở menu Chia sẻ 
 ```json
 {
   "format": "chau-cay-chibi-backup",
-  "schemaVersion": 4,
+  "schemaVersion": 5,
   "exportedAt": 1790000000000,
   "days": [DayRecord, ...],
   "templates": [Template, ...],
   "planned": [PlannedTodo, ...],
   "plannedGoals": [{ "date": "YYYY-MM-DD", "title": "..." }, ...],
+  "reminders": [Reminder, ...],                 // file 1–4 không có → []
   "calendarBg": { "mime": "image/jpeg", "base64": "..." } | null,
   "unlockedSpecials": ["corn|glow", ...],         // tuỳ chọn; file cũ không có
   "unlockedStyles": ["sunflower|mini", ...]       // tuỳ chọn; file cũ không có (ngày có thể có "styleId")
 }
 ```
 
-File thiếu `planned` (phiên bản 1–2) hoặc `plannedGoals` (phiên bản 1–3) được coi là `[]`; khi gộp, việc đã lên lịch chỉ được thêm nếu chưa có `id`. File phiên bản 1 vẫn khôi phục được: todo thiếu `period` được gán `'morning'`, mẫu có `items` dạng chuỗi được chuyển thành `{ text, period: 'morning' }`.
+File thiếu `planned` (phiên bản 1–2), `plannedGoals` (phiên bản 1–3) hoặc `reminders` (phiên bản 1–4) được coi là `[]`; khi gộp, việc nhắc theo `id`, bản `updatedAt` lớn hơn thắng; todo giữ `reminderId`; khi gộp, việc đã lên lịch chỉ được thêm nếu chưa có `id`. File phiên bản 1 vẫn khôi phục được: todo thiếu `period` được gán `'morning'`, mẫu có `items` dạng chuỗi được chuyển thành `{ text, period: 'morning' }`.
 
 `parseBackup` kiểm tra theo thứ tự sau; mọi thông báo lỗi đều bằng tiếng Việt và không ghi gì vào DB khi lỗi:
 1. JSON hợp lệ.
@@ -351,7 +360,7 @@ File thiếu `planned` (phiên bản 1–2) hoặc `plannedGoals` (phiên bản 
 - **Đóng bảng (`BottomSheet`)**: nút X (icon `close`, `aria-label="Đóng"`) ở góc phải trên hàng tiêu đề (`.sheet__head`) như cửa sổ Windows; không còn nút chữ "Đóng" ở đáy. Chạm nền mờ cũng đóng.
   - `BottomSheet` render qua **portal vào `<body>`**: màn Lịch đặt `position: relative` cho mọi con trực tiếp (`.screen--calendar > :not(.bg-scene)`), trước đây làm bảng mất `position: fixed` và nằm cuối trang. Đừng bỏ portal.
   - `tall`: bảng phủ gần hết màn hình (chừa 48px + safe-area ở trên), tiêu đề + X đứng yên, chỉ `.sheet__body` cuộn. Dùng cho `DayDetailSheet` (chạm ngày đã qua).
-- **Icon:** không dùng emoji cho icon chức năng; dùng bộ SVG tự vẽ trong `components/icons.tsx` (khung 32×32, viền cocoa, màu pastel, `data-icon` để test). Hiện có: `calendar`, `sprout`, `garden`, `gear` (4 tab), `clipboard` (chưa dùng), `menu`, `close`, `plus` (nút ＋ mỗi buổi, nền `--butter` giống nút bông hoa), `back`, `plant-swap`, `pot`, `note`, `sleep-seed` (hạt giống đội mũ ngủ), `sun` (4 nút dưới chậu; ngày nghỉ đổi `sleep-seed` → `sun`), `styles` (ba lá xoè quạt, nút dáng trong bảng Đổi cây), `period-morning` / `period-afternoon` / `period-evening` (dùng qua `<PeriodIcon period>` ở mọi chỗ hiện buổi: Hôm nay, ngày tương lai, thẻ mẫu, bảng chi tiết). Ô đánh dấu việc trong bảng chi tiết là `.detail__check` tự vẽ, không dùng emoji ✅/⬜. `IconButton` nhận `icon: ReactNode`.
+- **Icon:** không dùng emoji cho icon chức năng; dùng bộ SVG tự vẽ trong `components/icons.tsx` (khung 32×32, viền cocoa, màu pastel, `data-icon` để test). Hiện có: `calendar`, `sprout`, `garden`, `gear` (4 tab), `clipboard` (chưa dùng), `menu`, `close`, `plus` (nút ＋ mỗi buổi, nền `--butter` giống nút bông hoa), `back`, `plant-swap`, `pot`, `note`, `sleep-seed` (hạt giống đội mũ ngủ), `sun` (4 nút dưới chậu; ngày nghỉ đổi `sleep-seed` → `sun`), `styles` (ba lá xoè quạt, nút dáng trong bảng Đổi cây), `bell` (chuông nhỏ trước chữ của việc đến từ Nhắc việc), `period-morning` / `period-afternoon` / `period-evening` (dùng qua `<PeriodIcon period>` ở mọi chỗ hiện buổi: Hôm nay, ngày tương lai, thẻ mẫu, bảng chi tiết). Ô đánh dấu việc trong bảng chi tiết là `.detail__check` tự vẽ, không dùng emoji ✅/⬜. `IconButton` nhận `icon: ReactNode`.
 - **Hình nền Lịch** (`BackgroundPicker`, radiogroup `Hình nền lịch`, setting `calendarTheme`: `default | cat | grass | rain | gamer | photo`). Trên màn Lịch có **một nút tròn icon xem trước** (ẩn được bằng công tắc `Hiện nút đổi hình nền ở trang Lịch` trong Cài đặt, setting `showCalendarBgButton`, mặc định bật, có trong file sao lưu) (không chữ, nhãn `Đổi hình nền lịch (đang dùng: …)`) mở BottomSheet 6 lựa chọn (lưới 3 cột), chọn xong tự đóng; cùng bộ chọn có trong Cài đặt:
   - `cat` = **Mèo vươn vai** (`components/backgrounds/CatStretchScene.tsx`): nền pastel, mèo chibi duỗi người ở góc trái dưới (nâng lên `CAT_LIFT` 72 để không sát thanh Home), đuôi ve vẩy, tim bay lên (vị trí tim đặt ở `<g>` bao ngoài vì transform của keyframes đè transform của chính phần tử).
   - `grass` = **Cỏ nở** (`GrassBloomScene.tsx`): nền xanh, **chu kỳ 10s**: cỏ mọc lên, đung đưa, hoa nở, thu lại, mọc lại.
@@ -364,11 +373,12 @@ File thiếu `planned` (phiên bản 1–2) hoặc `plannedGoals` (phiên bản 
 - **Các label và `data-testid` mà test dựa vào, không đổi tuỳ tiện:**
   - `Mục tiêu hôm nay` / `Mục tiêu ngày này` (placeholder `Đặt mục tiêu cho hôm nay…` / `…cho ngày này…`), `Quay lại Lịch`, `Thêm việc buổi Sáng|Chiều|Tối` (nút ＋ mỗi buổi), ô `Việc mới buổi Sáng|Chiều|Tối` (dòng trống), `Hoàn thành: <việc>`, `todo-section-morning|afternoon|evening`
   - Form mẫu: `Việc buổi Sáng|Chiều|Tối (mỗi dòng một việc)`
-  - Menu nổi: nút `Mở menu` / `Đóng menu` (`aria-expanded`), dải `#fnav-tabs` với 4 nút tab (`aria-current="page"` cho tab hiện tại). Test E2E chuyển tab bằng helper `goTab(page, 'Lịch')`; mở màn Mẫu bằng `openTemplates(page)` (Cài đặt → `Quản lý mẫu`).
+  - Menu nổi: nút `Mở menu` / `Đóng menu` (`aria-expanded`), dải `#fnav-tabs` với 4 nút tab (`aria-current="page"` cho tab hiện tại). Test E2E chuyển tab bằng helper `goTab(page, 'Lịch')`; mở màn Mẫu bằng `openTemplates(page)` (Cài đặt → `Quản lý mẫu`), màn Nhắc việc bằng `openReminders(page)` (Cài đặt → `Mở nhắc việc`).
   - `Đổi cây`, `Đổi chậu`, `Ghi chú`, `Ngày tiết kiệm năng lượng` / `Thức dậy`
   - `Quản lý mẫu`, `Quay lại Cài đặt`, `＋ Mẫu mới`, `Tên mẫu`, `Đặt làm mặc định: <tên>`
   - `💾 Sao lưu dữ liệu`
   - Ngày tương lai: `future-day`, nút `Quay lại Lịch`, `Thêm việc buổi …`, `Sửa việc`, `Xoá: <việc>`, `planned-count` (ô lịch)
+  - Nhắc việc: `Mở nhắc việc`, `＋ Việc nhắc mới`, ô `Việc nhắc mới`, `Hoàn thành nhắc: <việc>`, `Bỏ hoàn thành nhắc: <việc>`, `Thêm vào hôm nay: <việc>`, `Sửa việc nhắc`, `reminders`, `reminders-active`, `reminders-done`, `reminder-<id>`
   - `day-YYYY-MM-DD` (+ `data-status`), `calendar-card`, `calendar-head`, `speech-bubble` (`data-kind` `daily|praise|tap`), `Sửa lời cây nói`, `Lời cây nói`, `Ẩn lời cây nói` / `Hiện lời cây nói`, `special-intro`, `rest-message`
   - Dáng cây: `Dáng cây: <loài> (n/3)`, `Dáng của <loài>`, `Quay lại chọn cây`, `style-<id>` (`style-base`), `locked-style-art`, `Dáng bí ẩn`, `Tiến độ mở dáng`, `style-unlock`
 
