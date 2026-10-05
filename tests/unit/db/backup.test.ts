@@ -341,3 +341,44 @@ describe('sao lưu cây đặc biệt đã mở khoá', () => {
     expect(r.ok).toBe(true);
   });
 });
+
+describe('sao lưu dáng cây', () => {
+  it('khứ hồi styleId của ngày', async () => {
+    const src = makeDb();
+    await src.days.put(makeDay({ date: '2026-09-01', styleId: 'giant' }));
+    const r = parseBackup(serializeBackup(await createBackup(src, 1)));
+    if (!r.ok) throw new Error(r.error);
+    const dst = makeDb();
+    await restoreBackup(dst, r.backup, 'replace');
+    expect((await dst.days.get('2026-09-01'))?.styleId).toBe('giant');
+  });
+
+  async function backupWith(keys: string[]) {
+    const src = makeDb();
+    await setSetting(src, 'unlockedStyles', keys);
+    const r = parseBackup(serializeBackup(await createBackup(src, 1)));
+    if (!r.ok) throw new Error(r.error);
+    return r.backup;
+  }
+
+  it('thay thế: lấy đúng danh sách trong file (file không có thì xoá)', async () => {
+    const dst = makeDb();
+    await setSetting(dst, 'unlockedStyles', ['rose|dome']);
+    await restoreBackup(dst, await backupWith(['sunflower|mini']), 'replace');
+    expect(await getSetting(dst, 'unlockedStyles')).toEqual(['sunflower|mini']);
+    await restoreBackup(dst, await createBackup(makeDb(), 1), 'replace');
+    expect(await getSetting(dst, 'unlockedStyles')).toBeUndefined();
+  });
+
+  it('gộp: hợp hai danh sách, không trùng', async () => {
+    const dst = makeDb();
+    await setSetting(dst, 'unlockedStyles', ['rose|dome', 'sunflower|mini']);
+    await restoreBackup(dst, await backupWith(['sunflower|mini', 'corn|popcorn']), 'merge');
+    expect(await getSetting(dst, 'unlockedStyles')).toEqual(['rose|dome', 'sunflower|mini', 'corn|popcorn']);
+  });
+
+  it('file cũ không có styleId / unlockedStyles vẫn đọc được', () => {
+    const r = parseBackup(JSON.stringify({ format: BACKUP_FORMAT, schemaVersion: 4, exportedAt: 1, days: [makeDay({ date: '2026-09-01' })], templates: [], calendarBg: null }));
+    expect(r.ok).toBe(true);
+  });
+});

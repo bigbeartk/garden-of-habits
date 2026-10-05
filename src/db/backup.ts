@@ -22,6 +22,7 @@ const DaySchema = z.object({
   plantId: z.string(),
   potId: z.string(),
   specialId: z.string().nullable(),
+  styleId: z.string().optional(), // dáng cây; file cũ chưa có
   isRestDay: z.boolean(),
   title: z.string().optional(),
   speech: z.string().optional(), // file cũ chưa có
@@ -72,6 +73,7 @@ const BackupSchema = z.object({
   gardenOnlyPlanted: z.boolean().optional(),
   gardenSeparateSpecial: z.boolean().optional(),
   unlockedSpecials: z.array(z.string()).optional(), // cây đặc biệt đã mở khoá; file cũ chưa có
+  unlockedStyles: z.array(z.string()).optional(), // dáng cây đã mở khoá; file cũ chưa có
 });
 
 export type BackupFile = z.infer<typeof BackupSchema>;
@@ -104,6 +106,7 @@ export async function createBackup(db: PlantDB, now: number): Promise<BackupFile
     const bg = await getSetting(db, 'calendarBg');
     const calendarTheme = await getSetting(db, 'calendarTheme');
     const unlockedSpecials = await getSetting(db, 'unlockedSpecials');
+    const unlockedStyles = await getSetting(db, 'unlockedStyles');
     const switches: Partial<Record<BooleanSetting, boolean>> = {};
     for (const key of BOOLEAN_SETTINGS) {
       const v = await getSetting(db, key);
@@ -120,6 +123,7 @@ export async function createBackup(db: PlantDB, now: number): Promise<BackupFile
       calendarBg: bg ? { mime: bg.mime, base64: bytesToBase64(bg.data) } : null,
       ...(calendarTheme ? { calendarTheme } : {}),
       ...(unlockedSpecials ? { unlockedSpecials } : {}),
+      ...(unlockedStyles ? { unlockedStyles } : {}),
       ...switches,
     };
   });
@@ -175,6 +179,8 @@ export async function restoreBackup(db: PlantDB, backup: BackupFile, mode: Resto
       else await deleteSetting(db, 'calendarTheme');
       if (backup.unlockedSpecials) await setSetting(db, 'unlockedSpecials', backup.unlockedSpecials);
       else await deleteSetting(db, 'unlockedSpecials');
+      if (backup.unlockedStyles) await setSetting(db, 'unlockedStyles', backup.unlockedStyles);
+      else await deleteSetting(db, 'unlockedStyles');
       for (const key of BOOLEAN_SETTINGS) {
         const v = backup[key];
         if (v !== undefined) await setSetting(db, key, v);
@@ -208,6 +214,10 @@ export async function restoreBackup(db: PlantDB, backup: BackupFile, mode: Resto
       if (backup.unlockedSpecials) {
         const mine = (await getSetting(db, 'unlockedSpecials')) ?? [];
         await setSetting(db, 'unlockedSpecials', [...new Set([...mine, ...backup.unlockedSpecials])]);
+      }
+      if (backup.unlockedStyles) {
+        const mine = (await getSetting(db, 'unlockedStyles')) ?? [];
+        await setSetting(db, 'unlockedStyles', [...new Set([...mine, ...backup.unlockedStyles])]);
       }
       for (const key of BOOLEAN_SETTINGS) {
         const v = backup[key];
