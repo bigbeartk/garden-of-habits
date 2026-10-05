@@ -314,3 +314,14 @@ export function HelpIcon({ size }: { size?: number }) {
     </Svg>
   );
 }
+
+/** Ba chiếc lá xoè quạt: đổi dáng cây */
+export function StylesIcon({ size }: { size?: number }) {
+  return (
+    <Svg name="styles" size={size}>
+      <path d="M16 27 C10 22 7 15 9 7 C14 10 17 17 16 27 Z" fill="#CDEFE3" {...STROKE} />
+      <path d="M16 27 C22 22 25 15 23 7 C18 10 15 17 16 27 Z" fill="#FFD6DE" {...STROKE} />
+      <path d="M16 27 C14 19 14 11 16 4 C18 11 18 19 16 27 Z" fill="#FFF1C1" {...STROKE} />
+    </Svg>
+  );
+}

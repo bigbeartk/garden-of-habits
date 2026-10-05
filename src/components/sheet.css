@@ -39,3 +39,30 @@
 .picker__item--special { border-color: #D9A400; background: #FFF8DC; }
 .picker__item--special.is-selected { border-color: var(--berry); background: #FFF1C1; }
 .picker__effect { margin-top: -4px; font-size: 0.75rem; font-weight: 600; color: #A07800; }
+/* dáng cây: nút lá ở góc ô loài + màn dáng */
+.picker__cell { position: relative; display: flex; }
+.picker__cell > .picker__item { flex: 1; min-width: 0; }
+.picker__style-btn {
+  position: absolute; top: 4px; right: 4px; width: 30px; height: 30px; padding: 0;
+  display: grid; place-items: center; border: 2px solid var(--cocoa); border-radius: 50%;
+  background: var(--butter); box-shadow: var(--shadow-pop); cursor: pointer;
+}
+.picker__style-count {
+  position: absolute; bottom: -10px; left: 50%; translate: -50% 0; padding: 0 4px; border-radius: 999px;
+  background: var(--cream); font-size: 0.65rem; font-weight: 800; color: var(--cocoa); white-space: nowrap;
+}
+.picker__style-btn .icon-btn__badge { top: -3px; right: -3px; }
+.picker__style-head { display: flex; align-items: center; gap: 4px; }
+.picker__progress { margin: 8px 0; text-align: center; font-weight: 700; }
+.picker__style-head .picker__progress { flex: 1; text-align: left; }
+.picker__bar {
+  position: relative; height: 18px; margin: 0 auto 12px; max-width: 260px;
+  border: 2px solid var(--cocoa); border-radius: 999px; background: var(--cream); overflow: hidden;
+}
+.picker__bar-fill { height: 100%; background: var(--peach); }
+.picker__bar-label { position: absolute; inset: 0; display: grid; place-items: center; font-size: 0.75rem; font-weight: 800; }
+.picker__item.is-locked { background: var(--lavender); cursor: default; }
+@media (prefers-reduced-motion: no-preference) {
+  .picker__item.is-locked:active { animation: picker-shake 0.3s; }
+}
+@keyframes picker-shake { 25% { translate: -3px 0; } 75% { translate: 3px 0; } }
