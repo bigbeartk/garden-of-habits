@@ -189,6 +189,7 @@ Các loài hiện có:
 | `corn` | `popcorn` Bỏng ngô: bắp bóc vỏ (mang mặt), đám bỏng ngô trắng bung hình quạt chữ V | `rainbow` Cầu vồng: ba bắp hạt nhiều màu xoè như bó hoa, bắp giữa chừa vùng mặt |
 | `cactus` | `bunny` Tai thỏ: lá dẹt bầu dục to mang mặt + hai lá dẹt dựng như tai thỏ có hoa trên chóp | `barrel` Cầu vàng: khối cầu thấp sống dọc, gai vàng ở sống ngoài, vương miện 5 hoa |
 | `pothos` | `pole` Leo cột: cột rêu dựng đứng, lá xẻ so le leo dọc cột, lá đỉnh mang mặt | `trailing` Rủ: dây lá vắt qua miệng chậu rủ xuống hai bên, lá giữa mang mặt |
+| `orange` | `kumquat` Quất Tết: tán tỉa 4 tầng hình tháp, quả quất nhỏ dày, bao lì xì đỏ | `bonsai` Bonsai: thân xoắn nghiêng 2 cành, 3 tán mây dẹt (tán đỉnh mang mặt), vài quả cam |
 
 Hình dùng chung cho mọi loài: `common/SleepingSeed.tsx` (ngày nghỉ) và `common/WiltedPlant.tsx` (ngày bỏ lỡ).
 
