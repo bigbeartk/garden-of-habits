@@ -382,3 +382,36 @@ describe('sao lưu dáng cây', () => {
     expect(r.ok).toBe(true);
   });
 });
+
+describe('sao lưu việc nhắc', () => {
+  const rem = { id: 'r1', text: 'Mua quà', autoToday: true, doneAt: null, createdAt: 1, updatedAt: 5 };
+
+  it('khôi phục giữ việc nhắc và reminderId của todo', async () => {
+    const src = makeDb();
+    await src.reminders.put(rem);
+    await src.days.put(makeDay({ date: '2026-10-05', todos: [{ id: 't', text: 'Mua quà', done: false, doneAt: null, order: 0, period: 'morning', reminderId: 'r1' }] }));
+    const r = parseBackup(serializeBackup(await createBackup(src, 1)));
+    if (!r.ok) throw new Error(r.error);
+    const dst = makeDb();
+    await dst.reminders.put({ ...rem, id: 'cu' });
+    await restoreBackup(dst, r.backup, 'replace');
+    expect(await dst.reminders.toArray()).toEqual([rem]);
+    expect((await dst.days.get('2026-10-05'))!.todos[0].reminderId).toBe('r1');
+  });
+
+  it('gộp: theo id, bản updatedAt lớn hơn thắng', async () => {
+    const src = makeDb();
+    await src.reminders.bulkPut([rem, { ...rem, id: 'r2', text: 'Mới' }]);
+    const r = parseBackup(serializeBackup(await createBackup(src, 1)));
+    if (!r.ok) throw new Error(r.error);
+    const dst = makeDb();
+    await dst.reminders.put({ ...rem, text: 'Máy mới hơn', updatedAt: 9 });
+    await restoreBackup(dst, r.backup, 'merge');
+    expect((await dst.reminders.orderBy('id').toArray()).map((x) => x.text)).toEqual(['Máy mới hơn', 'Mới']);
+  });
+
+  it('file cũ không có việc nhắc vẫn khôi phục được', () => {
+    const r = parseBackup(JSON.stringify({ format: BACKUP_FORMAT, schemaVersion: 4, exportedAt: 1, days: [], templates: [], calendarBg: null }));
+    expect(r.ok && r.backup.reminders).toEqual([]);
+  });
+});

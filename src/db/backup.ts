@@ -15,6 +15,7 @@ const TodoSchema = z.object({
   doneAt: z.number().nullable(),
   order: z.number(),
   period: z.enum(PERIODS).default('morning'), // file phiên bản 1 chưa có buổi
+  reminderId: z.string().optional(), // việc đến từ Nhắc việc; file cũ chưa có
 });
 
 const DaySchema = z.object({
@@ -56,6 +57,15 @@ const PlannedSchema = z.object({
   createdAt: z.number(),
 });
 
+const ReminderSchema = z.object({
+  id: z.string(),
+  text: z.string(),
+  autoToday: z.boolean(),
+  doneAt: z.number().nullable(),
+  createdAt: z.number(),
+  updatedAt: z.number(),
+});
+
 const BackupSchema = z.object({
   format: z.literal(BACKUP_FORMAT),
   schemaVersion: z.number().int().min(1),
@@ -64,6 +74,7 @@ const BackupSchema = z.object({
   templates: z.array(TemplateSchema),
   planned: z.array(PlannedSchema).default([]), // file phiên bản 1–2 chưa có
   plannedGoals: z.array(z.object({ date: z.string(), title: z.string() })).default([]), // file phiên bản 1–3 chưa có
+  reminders: z.array(ReminderSchema).default([]), // file phiên bản 1–4 chưa có
   calendarBg: z.object({ mime: z.string(), base64: z.string().regex(/^[A-Za-z0-9+/]*={0,2}$/) }).nullable(),
   calendarTheme: z.enum(['default', 'cat', 'grass', 'rain', 'gamer', 'photo']).optional(), // file cũ chưa có
   // các công tắc bật/tắt (BOOLEAN_SETTINGS); file cũ có thể chưa có
@@ -98,11 +109,12 @@ export function base64ToBytes(b64: string): ArrayBuffer {
 }
 
 export async function createBackup(db: PlantDB, now: number): Promise<BackupFile> {
-  return db.transaction('r', [db.days, db.templates, db.settings, db.planned, db.plannedGoals], async () => {
+  return db.transaction('r', [db.days, db.templates, db.settings, db.planned, db.plannedGoals, db.reminders], async () => {
     const days = await db.days.orderBy('date').toArray();
     const templates = await db.templates.orderBy('createdAt').toArray();
     const planned = await db.planned.orderBy('date').toArray();
     const plannedGoals = await db.plannedGoals.toArray();
+    const reminders = await db.reminders.orderBy('id').toArray();
     const bg = await getSetting(db, 'calendarBg');
     const calendarTheme = await getSetting(db, 'calendarTheme');
     const unlockedSpecials = await getSetting(db, 'unlockedSpecials');
@@ -120,6 +132,7 @@ export async function createBackup(db: PlantDB, now: number): Promise<BackupFile
       templates,
       planned,
       plannedGoals,
+      reminders,
       calendarBg: bg ? { mime: bg.mime, base64: bytesToBase64(bg.data) } : null,
       ...(calendarTheme ? { calendarTheme } : {}),
       ...(unlockedSpecials ? { unlockedSpecials } : {}),
@@ -161,7 +174,7 @@ export function parseBackup(text: string): ParseResult {
 
 export async function restoreBackup(db: PlantDB, backup: BackupFile, mode: RestoreMode): Promise<{ days: number; templates: number }> {
   const bg = backup.calendarBg ? { mime: backup.calendarBg.mime, data: base64ToBytes(backup.calendarBg.base64) } : null;
-  return db.transaction('rw', [db.days, db.templates, db.settings, db.planned, db.plannedGoals], async () => {
+  return db.transaction('rw', [db.days, db.templates, db.settings, db.planned, db.plannedGoals, db.reminders], async () => {
     let days = 0;
     let templates = 0;
     if (mode === 'replace') {
@@ -169,10 +182,12 @@ export async function restoreBackup(db: PlantDB, backup: BackupFile, mode: Resto
       await db.templates.clear();
       await db.planned.clear();
       await db.plannedGoals.clear();
+      await db.reminders.clear();
       await db.days.bulkPut(backup.days);
       await db.templates.bulkPut(backup.templates);
       await db.planned.bulkPut(backup.planned);
       await db.plannedGoals.bulkPut(backup.plannedGoals);
+      await db.reminders.bulkPut(backup.reminders);
       if (bg) await setSetting(db, 'calendarBg', bg);
       else await deleteSetting(db, 'calendarBg');
       if (backup.calendarTheme) await setSetting(db, 'calendarTheme', backup.calendarTheme);
@@ -208,6 +223,10 @@ export async function restoreBackup(db: PlantDB, backup: BackupFile, mode: Resto
       }
       for (const g of backup.plannedGoals) {
         if (!(await db.plannedGoals.get(g.date))) await db.plannedGoals.put(g);
+      }
+      for (const r of backup.reminders) {
+        const cur = await db.reminders.get(r.id);
+        if (!cur || r.updatedAt > cur.updatedAt) await db.reminders.put(r);
       }
       if (bg && !(await getSetting(db, 'calendarBg'))) await setSetting(db, 'calendarBg', bg);
       if (backup.calendarTheme && !(await getSetting(db, 'calendarTheme'))) await setSetting(db, 'calendarTheme', backup.calendarTheme);
