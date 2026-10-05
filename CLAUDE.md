@@ -192,6 +192,7 @@ Các loài hiện có:
 | `orange` | `kumquat` Quất Tết: tán tỉa 4 tầng hình tháp, quả quất nhỏ dày, bao lì xì đỏ | `bonsai` Bonsai: thân xoắn nghiêng 2 cành, 3 tán mây dẹt (tán đỉnh mang mặt), vài quả cam |
 | `cherry` | `weeping` Rủ: thân cao, cành vồng rủ xuống như đài phun nước kết chuỗi bông, chỏm tròn mang mặt | `lantern` Cần câu: thân mảnh chéo lên như cần câu, dây treo chùm cherry to (quả giữa mang mặt) |
 | `rose` | `arch` Cổng vòm: vòm gỗ quấn dây phủ hồng nhỏ, bông đỉnh vòm mang mặt + vương miện | `dome` Chuông kính: hồng xanh đêm (`RoseHead` nhận bảng màu `p`) lơ lửng trong chuông kính lấp lánh |
+| `watermelon` | `square` Vuông: quả dưa khối vuông bo góc (mang mặt) ngồi giữa, lá tim hai bên | `trellis` Giàn leo: giàn thang dựng đứng, dây leo zigzag, dưa tí hon trong túi lưới, quả đỉnh to mang mặt |
 
 Hình dùng chung cho mọi loài: `common/SleepingSeed.tsx` (ngày nghỉ) và `common/WiltedPlant.tsx` (ngày bỏ lỡ).
 
