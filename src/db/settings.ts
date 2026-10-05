@@ -17,6 +17,8 @@ export interface SettingsShape {
   lastBackupAt: number;
   /** cây đặc biệt đã tung trúng, dạng 'plantId|specialId'; chọn lại được ở bảng Đổi cây */
   unlockedSpecials: string[];
+  /** dáng cây đã mở khoá (đủ ngày ra hoa), dạng 'plantId|styleId'; mở rồi giữ luôn */
+  unlockedStyles: string[];
 }
 
 export async function getSetting<K extends keyof SettingsShape>(db: PlantDB, key: K): Promise<SettingsShape[K] | undefined> {
