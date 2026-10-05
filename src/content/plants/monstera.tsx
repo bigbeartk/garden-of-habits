@@ -78,6 +78,104 @@ function MonsteraBloom() {
   );
 }
 
+// ---- Dáng mở khoá ----
+
+/** Lá monstera có cuống mọc từ điểm (ox, oy) bất kỳ (cột rêu, dây rủ), cong qua điểm uốn (qx, qy) */
+function LeafFrom({ ox, oy, qx, qy, x, y, r = 0, s = 1, fill = LEAF, plain }: {
+  ox: number; oy: number; qx: number; qy: number; x: number; y: number; r?: number; s?: number; fill?: string; plain?: boolean;
+}) {
+  const rad = (r * Math.PI) / 180;
+  const bx = x - 20 * s * Math.sin(rad);
+  const by = y + 20 * s * Math.cos(rad);
+  return (
+    <g>
+      <path d={`M${ox} ${oy} Q${qx} ${qy} ${bx} ${by}`} stroke={STEM} strokeWidth={3.5} fill="none" strokeLinecap="round" />
+      <g transform={`translate(${x} ${y}) rotate(${r}) scale(${s})`}>
+        <path d={plain ? LEAF_D : LEAF_D + ' ' + HOLES_D} fillRule="evenodd" fill={fill} stroke={INK} strokeWidth={2 / s} strokeLinejoin="round" />
+        {!plain && <path d="M0 18 L0 -26" stroke={VEIN} strokeWidth={1.4 / s} strokeLinecap="round" />}
+      </g>
+    </g>
+  );
+}
+
+/** Cột rêu: cột nâu bọc rêu, đỉnh bo tròn, từ đất lên tới `top` */
+function MossPole({ top }: { top: number }) {
+  return (
+    <g>
+      <rect x={93} y={top} width={14} height={SOIL_Y + 2 - top} rx={7} fill="#B08A5E" stroke={INK} strokeWidth={2} />
+      {Array.from({ length: Math.floor((SOIL_Y - top) / 14) }, (_, i) => top + 10 + i * 14).map((y) => (
+        <path key={y} d={`M95 ${y} q5 -4 10 0`} stroke="#8DB86A" strokeWidth={3} fill="none" strokeLinecap="round" />
+      ))}
+    </g>
+  );
+}
+function MonsteraPoleBud() {
+  return (
+    <g>
+      <MossPole top={66} />
+      <LeafFrom ox={98} oy={146} qx={84} qy={140} x={72} y={124} r={-55} s={0.55} fill={LEAF_BACK} />
+      <LeafFrom ox={102} oy={118} qx={116} qy={112} x={128} y={98} r={55} s={0.55} fill={LEAF_BACK} />
+      <LeafFrom ox={100} oy={80} qx={100} qy={74} x={100} y={66} s={0.6} plain />
+    </g>
+  );
+}
+function MonsteraPoleBloom() {
+  return (
+    <g>
+      <MossPole top={30} />
+      <LeafFrom ox={98} oy={150} qx={82} qy={146} x={68} y={132} r={-62} s={0.62} fill={LEAF_BACK} />
+      <LeafFrom ox={102} oy={128} qx={118} qy={122} x={132} y={108} r={62} s={0.66} fill={LEAF_BACK} />
+      <LeafFrom ox={98} oy={104} qx={82} qy={98} x={68} y={82} r={-55} s={0.7} />
+      <LeafFrom ox={102} oy={78} qx={118} qy={72} x={132} y={58} r={55} s={0.66} />
+      <LeafFrom ox={100} oy={46} qx={100} qy={40} x={100} y={36} s={0.72} plain />
+    </g>
+  );
+}
+
+/** Dây rủ: từ gốc vắt qua miệng chậu ở (rimX, 152) rồi thả xuống tới (endX, endY) */
+function Vine({ rimX, endX, endY }: { rimX: number; endX: number; endY: number }) {
+  return <path d={`M100 ${SOIL_Y - 2} Q${(100 + rimX) / 2} ${SOIL_Y - 22} ${rimX} 152 Q${endX} ${152 + 8} ${endX} ${endY}`} stroke={STEM} strokeWidth={3.5} fill="none" strokeLinecap="round" />;
+}
+/** Lá treo trên dây (không cuống riêng), đầu lá chúc xuống */
+function HangLeaf({ x, y, r, s, fill = LEAF }: { x: number; y: number; r: number; s: number; fill?: string }) {
+  return (
+    <g transform={`translate(${x} ${y}) rotate(${r}) scale(${s})`}>
+      <path d={LEAF_D + ' ' + HOLES_D} fillRule="evenodd" fill={fill} stroke={INK} strokeWidth={2 / s} strokeLinejoin="round" />
+      <path d="M0 18 L0 -26" stroke={VEIN} strokeWidth={1.4 / s} strokeLinecap="round" />
+    </g>
+  );
+}
+function MonsteraTrailingBud() {
+  return (
+    <g>
+      <Vine rimX={56} endX={44} endY={186} />
+      <Vine rimX={144} endX={156} endY={186} />
+      <HangLeaf x={46} y={180} r={165} s={0.55} fill={LEAF_BACK} />
+      <HangLeaf x={154} y={180} r={-165} s={0.55} fill={LEAF_BACK} />
+      <LeafFrom ox={100} oy={SOIL_Y} qx={100} qy={146} x={100} y={118} s={0.62} plain />
+    </g>
+  );
+}
+function MonsteraTrailingBloom() {
+  return (
+    <g>
+      <Vine rimX={52} endX={30} endY={220} />
+      <Vine rimX={148} endX={170} endY={220} />
+      <Vine rimX={68} endX={60} endY={200} />
+      <Vine rimX={132} endX={140} endY={200} />
+      <HangLeaf x={40} y={168} r={115} s={0.55} fill={LEAF_BACK} />
+      <HangLeaf x={160} y={168} r={-115} s={0.55} fill={LEAF_BACK} />
+      <HangLeaf x={60} y={196} r={175} s={0.55} fill={LEAF_BACK} />
+      <HangLeaf x={140} y={196} r={-175} s={0.55} fill={LEAF_BACK} />
+      <HangLeaf x={30} y={212} r={170} s={0.66} />
+      <HangLeaf x={170} y={212} r={-170} s={0.66} />
+      <LeafFrom ox={100} oy={SOIL_Y} qx={84} qy={148} x={70} y={132} r={-40} s={0.62} fill={LEAF_BACK} />
+      <LeafFrom ox={100} oy={SOIL_Y} qx={116} qy={148} x={130} y={132} r={40} s={0.62} fill={LEAF_BACK} />
+      <LeafFrom ox={100} oy={SOIL_Y} qx={100} qy={142} x={100} y={108} s={0.8} plain />
+    </g>
+  );
+}
+
 /** id giữ là 'pothos' (trước đây là Trầu bà) để ngày cũ, sao lưu và cây đặc biệt đã mở khoá vẫn khớp. */
 export const monstera: PlantSpecies = {
   id: 'pothos',
@@ -98,4 +196,20 @@ export const monstera: PlantSpecies = {
   sayings: ['Lá xẻ thuỳ của mình vẫy chào bạn nè 🌿', 'Mỗi chiếc lá mới của mình là một bất ngờ đó!'],
   praises: ['Thêm một chiếc lá xẻ mới mọc ra vì bạn đó 🌿'],
   taps: ['Lá mình có lỗ là để đón nắng đó ☀️', 'Mình xoè lá ra ôm bạn nè 💚'],
+  styles: [
+    {
+      id: 'pole',
+      name: 'Leo cột',
+      unlockAt: 10,
+      stages: { bud: { svg: MonsteraPoleBud }, bloom: { svg: MonsteraPoleBloom } },
+      faceAnchor: { bud: { x: 100, y: 62, scale: 0.36 }, bloom: { x: 100, y: 32, scale: 0.45 } },
+    },
+    {
+      id: 'trailing',
+      name: 'Rủ',
+      unlockAt: 20,
+      stages: { bud: { svg: MonsteraTrailingBud }, bloom: { svg: MonsteraTrailingBloom } },
+      faceAnchor: { bud: { x: 100, y: 114, scale: 0.38 }, bloom: { x: 100, y: 104, scale: 0.5 } },
+    },
+  ],
 };

@@ -188,6 +188,7 @@ Các loài hiện có:
 | `sunflower` | `mini` Mini: bụi thấp phân nhánh, 5 bông nhỏ cam đỏ xoè quạt, bông giữa mang mặt | `giant` Khổng lồ: thân rất cao cong dấu hỏi, bông to cúi chào bên phải |
 | `corn` | `popcorn` Bỏng ngô: bắp bóc vỏ (mang mặt), đám bỏng ngô trắng bung hình quạt chữ V | `rainbow` Cầu vồng: ba bắp hạt nhiều màu xoè như bó hoa, bắp giữa chừa vùng mặt |
 | `cactus` | `bunny` Tai thỏ: lá dẹt bầu dục to mang mặt + hai lá dẹt dựng như tai thỏ có hoa trên chóp | `barrel` Cầu vàng: khối cầu thấp sống dọc, gai vàng ở sống ngoài, vương miện 5 hoa |
+| `pothos` | `pole` Leo cột: cột rêu dựng đứng, lá xẻ so le leo dọc cột, lá đỉnh mang mặt | `trailing` Rủ: dây lá vắt qua miệng chậu rủ xuống hai bên, lá giữa mang mặt |
 
 Hình dùng chung cho mọi loài: `common/SleepingSeed.tsx` (ngày nghỉ) và `common/WiltedPlant.tsx` (ngày bỏ lỡ).
 

@@ -51,6 +51,7 @@ describe('plants', () => {
       sunflower: ['mini', 'giant'],
       corn: ['popcorn', 'rainbow'],
       cactus: ['bunny', 'barrel'],
+      pothos: ['pole', 'trailing'],
     });
   });
 
