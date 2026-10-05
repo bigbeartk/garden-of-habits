@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Thêm màn "Nhắc việc" (mở từ Cài đặt). Màn này theo dõi việc dài hạn có hạn; công tắc "Hôm nay" tự đưa việc vào buổi Sáng mỗi ngày cho tới khi xong; tick ở Hôm nay hoặc ở Nhắc việc thì cả hai bên đều đồng bộ.
+**Goal:** Thêm màn "Nhắc việc" (mở từ Cài đặt). Màn này theo dõi việc dài hạn (không có hạn chót); công tắc "Hôm nay" tự đưa việc vào buổi Sáng mỗi ngày cho tới khi xong; tick ở Hôm nay hoặc ở Nhắc việc thì cả hai bên đều đồng bộ.
 
 **Architecture:** Bảng Dexie mới `reminders` (DB v5). `Todo` có thêm `reminderId?`. Mọi thao tác đồng bộ đi qua `mutateDay` trong `dayService`; hàm này nhận thêm tham số `sync`, chạy trong cùng transaction `[days, reminders]`. Logic hiển thị thuần nằm ở `reminderView.ts`, thao tác ở `reminderService.ts`, giao diện ở `RemindersScreen.tsx`.
 
@@ -40,7 +40,7 @@
 |---|---|
 | `src/domain/types.ts` (sửa) | `Reminder`, `Todo.reminderId?` |
 | `src/db/db.ts` (sửa) | `version(5)` thêm bảng `reminders` |
-| `src/domain/reminderView.ts` (mới) | logic thuần: `dueStatus`, `activeReminders`, `weekStart`, `doneThisWeek`, `formatDue` |
+| `src/domain/reminderView.ts` (mới) | logic thuần: `activeReminders`, `weekStart`, `doneThisWeek` |
 | `src/domain/dayService.ts` (sửa) | `mutateDay` export + tham số `sync`; `reminderTodo`; `ensureToday` thêm việc nhắc; đồng bộ khi toggle/edit/delete |
 | `src/domain/reminderService.ts` (mới) | `addReminder`, `setReminderAutoToday`, `toggleReminderDone`, `editReminder`, `deleteReminder` |
 | `src/db/backup.ts` (sửa) | `reminders` trong file sao lưu, `reminderId` trong todo |
@@ -61,7 +61,7 @@
 - Test: `tests/unit/db/db.test.ts`
 
 **Interfaces:**
-- Produces: `interface Reminder { id; text; dueDate: string | null; autoToday: boolean; doneAt: number | null; createdAt; updatedAt }`, `Todo.reminderId?: string`, `PlantDB.reminders: EntityTable<Reminder, 'id'>`, `SCHEMA_VERSION = 5`.
+- Produces: `interface Reminder { id; text; autoToday: boolean; doneAt: number | null; createdAt; updatedAt }`, `Todo.reminderId?: string`, `PlantDB.reminders: EntityTable<Reminder, 'id'>`, `SCHEMA_VERSION = 5`.
 
 - [ ] **Step 1: Viết test đỏ** (thêm vào cuối `tests/unit/db/db.test.ts`; nếu file chưa import `makeDb` / `SCHEMA_VERSION` thì thêm import `import { makeDb } from '../helpers';` và `import { SCHEMA_VERSION } from '../../../src/db/db';`)
 
@@ -70,7 +70,7 @@ describe('DB v5: bảng nhắc việc', () => {
   it('SCHEMA_VERSION là 5 và lưu/đọc được việc nhắc', async () => {
     expect(SCHEMA_VERSION).toBe(5);
     const db = makeDb();
-    await db.reminders.put({ id: 'r1', text: 'Mua quà', dueDate: '2026-10-20', autoToday: false, doneAt: null, createdAt: 1, updatedAt: 1 });
+    await db.reminders.put({ id: 'r1', text: 'Mua quà', autoToday: false, doneAt: null, createdAt: 1, updatedAt: 1 });
     expect((await db.reminders.get('r1'))?.text).toBe('Mua quà');
   });
 });
@@ -97,8 +97,6 @@ Thêm sau `PlannedGoal`:
 export interface Reminder {
   id: string;
   text: string;
-  /** 'YYYY-MM-DD'; null = không hạn */
-  dueDate: string | null;
   /** công tắc "Hôm nay" */
   autoToday: boolean;
   /** ms; null = chưa xong */
@@ -136,38 +134,27 @@ git add src/domain/types.ts src/db/db.ts tests/unit/db && git commit -m "feat(re
 
 **Interfaces:**
 - Consumes: `Reminder` (Task 1), `dayKey`, `addDays`, `parseDayKey` (`src/domain/dayKey.ts`).
-- Produces: `type DueStatus = 'overdue' | 'soon' | 'normal'`, `SOON_DAYS = 3`, `dueStatus(dueDate: string | null, todayKey: string): DueStatus | null`, `activeReminders(list: Reminder[]): Reminder[]`, `weekStart(todayKey: string): string`, `doneThisWeek(list: Reminder[], todayKey: string): Reminder[]`, `formatDue(dueDate: string): string`.
+- Produces: `activeReminders(list: Reminder[]): Reminder[]`, `weekStart(todayKey: string): string`, `doneThisWeek(list: Reminder[], todayKey: string): Reminder[]`.
 
 - [ ] **Step 1: Viết test đỏ** `tests/unit/domain/reminderView.test.ts`
 
 ```ts
-import { activeReminders, doneThisWeek, dueStatus, formatDue, weekStart } from '../../../src/domain/reminderView';
+import { activeReminders, doneThisWeek, weekStart } from '../../../src/domain/reminderView';
 import type { Reminder } from '../../../src/domain/types';
 
 const rem = (p: Partial<Reminder> & { id: string }): Reminder => ({
-  text: p.id, dueDate: null, autoToday: false, doneAt: null, createdAt: 0, updatedAt: 0, ...p,
-});
-
-describe('dueStatus', () => {
-  it('quá hạn / sắp tới (≤ 3 ngày) / còn xa / không hạn', () => {
-    expect(dueStatus('2026-10-04', '2026-10-05')).toBe('overdue');
-    expect(dueStatus('2026-10-05', '2026-10-05')).toBe('soon');
-    expect(dueStatus('2026-10-08', '2026-10-05')).toBe('soon');
-    expect(dueStatus('2026-10-09', '2026-10-05')).toBe('normal');
-    expect(dueStatus(null, '2026-10-05')).toBeNull();
-  });
+  text: p.id, autoToday: false, doneAt: null, createdAt: 0, updatedAt: 0, ...p,
 });
 
 describe('activeReminders', () => {
-  it('chỉ việc chưa xong, hạn gần trước, không hạn cuối, cùng hạn theo createdAt', () => {
+  it('chỉ việc chưa xong, theo thứ tự thêm', () => {
     const list = [
-      rem({ id: 'none', createdAt: 1 }),
-      rem({ id: 'nov', dueDate: '2026-11-14', createdAt: 2 }),
-      rem({ id: 'oct20b', dueDate: '2026-10-20', createdAt: 5 }),
-      rem({ id: 'oct20a', dueDate: '2026-10-20', createdAt: 3 }),
-      rem({ id: 'done', dueDate: '2026-10-01', doneAt: 10 }),
+      rem({ id: 'c', createdAt: 3 }),
+      rem({ id: 'a', createdAt: 1 }),
+      rem({ id: 'done', createdAt: 0, doneAt: 10 }),
+      rem({ id: 'b', createdAt: 2 }),
     ];
-    expect(activeReminders(list).map((r) => r.id)).toEqual(['oct20a', 'oct20b', 'nov', 'none']);
+    expect(activeReminders(list).map((r) => r.id)).toEqual(['a', 'b', 'c']);
   });
 });
 
@@ -188,11 +175,6 @@ describe('tuần', () => {
     expect(doneThisWeek(list, '2026-10-07').map((r) => r.id)).toEqual(['wed', 'mon']);
   });
 });
-
-it('formatDue ra dd/mm', () => {
-  expect(formatDue('2026-10-20')).toBe('20/10');
-  expect(formatDue('2026-01-05')).toBe('05/01');
-});
 ```
 
 - [ ] **Step 2: Chạy, thấy fail**
@@ -206,23 +188,9 @@ Expected: FAIL (module chưa có).
 import { addDays, dayKey, parseDayKey } from './dayKey';
 import type { Reminder } from './types';
 
-export type DueStatus = 'overdue' | 'soon' | 'normal';
-/** còn từng này ngày (tính cả hôm nay) thì hạn tô màu "sắp tới" */
-export const SOON_DAYS = 3;
-
-export function dueStatus(dueDate: string | null, todayKey: string): DueStatus | null {
-  if (!dueDate) return null;
-  if (dueDate < todayKey) return 'overdue';
-  return dueDate <= addDays(todayKey, SOON_DAYS) ? 'soon' : 'normal';
-}
-
-const cmp = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
-
-/** Việc chưa xong: hạn gần nhất trước, không hạn ở cuối; cùng hạn thì việc thêm trước đứng trước. */
+/** Việc chưa xong, theo thứ tự thêm. */
 export function activeReminders(list: Reminder[]): Reminder[] {
-  return list
-    .filter((r) => r.doneAt === null)
-    .sort((a, b) => cmp(a.dueDate ?? '9999', b.dueDate ?? '9999') || a.createdAt - b.createdAt);
+  return list.filter((r) => r.doneAt === null).sort((a, b) => a.createdAt - b.createdAt);
 }
 
 /** Thứ Hai của tuần chứa `todayKey`. */
@@ -238,11 +206,6 @@ export function doneThisWeek(list: Reminder[], todayKey: string): Reminder[] {
     .filter((r): r is Reminder & { doneAt: number } => r.doneAt !== null && dayKey(new Date(r.doneAt)) >= from)
     .sort((a, b) => b.doneAt - a.doneAt);
 }
-
-export function formatDue(dueDate: string): string {
-  const [, m, d] = dueDate.split('-');
-  return `${d}/${m}`;
-}
 ```
 
 - [ ] **Step 4: Chạy test pass**
@@ -253,7 +216,7 @@ Expected: PASS.
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/domain/reminderView.ts tests/unit/domain/reminderView.test.ts && git commit -m "feat(reminders): pure sorting, due status and week helpers"
+git add src/domain/reminderView.ts tests/unit/domain/reminderView.test.ts && git commit -m "feat(reminders): pure sorting and week helpers"
 ```
 
 ---
@@ -269,7 +232,7 @@ git add src/domain/reminderView.ts tests/unit/domain/reminderView.test.ts && git
 - Consumes: `Reminder`, `PlantDB.reminders` (Task 1).
 - Produces:
   - `dayService`: `export async function mutateDay(deps, date, kind: 'today-only' | 'note', fn: (day: DayRecord) => void, sync?: (day: DayRecord) => Promise<unknown>): Promise<DayRecord>`; `export function reminderTodo(r: Pick<Reminder, 'id' | 'text'>, order: number): Todo`.
-  - `reminderService`: `addReminder(deps, text: string, dueDate: string | null): Promise<Reminder>`; `setReminderAutoToday(deps, id: string, on: boolean): Promise<void>`; `toggleReminderDone(deps, id: string): Promise<ToggleResult | null>`; `editReminder(deps, id: string, changes: { text?: string; dueDate?: string | null }): Promise<void>`; `deleteReminder(deps, id: string): Promise<void>`.
+  - `reminderService`: `addReminder(deps, text: string): Promise<Reminder>`; `setReminderAutoToday(deps, id: string, on: boolean): Promise<void>`; `toggleReminderDone(deps, id: string): Promise<ToggleResult | null>`; `editReminder(deps, id: string, text: string): Promise<void>`; `deleteReminder(deps, id: string): Promise<void>`.
 
 - [ ] **Step 1: Viết test đỏ** `tests/unit/domain/reminderService.test.ts`
 
@@ -283,18 +246,18 @@ import { makeDeps } from '../helpers';
 const linked = (todos: { reminderId?: string }[], id: string) => todos.filter((t) => t.reminderId === id);
 
 describe('thêm việc nhắc', () => {
-  it('cắt khoảng trắng, hạn rỗng thành null, mặc định chưa bật Hôm nay; chữ rỗng bị từ chối', async () => {
+  it('cắt khoảng trắng, mặc định chưa bật Hôm nay; chữ rỗng bị từ chối', async () => {
     const { deps } = makeDeps(new Date(2026, 9, 5, 10, 0));
-    const r = await addReminder(deps, '  Mua quà ', '');
-    expect(r).toMatchObject({ text: 'Mua quà', dueDate: null, autoToday: false, doneAt: null });
-    await expect(addReminder(deps, '   ', '2026-10-20')).rejects.toThrow('không được để trống');
+    const r = await addReminder(deps, '  Mua quà ');
+    expect(r).toMatchObject({ text: 'Mua quà', autoToday: false, doneAt: null });
+    await expect(addReminder(deps, '   ')).rejects.toThrow('không được để trống');
     expect(await deps.db.reminders.count()).toBe(1);
   });
 
   it('thêm liên tiếp cùng thời điểm vẫn giữ thứ tự createdAt', async () => {
     const { deps } = makeDeps(new Date(2026, 9, 5, 10, 0));
-    const a = await addReminder(deps, 'A', null);
-    const b = await addReminder(deps, 'B', null);
+    const a = await addReminder(deps, 'A');
+    const b = await addReminder(deps, 'B');
     expect(b.createdAt).toBeGreaterThan(a.createdAt);
   });
 });
@@ -304,7 +267,7 @@ describe('công tắc Hôm nay', () => {
     const { deps } = makeDeps(new Date(2026, 9, 5, 10, 0));
     await deps.db.templates.put({ id: 't', name: 'M', items: [{ text: 'Tập', period: 'morning' }, { text: 'Đọc', period: 'evening' }], isDefault: true, createdAt: 1, updatedAt: 1 });
     await ensureToday(deps);
-    const r = await addReminder(deps, 'Mua quà', '2026-10-20');
+    const r = await addReminder(deps, 'Mua quà');
     await setReminderAutoToday(deps, r.id, true);
     await setReminderAutoToday(deps, r.id, true);
     const day = (await deps.db.days.get('2026-10-05'))!;
@@ -316,7 +279,7 @@ describe('công tắc Hôm nay', () => {
 
   it('bật khi hôm nay chưa có bản ghi: chỉ đặt cờ; ensureToday thêm sau', async () => {
     const { deps } = makeDeps(new Date(2026, 9, 5, 10, 0));
-    const r = await addReminder(deps, 'Mua quà', null);
+    const r = await addReminder(deps, 'Mua quà');
     await setReminderAutoToday(deps, r.id, true);
     expect(await deps.db.days.count()).toBe(0);
     const day = await ensureToday(deps);
@@ -326,8 +289,8 @@ describe('công tắc Hôm nay', () => {
   it('tắt: gỡ khỏi hôm nay nếu chưa xong; việc đã xong thì giữ', async () => {
     const { deps } = makeDeps(new Date(2026, 9, 5, 10, 0));
     await ensureToday(deps);
-    const a = await addReminder(deps, 'A', null);
-    const b = await addReminder(deps, 'B', null);
+    const a = await addReminder(deps, 'A');
+    const b = await addReminder(deps, 'B');
     await setReminderAutoToday(deps, a.id, true);
     await setReminderAutoToday(deps, b.id, true);
     const todoB = linked((await deps.db.days.get('2026-10-05'))!.todos, b.id)[0];
@@ -344,8 +307,8 @@ describe('ensureToday với việc nhắc', () => {
   it('chưa xong thì ngày sau lại có (đúng một lần), ngày cũ giữ nguyên; xong rồi thì thôi', async () => {
     const { deps, clock } = makeDeps(new Date(2026, 9, 5, 10, 0));
     await ensureToday(deps);
-    const r = await addReminder(deps, 'Vẽ tranh', null);
-    const off = await addReminder(deps, 'Không bật', null);
+    const r = await addReminder(deps, 'Vẽ tranh');
+    const off = await addReminder(deps, 'Không bật');
     await setReminderAutoToday(deps, r.id, true);
     clock.current = new Date(2026, 9, 6, 8, 0);
     const day2 = await ensureToday(deps);
@@ -362,7 +325,7 @@ describe('đồng bộ hai chiều', () => {
   async function setupLinked() {
     const ctx = makeDeps(new Date(2026, 9, 5, 10, 0));
     await ensureToday(ctx.deps);
-    const r = await addReminder(ctx.deps, 'Mua quà', null);
+    const r = await addReminder(ctx.deps, 'Mua quà');
     await setReminderAutoToday(ctx.deps, r.id, true);
     const todo = linked((await ctx.deps.db.days.get('2026-10-05'))!.todos, r.id)[0];
     return { ...ctx, r, todo };
@@ -390,21 +353,19 @@ describe('đồng bộ hai chiều', () => {
 
   it('tick ở Nhắc việc khi không có ở hôm nay: chỉ đổi việc nhắc, trả về null', async () => {
     const { deps } = makeDeps(new Date(2026, 9, 5, 10, 0));
-    const r = await addReminder(deps, 'Mua quà', null);
+    const r = await addReminder(deps, 'Mua quà');
     expect(await toggleReminderDone(deps, r.id)).toBeNull();
     expect((await deps.db.reminders.get(r.id))!.doneAt).toBe(deps.now().getTime());
   });
 
-  it('sửa chữ ở Hôm nay ↔ Nhắc việc cập nhật bên kia; đổi hạn không đụng todo', async () => {
+  it('sửa chữ ở Hôm nay ↔ Nhắc việc cập nhật bên kia', async () => {
     const { deps, r, todo } = await setupLinked();
     await editTodo(deps, '2026-10-05', todo.id, 'Mua quà sinh nhật');
     expect((await deps.db.reminders.get(r.id))!.text).toBe('Mua quà sinh nhật');
-    await editReminder(deps, r.id, { text: '  Mua hoa ', dueDate: '2026-10-20' });
+    await editReminder(deps, r.id, '  Mua hoa ');
     expect((await deps.db.days.get('2026-10-05'))!.todos.find((t) => t.id === todo.id)!.text).toBe('Mua hoa');
-    expect(await deps.db.reminders.get(r.id)).toMatchObject({ text: 'Mua hoa', dueDate: '2026-10-20' });
-    await editReminder(deps, r.id, { dueDate: '' });
-    expect((await deps.db.reminders.get(r.id))!.dueDate).toBeNull();
-    await expect(editReminder(deps, r.id, { text: ' ' })).rejects.toThrow('không được để trống');
+    expect((await deps.db.reminders.get(r.id))!.text).toBe('Mua hoa');
+    await expect(editReminder(deps, r.id, ' ')).rejects.toThrow('không được để trống');
   });
 
   it('xoá ở Hôm nay → tắt Hôm nay để mai không quay lại', async () => {
@@ -573,13 +534,13 @@ async function today(deps: DayDeps, id: string): Promise<{ day: DayRecord; todo?
   return day ? { day, todo: day.todos.find((t) => t.reminderId === id) } : null;
 }
 
-export async function addReminder(deps: DayDeps, text: string, dueDate: string | null): Promise<Reminder> {
+export async function addReminder(deps: DayDeps, text: string): Promise<Reminder> {
   const clean = cleanText(text);
   const ts = deps.now().getTime();
-  // createdAt luôn tăng để giữ đúng thứ tự thêm khi nhiều việc cùng hạn
+  // createdAt luôn tăng để giữ đúng thứ tự thêm (danh sách xếp theo createdAt)
   const last = Math.max(0, ...(await deps.db.reminders.toArray()).map((r) => r.createdAt));
   const r: Reminder = {
-    id: newId(), text: clean, dueDate: dueDate || null, autoToday: false, doneAt: null,
+    id: newId(), text: clean, autoToday: false, doneAt: null,
     createdAt: Math.max(ts, last + 1), updatedAt: ts,
   };
   await deps.db.reminders.add(r);
@@ -611,15 +572,12 @@ export async function toggleReminderDone(deps: DayDeps, id: string): Promise<Tog
   return null;
 }
 
-/** Sửa chữ/hạn. Đổi chữ thì todo nối với nó ở hôm nay đổi theo (ngày cũ giữ nguyên). */
-export async function editReminder(deps: DayDeps, id: string, changes: { text?: string; dueDate?: string | null }): Promise<void> {
-  const patch: Partial<Reminder> = { updatedAt: deps.now().getTime() };
-  if (changes.text !== undefined) patch.text = cleanText(changes.text);
-  if (changes.dueDate !== undefined) patch.dueDate = changes.dueDate || null;
-  const write = () => deps.db.reminders.update(id, patch);
+/** Sửa chữ; todo nối với nó ở hôm nay đổi theo (ngày cũ giữ nguyên). */
+export async function editReminder(deps: DayDeps, id: string, newText: string): Promise<void> {
+  const text = cleanText(newText);
+  const write = () => deps.db.reminders.update(id, { text, updatedAt: deps.now().getTime() });
   const t = await today(deps, id);
-  const text = patch.text;
-  if (text && t?.todo) {
+  if (t?.todo) {
     await mutateDay(deps, t.day.date, 'today-only', (d) => {
       const todo = d.todos.find((x) => x.reminderId === id);
       if (todo) todo.text = text;
@@ -672,7 +630,7 @@ git add src/domain tests/unit/domain && git commit -m "feat(reminders): reminder
 
 ```ts
 describe('sao lưu việc nhắc', () => {
-  const rem = { id: 'r1', text: 'Mua quà', dueDate: '2026-10-20', autoToday: true, doneAt: null, createdAt: 1, updatedAt: 5 };
+  const rem = { id: 'r1', text: 'Mua quà', autoToday: true, doneAt: null, createdAt: 1, updatedAt: 5 };
 
   it('khôi phục giữ việc nhắc và reminderId của todo', async () => {
     const src = makeDb();
@@ -720,7 +678,6 @@ Thêm schema:
 const ReminderSchema = z.object({
   id: z.string(),
   text: z.string(),
-  dueDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable(),
   autoToday: z.boolean(),
   doneAt: z.number().nullable(),
   createdAt: z.number(),
@@ -785,39 +742,39 @@ const setup = () => {
 };
 
 describe('RemindersScreen', () => {
-  it('thêm việc có hạn: hiện dd/mm; Escape/rỗng không lưu', async () => {
+  it('thêm việc (Enter); rỗng thì không lưu; Escape đóng dòng', async () => {
     const { deps, user, render } = setup();
     render();
     await user.click(screen.getByRole('button', { name: '＋ Việc nhắc mới' }));
-    await user.type(screen.getByLabelText('Việc nhắc mới'), 'Mua điện thoại cho mẹ');
-    await user.type(screen.getByLabelText('Hạn của việc mới'), '2026-10-20');
-    await user.click(screen.getByRole('button', { name: 'Lưu' }));
+    await user.type(screen.getByLabelText('Việc nhắc mới'), 'Mua điện thoại cho mẹ{Enter}');
     const active = await screen.findByTestId('reminders-active');
     await within(active).findByText('Mua điện thoại cho mẹ');
-    expect(within(active).getByText('20/10')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: '＋ Việc nhắc mới' }));
     await user.click(screen.getByRole('button', { name: 'Lưu' }));
     expect(await deps.db.reminders.count()).toBe(1);
+    await user.click(screen.getByRole('button', { name: '＋ Việc nhắc mới' }));
+    await user.type(screen.getByLabelText('Việc nhắc mới'), 'Bỏ{Escape}');
+    expect(screen.queryByLabelText('Việc nhắc mới')).toBeNull();
+    expect(await deps.db.reminders.count()).toBe(1);
   });
 
-  it('xếp theo hạn; quá hạn tô màu và ghi "Quá hạn"', async () => {
+  it('xếp theo thứ tự thêm, không có cột Hạn', async () => {
     const { deps, render } = setup();
-    await addReminder(deps, 'Vẽ tranh', '2026-11-14');
-    await addReminder(deps, 'Mua quần áo', '2026-10-03');
-    await addReminder(deps, 'Không hạn', null);
+    await addReminder(deps, 'Vẽ tranh');
+    await addReminder(deps, 'Mua quần áo');
     render();
     const active = await screen.findByTestId('reminders-active');
     await within(active).findByText('Vẽ tranh');
     const rows = within(active).getAllByRole('listitem');
-    expect(rows.map((r) => r.querySelector('.rem__text')?.textContent)).toEqual(['Mua quần áo', 'Vẽ tranh', 'Không hạn']);
-    expect(rows[0].querySelector('[data-due]')).toHaveAttribute('data-due', 'overdue');
-    expect(rows[0]).toHaveTextContent('Quá hạn');
+    expect(rows.map((r) => r.querySelector('.rem__text')?.textContent)).toEqual(['Vẽ tranh', 'Mua quần áo']);
+    expect(active).not.toHaveTextContent('Hạn');
+    expect(active.querySelector('input[type="date"]')).toBeNull();
   });
 
   it('bật Hôm nay thì việc vào hôm nay; tick thì xuống mục đã hoàn thành tuần này', async () => {
     const { deps, user, render } = setup();
     await ensureToday(deps);
-    await addReminder(deps, 'Mua quà', null);
+    await addReminder(deps, 'Mua quà');
     render();
     const sw = await screen.findByRole('switch', { name: 'Thêm vào hôm nay: Mua quà' });
     await user.click(sw);
@@ -832,7 +789,7 @@ describe('RemindersScreen', () => {
 
   it('mục đã hoàn thành trống thì có lời nhắn; xoá phải xác nhận; nút quay lại gọi onBack', async () => {
     const { deps, user, onBack, render } = setup();
-    await addReminder(deps, 'Mua quà', null);
+    await addReminder(deps, 'Mua quà');
     render();
     expect(await screen.findByText('Chưa xong việc nào tuần này')).toBeInTheDocument();
     await user.click(await screen.findByRole('button', { name: 'Xoá: Mua quà' }));
@@ -844,7 +801,7 @@ describe('RemindersScreen', () => {
 
   it('chạm chữ để sửa, Enter lưu', async () => {
     const { deps, user, render } = setup();
-    const r = await addReminder(deps, 'Mua quà', null);
+    const r = await addReminder(deps, 'Mua quà');
     render();
     await user.click(await screen.findByRole('button', { name: 'Mua quà' }));
     const input = screen.getByLabelText('Sửa việc nhắc');
@@ -887,7 +844,7 @@ import { DeleteWithConfirm } from '../components/DeleteWithConfirm';
 import { dayKey } from '../domain/dayKey';
 import type { DayDeps } from '../domain/dayService';
 import { addReminder, deleteReminder, editReminder, setReminderAutoToday, toggleReminderDone } from '../domain/reminderService';
-import { activeReminders, doneThisWeek, dueStatus, formatDue } from '../domain/reminderView';
+import { activeReminders, doneThisWeek } from '../domain/reminderView';
 import type { Reminder } from '../domain/types';
 import '../components/todo.css';
 import './reminders.css';
@@ -915,7 +872,7 @@ export function RemindersScreen({ onBack }: { onBack: () => void }) {
         <BackButton inline label="Quay lại Cài đặt" onClick={onBack} />
         <h1 className="screen__title">Nhắc việc</h1>
       </header>
-      <p className="muted rem__hint">Việc còn lâu mới tới hạn để ở đây. Bật <b>Hôm nay</b> thì việc tự vào buổi Sáng mỗi ngày cho tới khi xong.</p>
+      <p className="muted rem__hint">Việc chưa cần làm ngay thì để ở đây theo dõi. Bật <b>Hôm nay</b> thì việc tự vào buổi Sáng mỗi ngày cho tới khi xong.</p>
       {error && <p role="alert" className="error">{error}</p>}
       {adding ? (
         <NewReminder deps={deps} onError={setError} onDone={() => setAdding(false)} />
@@ -925,11 +882,11 @@ export function RemindersScreen({ onBack }: { onBack: () => void }) {
 
       <div className="card rem__card" data-testid="reminders-active">
         <div className="rem__cols" aria-hidden="true">
-          <span className="rem__cols-text">Việc</span><span className="rem__cols-due">Hạn</span><span className="rem__cols-today">Hôm nay</span>
+          <span className="rem__cols-text">Việc</span><span className="rem__cols-today">Hôm nay</span>
         </div>
         {all && active.length === 0 && <p className="muted rem__empty">Chưa có việc nhắc nào. Bấm ＋ để thêm nhé 🌱</p>}
         <ul className="rem__list">
-          {active.map((r) => <ReminderRow key={r.id} r={r} today={today} deps={deps} run={run} />)}
+          {active.map((r) => <ReminderRow key={r.id} r={r} deps={deps} run={run} />)}
         </ul>
       </div>
 
@@ -953,17 +910,16 @@ export function RemindersScreen({ onBack }: { onBack: () => void }) {
   );
 }
 
-function ReminderRow({ r, today, deps, run }: { r: Reminder; today: string; deps: DayDeps; run: Run }) {
+function ReminderRow({ r, deps, run }: { r: Reminder; deps: DayDeps; run: Run }) {
   // giữ trạng thái công tắc ngay trên giao diện để bấm nhanh liên tiếp vẫn đúng
   const [on, setOn] = useState(r.autoToday);
   useEffect(() => setOn(r.autoToday), [r.autoToday]);
   const [editing, setEditing] = useState(false);
   const [text, setText] = useState(r.text);
   useBackHandler(editing, () => setEditing(false), 'form');
-  const status = dueStatus(r.dueDate, today);
   const commit = () => {
     const clean = text.trim();
-    if (clean && clean !== r.text) run(editReminder(deps, r.id, { text: clean }));
+    if (clean && clean !== r.text) run(editReminder(deps, r.id, clean));
     setEditing(false);
   };
   return (
@@ -984,14 +940,6 @@ function ReminderRow({ r, today, deps, run }: { r: Reminder; today: string; deps
       ) : (
         <button type="button" className="rem__text" onClick={() => { setText(r.text); setEditing(true); }}>{r.text}</button>
       )}
-      <label className="rem__due" data-due={status ?? 'none'}>
-        <span>{r.dueDate ? formatDue(r.dueDate) : '—'}</span>
-        {status === 'overdue' && <small className="rem__overdue">Quá hạn</small>}
-        <input
-          type="date" aria-label={`Hạn: ${r.text}`} value={r.dueDate ?? ''}
-          onChange={(e) => run(editReminder(deps, r.id, { dueDate: e.target.value || null }))}
-        />
-      </label>
       <button
         type="button" role="switch" aria-checked={on} aria-label={`Thêm vào hôm nay: ${r.text}`}
         className={`rem__switch${on ? ' is-on' : ''}`}
@@ -1010,12 +958,11 @@ function ReminderRow({ r, today, deps, run }: { r: Reminder; today: string; deps
 
 function NewReminder({ deps, onDone, onError }: { deps: DayDeps; onDone: () => void; onError: (msg: string) => void }) {
   const [text, setText] = useState('');
-  const [due, setDue] = useState('');
   async function save() {
     // việc rỗng không bao giờ được lưu: chỉ đóng dòng
     if (text.trim()) {
       try {
-        await addReminder(deps, text, due || null);
+        await addReminder(deps, text);
       } catch (e) {
         onError((e as Error).message);
         return;
@@ -1033,10 +980,6 @@ function NewReminder({ deps, onDone, onError }: { deps: DayDeps; onDone: () => v
         className="input" autoFocus maxLength={200} aria-label="Việc nhắc mới" placeholder="Việc cần nhớ…"
         value={text} onChange={(e) => setText(e.target.value)}
       />
-      <label className="rem__new-due">
-        Hạn
-        <input type="date" className="input" aria-label="Hạn của việc mới" value={due} onChange={(e) => setDue(e.target.value)} />
-      </label>
       <div className="rem__new-actions">
         <button type="submit" className="btn btn--primary">Lưu</button>
         <button type="button" className="btn btn--ghost" onClick={onDone}>Huỷ</button>
@@ -1061,12 +1004,11 @@ Ghi chú: nếu `useBackHandler` không cho đăng ký nhiều handler cùng l�
 .rem__empty { text-align: center; margin: 8px 0; }
 .rem__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
 
-/* cột: ô tick | chữ | hạn | công tắc | xoá */
-.rem__cols, .rem__row { display: grid; grid-template-columns: 28px minmax(0, 1fr) 54px 54px 32px; align-items: center; column-gap: 6px; }
+/* cột: ô tick | chữ | công tắc | xoá */
+.rem__cols, .rem__row { display: grid; grid-template-columns: 28px minmax(0, 1fr) 54px 32px; align-items: center; column-gap: 8px; }
 .rem__cols { font-size: 0.75rem; font-weight: 700; color: var(--cocoa-soft); padding-bottom: 4px; border-bottom: 1.5px dashed rgba(91, 70, 54, 0.25); }
 .rem__cols-text { grid-column: 2; }
-.rem__cols-due { grid-column: 3; text-align: center; }
-.rem__cols-today { grid-column: 4; text-align: center; }
+.rem__cols-today { grid-column: 3; text-align: center; }
 .rem__row { min-height: 48px; border-bottom: 1px solid rgba(91, 70, 54, 0.08); }
 .rem__row:last-child { border-bottom: none; }
 .rem__row.is-done { grid-template-columns: 28px minmax(0, 1fr); }
@@ -1079,19 +1021,11 @@ Ghi chú: nếu `useBackHandler` không cho đăng ký nhiều handler cùng l�
 }
 .rem__edit .input { width: 100%; }
 
-.rem__due { position: relative; display: flex; flex-direction: column; align-items: center; font-weight: 700; font-size: 0.9rem; line-height: 1.1; }
-.rem__due input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; font-size: 16px; } /* chạm chữ mở bộ chọn ngày của iOS */
-.rem__due[data-due='soon'] { color: #E08A1E; }
-.rem__due[data-due='overdue'] { color: #D6336C; }
-.rem__overdue { font-size: 0.65rem; }
-
 .rem__switch { border: none; background: none; padding: 0; display: flex; justify-content: center; cursor: pointer; }
 .rem__switch.is-on .switch { background: var(--leaf); }
 .rem__switch.is-on .switch__knob { transform: translateX(20px); }
 
 .rem__new { display: flex; flex-direction: column; gap: 10px; }
-.rem__new-due { display: flex; align-items: center; gap: 10px; font-weight: 700; }
-.rem__new-due .input { flex: 1; font-size: 16px; }
 .rem__new-actions { display: flex; gap: 10px; }
 ```
 
@@ -1103,7 +1037,7 @@ Expected: PASS.
 - [ ] **Step 7: Commit**
 
 ```bash
-git add src/components/icons.tsx src/screens/RemindersScreen.tsx src/screens/reminders.css tests/unit/screens/RemindersScreen.test.tsx && git commit -m "feat(reminders): Reminders screen with due dates, today switch and weekly done list"
+git add src/components/icons.tsx src/screens/RemindersScreen.tsx src/screens/reminders.css tests/unit/screens/RemindersScreen.test.tsx && git commit -m "feat(reminders): Reminders screen with today switch and weekly done list"
 ```
 
 ---
@@ -1125,8 +1059,8 @@ Cuối `describe('SettingsScreen', …)` trong `tests/unit/screens/SettingsScree
 ```tsx
   it('thẻ Nhắc việc đứng đầu, đếm việc đang theo dõi và mở màn Nhắc việc', async () => {
     const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
-    await addReminder(deps, 'Mua quà', null);
-    await addReminder(deps, 'Vẽ tranh', '2026-11-14');
+    await addReminder(deps, 'Mua quà');
+    await addReminder(deps, 'Vẽ tranh');
     const user = userEvent.setup();
     renderWithDeps(<SettingsScreen />, deps);
     const headings = screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent);
@@ -1145,7 +1079,7 @@ Cuối `describe('TodayScreen', …)` trong `tests/unit/screens/TodayScreen.test
   it('việc đến từ Nhắc việc có icon chuông', async () => {
     const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
     await deps.db.days.put(makeDay({ date: '2026-10-02', greetedAt: 1, speech: '' }));
-    const r = await addReminder(deps, 'Mua quà', null);
+    const r = await addReminder(deps, 'Mua quà');
     await setReminderAutoToday(deps, r.id, true);
     renderWithDeps(<TodayScreen />, deps);
     const row = (await screen.findByRole('checkbox', { name: 'Hoàn thành: Mua quà' })).closest('li')!;
@@ -1246,15 +1180,12 @@ test('Nhắc việc: bật Hôm nay thì việc vào buổi Sáng, chưa xong th
   await openReminders(page);
   await page.getByRole('button', { name: '＋ Việc nhắc mới' }).click();
   await page.getByLabel('Việc nhắc mới').fill('Mua điện thoại cho mẹ');
-  await page.getByLabel('Hạn của việc mới').fill('2026-10-20');
   await page.getByRole('button', { name: 'Lưu', exact: true }).click();
   await page.getByRole('button', { name: '＋ Việc nhắc mới' }).click();
   await page.getByLabel('Việc nhắc mới').fill('Mua quần áo');
-  await page.getByLabel('Hạn của việc mới').fill('2026-10-04');
   await page.getByRole('button', { name: 'Lưu', exact: true }).click();
   const active = page.getByTestId('reminders-active');
-  await expect(active.getByText('20/10')).toBeVisible();
-  await expect(active.getByText('Quá hạn')).toBeVisible();
+  await expect(active.getByText('Mua quần áo')).toBeVisible();
   const sw = page.getByRole('switch', { name: 'Thêm vào hôm nay: Mua điện thoại cho mẹ' });
   await sw.click();
   await expect(sw).toHaveAttribute('aria-checked', 'true');
@@ -1290,7 +1221,7 @@ test('Nhắc việc: bật Hôm nay thì việc vào buổi Sáng, chưa xong th
 Run: `npm run e2e -- -g "Nhắc việc" > pw.log 2>&1; grep -E "passed|failed|Error" pw.log`
 Expected: `1 passed`. Nếu fail thì đọc `pw.log`, sửa, chạy lại.
 
-- [ ] **Step 3: Soát hình** — đọc `test-results/reminders.png` và `test-results/reminders-done.png`. Kiểm tra: tiêu đề cột thẳng hàng với cột của các dòng, công tắc tròn không bị bóp, chữ dài xuống dòng không tràn, màu cam/hồng của hạn dễ đọc, nút menu nổi không che dòng cuối. Có lỗi thì sửa `reminders.css` rồi chạy lại Step 2.
+- [ ] **Step 3: Soát hình** — đọc `test-results/reminders.png` và `test-results/reminders-done.png`. Kiểm tra: tiêu đề cột thẳng hàng với cột của các dòng, công tắc tròn không bị bóp, chữ dài xuống dòng không tràn, nút menu nổi không che dòng cuối. Có lỗi thì sửa `reminders.css` rồi chạy lại Step 2.
 
 - [ ] **Step 4: Chạy toàn bộ E2E**
 
@@ -1316,7 +1247,7 @@ git add tests/e2e/app.spec.ts src/screens/reminders.css && git commit -m "test(e
   - DB: `SCHEMA_VERSION = 5`, dòng **v5**: bảng `reminders`; thêm hàng vào bảng các bảng; thêm `Reminder` và `Todo.reminderId?` vào khối kiểu.
   - Sao lưu: `schemaVersion: 5`, `"reminders": [Reminder, ...]` (file 1–4 thiếu → `[]`; gộp theo `id`, `updatedAt` lớn hơn thắng).
   - Icon: thêm `bell`.
-  - Label test: `Mở nhắc việc`, `＋ Việc nhắc mới`, `Việc nhắc mới`, `Hạn của việc mới`, `Hoàn thành nhắc: <việc>`, `Bỏ hoàn thành nhắc: <việc>`, `Thêm vào hôm nay: <việc>`, `Hạn: <việc>`, `Sửa việc nhắc`, `reminders`, `reminders-active`, `reminders-done`, `reminder-<id>`, helper E2E `openReminders(page)`.
+  - Label test: `Mở nhắc việc`, `＋ Việc nhắc mới`, `Việc nhắc mới`, `Hoàn thành nhắc: <việc>`, `Bỏ hoàn thành nhắc: <việc>`, `Thêm vào hôm nay: <việc>`, `Sửa việc nhắc`, `reminders`, `reminders-active`, `reminders-done`, `reminder-<id>`, helper E2E `openReminders(page)`.
   - Nút Back Android: thêm "màn Nhắc việc, dòng thêm/sửa việc nhắc" vào danh sách đã đăng ký.
 
 - [ ] **Step 2: Kiểm tra đủ**

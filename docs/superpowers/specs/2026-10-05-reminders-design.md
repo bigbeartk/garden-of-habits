@@ -16,7 +16,6 @@ Tiêu chí thành công: người dùng không phải tự chép lại việc d�
 interface Reminder {
   id: string;
   text: string;             // đã trim, không rỗng
-  dueDate: string | null;   // 'YYYY-MM-DD'; null = không hạn
   autoToday: boolean;       // nút gạt "Hôm nay"
   doneAt: number | null;    // ms; null = chưa xong
   createdAt: number;
@@ -36,14 +35,14 @@ Mọi thao tác nhận `DayDeps`. Thao tác chạm tới hôm nay ghi `reminders
 
 | Thao tác | Kết quả |
 |---|---|
-| `addReminder(text, dueDate)` | Tạo việc nhắc với `autoToday = false`. Chữ rỗng → từ chối. |
+| `addReminder(text)` | Tạo việc nhắc với `autoToday = false`. Chữ rỗng → từ chối. |
 | `setReminderAutoToday(id, true)` | Bật cờ. Nếu việc **chưa xong**, bản ghi hôm nay đã có và chưa có todo nào mang `reminderId` này, thì thêm todo vào **cuối buổi Sáng**. |
 | `setReminderAutoToday(id, false)` | Tắt cờ. Gỡ todo nối với việc này khỏi hôm nay nếu todo đó **chưa xong**. |
 | `ensureToday` (tạo ngày mới) | Sau việc của mẫu và việc đã lên lịch, thêm vào buổi Sáng mọi việc nhắc có `autoToday && doneAt === null` (thứ tự `createdAt`). Ngày cũ đã khoá nên vẫn giữ todo ở trạng thái chưa xong. |
 | `toggleTodo` của todo có `reminderId` | `doneAt` của việc nhắc = `todo.doneAt` (xong) hoặc `null` (bỏ tick). |
 | `toggleReminderDone(id)` | Đảo trạng thái xong. Nếu hôm nay có todo nối với việc này thì todo đó cũng được đảo theo; khi đó trả về `ToggleResult` để màn hình (nếu có) cho cây khen. |
 | `editTodo` của todo có `reminderId` | Đổi chữ của việc nhắc theo. |
-| `editReminder(id, { text?, dueDate? })` | Đổi việc nhắc. Đổi chữ thì cập nhật cả todo nối với nó ở **hôm nay** (ngày cũ giữ nguyên). |
+| `editReminder(id, text)` | Đổi chữ việc nhắc; chữ rỗng → từ chối. Đồng thời cập nhật cả todo nối với nó ở **hôm nay** (ngày cũ giữ nguyên). |
 | `deleteTodo` của todo có `reminderId` | Tự **tắt** `autoToday` của việc nhắc, để mai không quay lại. |
 | `deleteReminder(id)` | Xoá việc nhắc và gỡ todo nối với nó ở hôm nay nếu todo đó chưa xong. Todo đã xong vẫn giữ, vì nó góp vào cây; lúc đó todo chỉ còn trỏ tới một id không tồn tại, và mọi chỗ đều bỏ qua id lạ. |
 
@@ -51,9 +50,8 @@ Quy tắc chung: chỉ **hôm nay** được thêm, gỡ hoặc sửa todo. Ngà
 
 ### Hiển thị và sắp xếp (logic thuần, test riêng)
 
-- `activeReminders`: các việc `doneAt === null`, xếp theo `dueDate` tăng dần, việc không hạn ở cuối; cùng hạn thì theo `createdAt`.
+- `activeReminders`: các việc `doneAt === null`, xếp theo thứ tự thêm (`createdAt`).
 - `doneThisWeek(reminders, todayKey)`: các việc có `dayKey(doneAt) >= thứ Hai của tuần chứa todayKey` (mốc 4:00), mới xong đứng trên.
-- `dueStatus(dueDate, todayKey)`: `'overdue'` khi hạn < hôm nay, `'soon'` khi còn 0–3 ngày, `'normal'` khi còn xa hơn, `null` khi không hạn.
 
 ## Giao diện
 
@@ -64,11 +62,10 @@ Thẻ **"Nhắc việc"** là thẻ **đầu tiên**, nằm trước "Mẫu vi�
 ### `RemindersScreen` (`data-testid="reminders"`)
 
 - **Tiêu đề:** `Nhắc việc`.
-- **Nút thêm:** `＋ Việc nhắc mới` (rộng, viền nét đứt). Bấm thì hiện dòng trống gồm ô `Việc nhắc mới` (đã focus) và ô ngày `Hạn của việc mới` (`<input type="date">`, để trống được). Enter hoặc nút `Lưu` thì lưu rồi đóng dòng; Escape thì huỷ. Việc rỗng không bao giờ được lưu.
-- **Danh sách đang theo dõi** (`reminders-active`): hàng tiêu đề cột `Việc · Hạn · Hôm nay`. Mỗi dòng `reminder-<id>` gồm:
+- **Nút thêm:** `＋ Việc nhắc mới` (rộng, viền nét đứt). Bấm thì hiện dòng trống gồm ô `Việc nhắc mới` (đã focus). Enter hoặc nút `Lưu` thì lưu rồi đóng dòng; Escape thì huỷ. Việc rỗng không bao giờ được lưu.
+- **Danh sách đang theo dõi** (`reminders-active`): hàng tiêu đề cột `Việc · Hôm nay`. Mỗi dòng `reminder-<id>` gồm:
   - ô tick tròn `Hoàn thành nhắc: <việc>`;
   - chữ việc (chạm để sửa tại chỗ, nút `Sửa việc nhắc`);
-  - hạn `dd/mm` (ô `<input type="date">` trong suốt phủ lên chữ, nhãn `Hạn: <việc>`; không hạn thì ghi `—`). Có `data-due` = `overdue|soon|normal`: cam khi `soon`; hồng đậm kèm chữ `Quá hạn` khi `overdue`;
   - công tắc `Thêm vào hôm nay: <việc>`, giữ state cục bộ (optimistic) như `SettingSwitch`;
   - nút xoá dùng `DeleteWithConfirm`.
 - **Đã hoàn thành tuần này** (`reminders-done`): ☑ cộng chữ nhạt (không gạch ngang). Chạm ô tick thì bỏ hoàn thành. Chưa có việc thì ghi `Chưa xong việc nào tuần này`.
@@ -89,13 +86,13 @@ Todo có `reminderId` hiện icon SVG mới `bell` (16px, `data-icon="bell"`) tr
 - **Unit** (TDD):
   - mọi dòng trong bảng quy tắc;
   - `ensureToday` thêm việc nhắc;
-  - `activeReminders` / `doneThisWeek` / `dueStatus`;
+  - `activeReminders` / `doneThisWeek`;
   - xuất, khôi phục (replace/merge) sao lưu, cả file v4 thiếu `reminders`;
   - `RemindersScreen`: thêm, gạt, tick, xoá;
   - thẻ trong Cài đặt;
   - icon chuông ở Hôm nay.
 - **E2E WebKit iPhone 13:**
-  - Cài đặt → Mở nhắc việc → thêm việc có hạn → bật Hôm nay → việc có ở buổi Sáng của Hôm nay → tick → việc xuống mục Đã hoàn thành;
+  - Cài đặt → Mở nhắc việc → thêm việc → bật Hôm nay → việc có ở buổi Sáng của Hôm nay → tick → việc xuống mục Đã hoàn thành;
   - đồng hồ sang ngày hôm sau thì việc chưa xong lại có mặt;
   - chụp ảnh màn Nhắc việc để soát hình.
 - Chạy thêm test giống CI (`TZ=UTC` Node 20) trước khi push.
@@ -110,3 +107,7 @@ Todo có `reminderId` hiện icon SVG mới `bell` (16px, `data-icon="bell"`) tr
 ## CLAUDE.md
 
 Cập nhật: quy tắc nghiệp vụ Nhắc việc, thứ tự thẻ Cài đặt, bảng DB v5, định dạng sao lưu, icon `bell`, các label/testid test dựa vào, và việc đăng ký nút Back.
+
+## Thay đổi sau khi duyệt
+
+- 2026-10-05: **Bỏ hẳn hạn chót** (theo yêu cầu): việc nhắc không có ngày hạn, không có cột Hạn, không tô màu quá hạn; danh sách xếp theo thứ tự thêm.
