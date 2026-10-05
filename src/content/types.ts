@@ -28,6 +28,23 @@ export interface PlantSpecies {
   praises?: string[];
   /** câu riêng khi bị chạm vào (gộp với câu chung trong taps.ts) */
   taps?: string[];
+  /** 2 dáng mở khoá, theo thứ tự unlockAt (10, 20) */
+  styles?: PlantStyle[];
+}
+
+/** Giai đoạn mà dáng mới vẽ lại; seed/sprout dùng chung bản Gốc. */
+export type StyleStage = 'bud' | 'bloom';
+
+/** Một dáng mở khoá của loài (biến hình hẳn ở bud/bloom). */
+export interface PlantStyle {
+  id: string;
+  name: string;
+  /** số ngày loài này ra hoa cần có để mở */
+  unlockAt: number;
+  stages: Record<StyleStage, Art>;
+  faceAnchor: Record<StyleStage, FaceAnchor>;
+  /** không có = theo loài */
+  faceStyle?: FaceStyle;
 }
 
 export interface PotStyle {

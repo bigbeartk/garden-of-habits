@@ -29,7 +29,7 @@ export function makeDay(partial: Partial<DayRecord> & { date: string }): DayReco
 
 export const TEST_CATALOG: Catalog = {
   plants: [
-    { id: 'sunflower', defaultPotId: 'terracotta' },
+    { id: 'sunflower', defaultPotId: 'terracotta', styles: [{ id: 'mini', unlockAt: 10 }, { id: 'giant', unlockAt: 20 }] },
     { id: 'corn', defaultPotId: 'rattan' },
   ],
   potIds: ['terracotta', 'rattan', 'pink-cup'],

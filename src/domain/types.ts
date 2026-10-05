@@ -11,12 +11,17 @@ export interface Todo {
   period: Period;
 }
 
+/** Id dáng gốc của mọi loài (dáng luôn có, không cần mở khoá). */
+export const BASE_STYLE_ID = 'base';
+
 export interface DayRecord {
   /** 'YYYY-MM-DD' theo mốc 4:00 sáng */
   date: string;
   plantId: string;
   potId: string;
   specialId: string | null;
+  /** dáng cây của ngày; không có (bản ghi cũ) = 'base' */
+  styleId?: string;
   isRestDay: boolean;
   /** tiêu đề do người dùng đặt cho ngày; bản ghi cũ (trước khi có tính năng) không có trường này */
   title?: string;
@@ -71,7 +76,7 @@ export interface CalendarBg {
 
 /** Phần dữ liệu nội dung mà tầng domain cần (không phụ thuộc React). */
 export interface Catalog {
-  plants: { id: string; defaultPotId: string }[];
+  plants: { id: string; defaultPotId: string; styles?: { id: string; unlockAt: number }[] }[];
   potIds: string[];
   specials: { id: string; weight: number }[];
 }

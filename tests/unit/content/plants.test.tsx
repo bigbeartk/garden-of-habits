@@ -29,12 +29,32 @@ describe('plants', () => {
     expect(new Set(PLANTS.map((p) => p.defaultPotId)).size).toBe(PLANTS.length);
   });
 
+  it('loài có dáng thì đúng 2 dáng: id duy nhất, khác "base", mốc 10 rồi 20, đủ bud/bloom', () => {
+    for (const p of PLANTS.filter((s) => s.styles)) {
+      const styles = p.styles!;
+      expect(styles.map((s) => s.unlockAt)).toEqual([10, 20]);
+      expect(new Set(styles.map((s) => s.id)).size).toBe(2);
+      for (const s of styles) {
+        expect(s.id).not.toBe('base');
+        expect(s.name.length).toBeGreaterThan(0);
+        for (const stage of ['bud', 'bloom'] as const) {
+          expect(s.faceAnchor[stage].scale).toBeGreaterThan(0);
+          const { unmount } = render(<svg><ArtView art={s.stages[stage]} /></svg>);
+          unmount();
+        }
+      }
+    }
+  });
+
   it('getSpecies với id lạ trả về loài đầu tiên', () => {
     expect(getSpecies('khong-co').id).toBe('sunflower');
   });
 
   it('CATALOG khớp với registry', () => {
-    expect(CATALOG.plants).toEqual(PLANTS.map((p) => ({ id: p.id, defaultPotId: p.defaultPotId })));
+    expect(CATALOG.plants).toEqual(PLANTS.map((p) => ({
+      id: p.id, defaultPotId: p.defaultPotId,
+      styles: (p.styles ?? []).map((s) => ({ id: s.id, unlockAt: s.unlockAt })),
+    })));
     expect(CATALOG.potIds).toEqual(POTS.map((p) => p.id));
     expect(CATALOG.specials).toEqual(SPECIALS.map((s) => ({ id: s.id, weight: s.weight })));
   });
