@@ -6,7 +6,7 @@ import { pickUniform, rollSpecial, type Rng } from './random';
 import { PERIODS, type Period } from './period';
 import { listUnlockedSpecials, pairKey, unlockSpecial } from './specialUnlocks';
 import { listUnlockedStyles, styleKey, unlockStylesFor } from './styleUnlocks';
-import { BASE_STYLE_ID, type Catalog, type DayRecord, type TemplateItem, type Todo } from './types';
+import { BASE_STYLE_ID, type Catalog, type DayRecord, type Reminder, type TemplateItem, type Todo } from './types';
 
 export interface DayDeps {
   db: PlantDB;
@@ -33,13 +33,17 @@ export async function ensureToday(deps: DayDeps): Promise<DayRecord> {
   // đọc trước khi mở transaction: hàm async lồng nhau bên trong transaction làm Dexie mất ngữ cảnh
   // khi App và useToday cùng gọi ensureToday (PrematureCommitError)
   const unlockedStyles = await listUnlockedStyles(deps);
-  return db.transaction('rw', [db.days, db.templates, db.planned, db.plannedGoals, db.settings], async () => {
+  return db.transaction('rw', [db.days, db.templates, db.planned, db.plannedGoals, db.settings, db.reminders], async () => {
     const existing = await db.days.get(date);
     if (existing) return existing;
     const template = (await db.templates.toArray()).find((t) => t.isDefault);
     // việc đã lên lịch cho hôm nay: vào sau việc của mẫu, rồi xoá khỏi danh sách chờ
     const planned = await db.planned.where('date').equals(date).sortBy('createdAt');
     const goal = await db.plannedGoals.get(date);
+    // việc nhắc đang bật "Hôm nay" mà chưa xong: thêm lại mỗi ngày (buổi Sáng) cho tới khi xong
+    const reminders = (await db.reminders.toArray())
+      .filter((r) => r.autoToday && r.doneAt === null)
+      .sort((a, b) => a.createdAt - b.createdAt);
     const plant = pickUniform(deps.catalog.plants, deps.rng);
     const ts = deps.now().getTime();
     const record: DayRecord = {
@@ -51,7 +55,7 @@ export async function ensureToday(deps: DayDeps): Promise<DayRecord> {
       title: goal?.title ?? '',
       greetedAt: null,
       note: '',
-      todos: toTodos([...(template?.items ?? []), ...planned], 0),
+      todos: withReminders(toTodos([...(template?.items ?? []), ...planned], 0), reminders),
       finalStage: 'seed',
       createdAt: ts,
       updatedAt: ts,
@@ -75,14 +79,29 @@ function toTodos(items: TemplateItem[], startOrder: number): Todo[] {
     .map((item, i) => ({ id: newId(), text: item.text, period: item.period, done: false, doneAt: null, order: startOrder + i }));
 }
 
-type EditKind = 'today-only' | 'note';
+/** Todo nối với một việc nhắc, luôn vào buổi Sáng (người dùng tự kéo sang buổi khác). */
+export function reminderTodo(r: Pick<Reminder, 'id' | 'text'>, order: number): Todo {
+  return { id: newId(), text: r.text, period: 'morning', done: false, doneAt: null, order, reminderId: r.id };
+}
 
-async function mutateDay(deps: DayDeps, date: string, kind: EditKind, fn: (day: DayRecord) => void): Promise<DayRecord> {
+function withReminders(todos: Todo[], reminders: Reminder[]): Todo[] {
+  return [...todos, ...reminders.map((r, i) => reminderTodo(r, todos.length + i))];
+}
+
+export type EditKind = 'today-only' | 'note';
+
+/**
+ * Mọi thao tác sửa một ngày đi qua đây. `sync` chạy trong cùng transaction sau khi lưu ngày
+ * (dùng để cập nhật việc nhắc nối với todo), chỉ được thao tác trên `days`/`reminders`.
+ */
+export async function mutateDay(
+  deps: DayDeps, date: string, kind: EditKind, fn: (day: DayRecord) => void, sync?: (day: DayRecord) => Promise<unknown>,
+): Promise<DayRecord> {
   const today = dayKey(deps.now());
   if (kind === 'today-only' && date !== today) throw new LockedDayError(date);
   const { db } = deps;
   let before = 'seed' as GrowthStage; // giai đoạn trước khi sửa (gán trong transaction)
-  const saved = await db.transaction('rw', db.days, async () => {
+  const saved = await db.transaction('rw', [db.days, db.reminders], async () => {
     const day = await db.days.get(date);
     if (!day) throw new Error(`Không tìm thấy ngày ${date}`);
     before = day.finalStage;
@@ -91,6 +110,7 @@ async function mutateDay(deps: DayDeps, date: string, kind: EditKind, fn: (day: 
     day.finalStage = stageOfTodos(day.todos);
     day.updatedAt = deps.now().getTime();
     await db.days.put(day);
+    if (sync) await sync(day);
     return day;
   });
   // hôm nay VỪA ra hoa (đổi loài trên ngày đã ra hoa không tính): mở các dáng vừa đủ mốc, lưu lại để bỏ tick vẫn giữ.
@@ -105,6 +125,12 @@ function findTodo(day: DayRecord, id: string): Todo {
   const todo = day.todos.find((t) => t.id === id);
   if (!todo) throw new Error('Không tìm thấy việc cần làm');
   return todo;
+}
+
+/** Cập nhật việc nhắc nối với todo (id lạ/đã xoá thì bỏ qua: `update` không làm gì). */
+function syncReminder(deps: DayDeps, reminderId: string | undefined, patch: Partial<Reminder>): Promise<unknown> {
+  if (!reminderId) return Promise.resolve();
+  return deps.db.reminders.update(reminderId, { ...patch, updatedAt: deps.now().getTime() });
 }
 
 export function addTodo(deps: DayDeps, date: string, text: string, period: Period = 'morning'): Promise<DayRecord> {
@@ -130,28 +156,35 @@ export interface ToggleResult {
 export async function toggleTodo(deps: DayDeps, date: string, id: string): Promise<ToggleResult> {
   let prevStage: GrowthStage = 'seed';
   let completed = false;
+  let toggled: Todo | undefined;
   const day = await mutateDay(deps, date, 'today-only', (d) => {
     prevStage = d.finalStage;
     const todo = findTodo(d, id);
     todo.done = !todo.done;
     todo.doneAt = todo.done ? deps.now().getTime() : null;
     completed = todo.done;
-  });
+    toggled = todo;
+  }, () => syncReminder(deps, toggled?.reminderId, { doneAt: toggled?.doneAt ?? null }));
   return { day, prevStage, completed };
 }
 
 export function editTodo(deps: DayDeps, date: string, id: string, text: string): Promise<DayRecord> {
   const clean = text.trim();
   if (!clean) return Promise.reject(new Error('Nội dung việc cần làm không được để trống'));
+  let reminderId: string | undefined;
   return mutateDay(deps, date, 'today-only', (d) => {
-    findTodo(d, id).text = clean;
-  });
+    const todo = findTodo(d, id);
+    todo.text = clean;
+    reminderId = todo.reminderId;
+  }, () => syncReminder(deps, reminderId, { text: clean }));
 }
 
 export function deleteTodo(deps: DayDeps, date: string, id: string): Promise<DayRecord> {
+  let reminderId: string | undefined;
   return mutateDay(deps, date, 'today-only', (d) => {
+    reminderId = d.todos.find((t) => t.id === id)?.reminderId;
     d.todos = d.todos.filter((t) => t.id !== id);
-  });
+  }, () => syncReminder(deps, reminderId, { autoToday: false })); // xoá ở Hôm nay: mai không tự thêm lại
 }
 
 /** Chuyển một việc sang buổi `period`, đứng ở vị trí `index` trong buổi đó (dùng cả để sắp xếp trong cùng buổi). */
