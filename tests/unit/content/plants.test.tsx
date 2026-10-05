@@ -54,6 +54,7 @@ describe('plants', () => {
       pothos: ['pole', 'trailing'],
       orange: ['kumquat', 'bonsai'],
       cherry: ['weeping', 'lantern'],
+      rose: ['arch', 'dome'],
     });
   });
 
