@@ -172,6 +172,7 @@ export function TodayScreen() {
             potId={day.potId}
             stage={day.finalStage}
             specialId={day.specialId}
+            styleId={day.styleId}
             mood={mood}
             mode={day.isRestDay ? 'sleeping' : 'plant'}
             bounceKey={waterKey + tapKey}

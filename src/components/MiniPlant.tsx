@@ -13,6 +13,7 @@ export function MiniPlant({ status, record }: { status: CellStatus; record?: Day
         potId={record.potId}
         stage={record.finalStage}
         specialId={record.specialId}
+        styleId={record.styleId}
         mood={record.finalStage === 'bloom' ? 'smile' : 'normal'}
       />
     );

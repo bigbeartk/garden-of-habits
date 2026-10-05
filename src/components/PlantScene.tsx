@@ -5,9 +5,11 @@ import { Face, type Mood } from '../content/Face';
 import { SleepingSeed } from '../content/common/SleepingSeed';
 import { WiltedPlant } from '../content/common/WiltedPlant';
 import { getSpecies } from '../content/plants/registry';
+import { getStageArt, getStyle } from '../content/plants/styles';
 import { getPot } from '../content/pots/registry';
 import { getSpecial } from '../content/specials/registry';
 import type { GrowthStage } from '../domain/growth';
+import { BASE_STYLE_ID } from '../domain/types';
 import './scene.css';
 
 export type SceneMode = 'plant' | 'sleeping' | 'wilted';
@@ -17,6 +19,8 @@ export interface PlantSceneProps {
   potId: string;
   stage: GrowthStage;
   specialId: string | null;
+  /** dáng cây (chỉ đổi hình ở bud/bloom); không có / lạ = Gốc */
+  styleId?: string | null;
   mood: Mood;
   mode?: SceneMode;
   /** đổi số này để cây nhún nhảy một lần */
@@ -28,9 +32,10 @@ export interface PlantSceneProps {
 }
 
 export function PlantScene({
-  plantId, potId, stage, specialId, mood, mode = 'plant', bounceKey = 0, className, title, testId, children,
+  plantId, potId, stage, specialId, styleId, mood, mode = 'plant', bounceKey = 0, className, title, testId, children,
 }: PlantSceneProps) {
   const species = getSpecies(plantId);
+  const look = getStageArt(species, styleId, stage);
   const pot = getPot(potId);
   const special = mode === 'plant' ? getSpecial(specialId) : null;
   const Underlay = special?.Underlay;
@@ -52,6 +57,7 @@ export function PlantScene({
       data-mode={mode}
       data-mood={mood}
       data-special={special?.id ?? ''}
+      data-style={getStyle(species, styleId)?.id ?? BASE_STYLE_ID}
     >
       {PlantFilter && <defs><PlantFilter id={filterId} animate={!reducedMotion} /></defs>}
       {Underlay && <Underlay />}
@@ -67,8 +73,8 @@ export function PlantScene({
           animate={bounceKey > 0 ? { scale: [1, 1.1, 0.95, 1.04, 1], y: [0, -8, 0, -3, 0] } : undefined}
           transition={{ duration: 0.9, ease: 'easeOut' }}
         >
-          <ArtView art={species.stages[stage]} />
-          <Face mood={mood} faceStyle={species.faceStyle} {...species.faceAnchor[stage]} />
+          <ArtView art={look.art} />
+          <Face mood={mood} faceStyle={look.faceStyle} {...look.faceAnchor} />
         </motion.g>
         </g>
       )}
