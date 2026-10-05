@@ -116,3 +116,39 @@ describe('dayService với dáng cây', () => {
     expect((await changePlant(deps, TODAY, 'corn')).styleId).toBe('base');
   });
 });
+
+describe('mở khoá ổn định (review)', () => {
+  const TODAY = '2026-10-02';
+  const doneTodo = { id: 't1', text: 'Uống nước', done: true, doneAt: 1, order: 0, period: 'morning' as const };
+
+  it('hôm nay đã ra hoa từ trước (chưa ghi setting): bỏ tick không làm dáng lúc mở lúc khoá', async () => {
+    const { deps } = makeDeps();
+    await deps.db.days.bulkPut([...blooms('sunflower', 9), makeDay({ date: TODAY, plantId: 'sunflower', finalStage: 'bloom', todos: [doneTodo] })]);
+    const before = await availableStyles(deps, 'sunflower');
+    await toggleTodo(deps, TODAY, 't1');
+    expect(await availableStyles(deps, 'sunflower')).toEqual(before);
+  });
+
+  it('đổi loài trên ngày đã ra hoa không mở khoá dáng của loài mới', async () => {
+    const { deps } = makeDeps();
+    await deps.db.days.bulkPut(blooms('sunflower', 9));
+    deps.rng = () => 0.99; // corn, không trúng đặc biệt
+    await ensureToday(deps);
+    const day = await addTodo(deps, TODAY, 'Uống nước');
+    await toggleTodo(deps, TODAY, day.todos[0].id);
+    await changePlant(deps, TODAY, 'sunflower');
+    expect(await getSetting(deps.db, 'unlockedStyles')).toBeUndefined();
+    expect(await availableStyles(deps, 'sunflower')).toEqual(['base']);
+  });
+
+  it('tick tới ra hoa thì tính hôm nay: 9 ngày cũ + hôm nay = mở dáng 2, kể cả khi bỏ tick ngay sau đó', async () => {
+    const { deps } = makeDeps();
+    await deps.db.days.bulkPut(blooms('sunflower', 9));
+    deps.rng = () => 0;
+    await ensureToday(deps);
+    const day = await addTodo(deps, TODAY, 'Uống nước');
+    await Promise.all([toggleTodo(deps, TODAY, day.todos[0].id).then(() => toggleTodo(deps, TODAY, day.todos[0].id))]);
+    expect(await getSetting(deps.db, 'unlockedStyles')).toEqual(['sunflower|mini']);
+    expect((await styleProgress(deps, 'sunflower')).bloomDays).toBe(9);
+  });
+});

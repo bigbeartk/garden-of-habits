@@ -779,3 +779,33 @@ test('dáng cây: đủ 10 ngày ra hoa mở dáng 2; dáng 3 khoá và không l
   await expect(scene).toHaveAttribute('data-style', 'mini');
   await expect(scene).toHaveAttribute('data-plant', 'sunflower');
 });
+
+test('dáng cây: ra hoa lần thứ 10 thì hiện khung mừng mở dáng mới', async ({ page }) => {
+  await page.clock.setFixedTime(at('2026-10-05T10:00:00'));
+  await page.goto('/');
+  await openToday(page);
+  // gieo 9 ngày Hướng dương ra hoa
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolve) => {
+        const req = indexedDB.open('chau-cay-chibi');
+        req.onsuccess = () => {
+          const tx = req.result.transaction(['days'], 'readwrite');
+          for (let i = 1; i <= 9; i++) {
+            tx.objectStore('days').put({ date: `2026-09-${String(i).padStart(2, '0')}`, plantId: 'sunflower', potId: 'terracotta', specialId: null, isRestDay: false, greetedAt: 1, note: '', todos: [], finalStage: 'bloom', createdAt: 1, updatedAt: 1 });
+          }
+          tx.oncomplete = () => resolve();
+        };
+      }),
+  );
+  await page.reload();
+  await openToday(page);
+  await closeMenu(page);
+  await page.getByRole('button', { name: 'Đổi cây' }).click();
+  await page.getByRole('button', { name: 'Hướng dương', exact: true }).click();
+  await expect(page.getByTestId('plant-scene').first()).toHaveAttribute('data-plant', 'sunflower');
+  await addTodo(page, 'Tưới cây');
+  await closeDraft(page);
+  await page.getByRole('checkbox', { name: 'Hoàn thành: Tưới cây' }).click();
+  await expect(page.getByTestId('style-unlock')).toContainText('Mở khoá dáng mới: Hướng dương · Mini!');
+});

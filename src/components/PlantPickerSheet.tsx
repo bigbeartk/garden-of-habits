@@ -27,10 +27,12 @@ interface Props {
  * Bảng Đổi cây: các loài thường (dáng Gốc), rồi các cây đặc biệt đã gặp (chọn lại được).
  * Nút lá ở góc ô loài mở màn dáng của loài đó (thay nội dung bảng); dáng chưa mở không lộ hình.
  */
-export function PlantPickerSheet({ open, currentId, currentSpecialId, currentStyleId, onClose, onPick }: Props) {
+export function PlantPickerSheet({ open, currentId, currentSpecialId, currentStyleId: rawStyleId, onClose, onPick }: Props) {
   const deps = useDeps();
+  // dáng không thuộc loài hôm nay (file sao lưu, nội dung đã đổi) coi như Gốc
+  const currentStyleId = getStyle(getSpecies(currentId), rawStyleId)?.id ?? BASE_STYLE_ID;
   const unlocked = useLiveQuery(() => listUnlockedSpecials(deps), [deps]) ?? [];
-  const unlockedStyles = useLiveQuery(() => listUnlockedStyles(deps), [deps]);
+  const unlockedStyles = useLiveQuery(async () => (open ? listUnlockedStyles(deps) : undefined), [deps, open]);
   /** loài đang xem màn dáng; null = lưới loài */
   const [styleFor, setStyleFor] = useState<string | null>(null);
   useEffect(() => {
@@ -48,7 +50,7 @@ export function PlantPickerSheet({ open, currentId, currentSpecialId, currentSty
         <>
           <div className="picker">
             {PLANTS.map((p) => {
-              const selected = p.id === currentId && !currentSpecialId && currentStyleId === BASE_STYLE_ID;
+              const selected = p.id === currentId && !currentSpecialId;
               const opened = 1 + (p.styles ?? []).filter((s) => unlockedStyles?.has(styleKey({ plantId: p.id, styleId: s.id }))).length;
               return (
                 <div key={p.id} className="picker__cell">

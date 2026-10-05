@@ -16,7 +16,7 @@ export function PotPickerSheet({ open, day, onClose, onPick }: { open: boolean; 
             aria-pressed={pot.id === day.potId}
             onClick={() => onPick(pot.id)}
           >
-            <PlantScene className="picker__scene" testId="picker-scene" plantId={day.plantId} potId={pot.id} stage={day.finalStage} specialId={null} mood="normal" />
+            <PlantScene className="picker__scene" testId="picker-scene" plantId={day.plantId} potId={pot.id} stage={day.finalStage} specialId={null} styleId={day.styleId} mood="normal" />
             <span>{pot.name}</span>
           </button>
         ))}

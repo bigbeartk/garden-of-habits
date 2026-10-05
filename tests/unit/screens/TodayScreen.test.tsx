@@ -49,6 +49,8 @@ describe('TodayScreen', () => {
     await user.click(await screen.findByRole('checkbox', { name: 'Hoàn thành: Uống nước' }));
     await waitFor(() => expect(screen.getByTestId('plant-scene')).toHaveAttribute('data-stage', 'bloom'));
     await waitFor(async () => expect(await getSetting(deps.db, 'unlockedStyles')).toEqual(['sunflower|mini']));
+    // cho live query của danh sách dáng chạy lại sau lần ghi setting rồi mới kết luận
+    await new Promise((r) => setTimeout(r, 500));
     expect(screen.queryByTestId('style-unlock')).toBeNull();
   });
 

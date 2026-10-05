@@ -90,4 +90,18 @@ describe('PlantPickerSheet: dáng cây', () => {
     const btn = await screen.findByRole('button', { name: /^Dáng cây: Hướng dương/ });
     expect(btn.querySelector('.icon-btn__badge')).not.toBeNull();
   });
+
+  it('dáng hôm nay không thuộc loài (vd. từ file sao lưu) thì coi như Gốc khi chọn cặp đặc biệt', async () => {
+    const { deps, ui, user, onPick } = setup({ id: 'corn', special: null, style: 'giant' });
+    await setSetting(deps.db, 'unlockedSpecials', ['corn|glow']);
+    ui();
+    await user.click(await screen.findByRole('button', { name: 'Ngô · Phát sáng' }, LIVE));
+    expect(onPick).toHaveBeenLastCalledWith('corn', 'glow', 'base');
+  });
+
+  it('ô loài đang dùng (dáng nào cũng vậy) có viền chọn', async () => {
+    const { ui } = setup({ id: 'sunflower', special: null, style: 'mini' });
+    ui();
+    expect(await screen.findByRole('button', { name: 'Hướng dương' })).toHaveAttribute('aria-pressed', 'true');
+  });
 });

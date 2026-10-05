@@ -10,6 +10,7 @@ Mỗi loài cây hiện chỉ có một hình. Muốn có thêm động lực "s
 | Mốc | Dáng 2 mở ở **10** ngày ra hoa, dáng 3 mở ở **20** ngày |
 | Lịch sử cũ | **Có tính**: loài nào đã ra hoa đủ ngày thì mở khoá ngay khi cập nhật |
 | Mở rồi thì giữ | Có. Hôm nay vừa chạm mốc rồi bỏ tick, dáng vẫn mở (lưu ở setting `unlockedStyles`) |
+| Hôm nay tính thế nào | (Sửa sau review) phần suy từ lịch sử chỉ đếm **ngày đã qua**; hôm nay chỉ góp khi vừa chuyển sang ra hoa (ghi setting với số = ngày đã qua + 1). Đổi loài trên ngày đã ra hoa không tính cho loài mới |
 | Dáng của ngày mới | `ensureToday` **random đều** trong các dáng đã mở của loài vừa tung (kể cả Gốc) |
 | Đổi tay | Trong bảng Đổi cây, chỉ hôm nay, chỉ chọn được dáng đã mở |
 | Mức khác biệt | **Biến hình hẳn**: dáng (silhouette) khác ở `bud` và `bloom`; `seed` và `sprout` dùng chung bản Gốc |

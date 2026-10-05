@@ -28,6 +28,8 @@ export const SPEECH_MAX = 100;
 export async function ensureToday(deps: DayDeps): Promise<DayRecord> {
   const { db } = deps;
   const date = dayKey(deps.now());
+  const existing = await db.days.get(date);
+  if (existing) return existing;
   // đọc trước khi mở transaction: hàm async lồng nhau bên trong transaction làm Dexie mất ngữ cảnh
   // khi App và useToday cùng gọi ensureToday (PrematureCommitError)
   const unlockedStyles = await listUnlockedStyles(deps);
@@ -79,9 +81,11 @@ async function mutateDay(deps: DayDeps, date: string, kind: EditKind, fn: (day: 
   const today = dayKey(deps.now());
   if (kind === 'today-only' && date !== today) throw new LockedDayError(date);
   const { db } = deps;
+  let before = 'seed' as GrowthStage; // giai đoạn trước khi sửa (gán trong transaction)
   const saved = await db.transaction('rw', db.days, async () => {
     const day = await db.days.get(date);
     if (!day) throw new Error(`Không tìm thấy ngày ${date}`);
+    before = day.finalStage;
     fn(day);
     day.todos.sort((a, b) => a.order - b.order).forEach((t, i) => (t.order = i));
     day.finalStage = stageOfTodos(day.todos);
@@ -89,9 +93,11 @@ async function mutateDay(deps: DayDeps, date: string, kind: EditKind, fn: (day: 
     await db.days.put(day);
     return day;
   });
-  // hôm nay vừa ra hoa: mở các dáng của loài vừa đủ mốc (lưu lại, bỏ tick sau đó vẫn giữ).
-  // Ngoài transaction (lý do như ensureToday); lỡ không kịp ghi thì số ngày ra hoa trong lịch sử vẫn mở được.
-  if (date === today && !saved.isRestDay && saved.finalStage === 'bloom') await unlockStylesFor(deps, saved.plantId);
+  // hôm nay VỪA ra hoa (đổi loài trên ngày đã ra hoa không tính): mở các dáng vừa đủ mốc, lưu lại để bỏ tick vẫn giữ.
+  // Ngoài transaction (lý do như ensureToday); ghi hỏng thì việc đã lưu vẫn đúng, chỉ báo ra console.
+  if (date === today && !saved.isRestDay && before !== 'bloom' && saved.finalStage === 'bloom') {
+    await unlockStylesFor(deps, saved.plantId).catch((e) => console.error(e));
+  }
   return saved;
 }
 
