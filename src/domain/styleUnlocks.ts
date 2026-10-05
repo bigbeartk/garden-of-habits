@@ -56,12 +56,15 @@ export interface StyleProgress {
   styles: { id: string; unlockAt: number; unlocked: boolean }[];
 }
 
-/** Số ngày ra hoa của loài và trạng thái mở của từng dáng (cho bảng Đổi cây). */
+/**
+ * Số ngày ra hoa của loài và trạng thái mở của từng dáng (cho bảng Đổi cây).
+ * Đếm cùng luật với `listUnlockedStyles` (chỉ ngày đã qua), để thanh tiến độ không báo đủ mốc cạnh dáng còn khoá.
+ */
 export async function styleProgress(deps: Deps, plantId: string): Promise<StyleProgress> {
   const unlocked = await listUnlockedStyles(deps);
   const plant = deps.catalog.plants.find((p) => p.id === plantId);
   return {
-    bloomDays: (await bloomCounts(deps.db)).get(plantId) ?? 0,
+    bloomDays: (await bloomCounts(deps.db, dayKey(deps.now()))).get(plantId) ?? 0,
     styles: (plant?.styles ?? []).map((s) => ({ id: s.id, unlockAt: s.unlockAt, unlocked: unlocked.has(styleKey({ plantId, styleId: s.id })) })),
   };
 }

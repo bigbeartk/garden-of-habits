@@ -139,6 +139,11 @@ describe('mở khoá ổn định (review)', () => {
     await changePlant(deps, TODAY, 'sunflower');
     expect(await getSetting(deps.db, 'unlockedStyles')).toBeUndefined();
     expect(await availableStyles(deps, 'sunflower')).toEqual(['base']);
+    // tiến độ đếm cùng luật với mở khoá: không hiện 10/10 cạnh dáng còn khoá
+    expect(await styleProgress(deps, 'sunflower')).toEqual({
+      bloomDays: 9,
+      styles: [{ id: 'mini', unlockAt: 10, unlocked: false }, { id: 'giant', unlockAt: 20, unlocked: false }],
+    });
   });
 
   it('tick tới ra hoa thì tính hôm nay: 9 ngày cũ + hôm nay = mở dáng 2, kể cả khi bỏ tick ngay sau đó', async () => {
