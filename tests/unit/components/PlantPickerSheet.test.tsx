@@ -7,6 +7,9 @@ import { handleBack } from '../../../src/app/back';
 import { setSetting } from '../../../src/db/settings';
 import { makeDay, makeDeps, renderWithDeps } from '../helpers';
 
+/** chờ useLiveQuery đọc xong số ngày ra hoa: chạy cả bộ (hoặc trên CI) có thể lâu hơn 1 giây mặc định */
+const LIVE = { timeout: 3000 };
+
 const blooms = (plantId: string, n: number) =>
   Array.from({ length: n }, (_, i) => makeDay({ date: `2026-08-${String(i + 1).padStart(2, '0')}`, plantId, finalStage: 'bloom' }));
 
@@ -28,7 +31,7 @@ describe('PlantPickerSheet: dáng cây', () => {
     const { deps, ui } = setup();
     await deps.db.days.bulkPut(blooms('sunflower', 12));
     ui();
-    expect(await screen.findByRole('button', { name: 'Dáng cây: Hướng dương (2/3)' })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'Dáng cây: Hướng dương (2/3)' }, LIVE)).toBeInTheDocument();
     // loài chưa có dáng (chưa vẽ) thì không có nút: số nút = số loài có styles
     expect(screen.getAllByRole('button', { name: /^Dáng cây:/ })).toHaveLength(CATALOG.plants.filter((p) => p.styles?.length).length);
   });
@@ -39,7 +42,7 @@ describe('PlantPickerSheet: dáng cây', () => {
     ui();
     await user.click(await screen.findByRole('button', { name: /^Dáng cây: Hướng dương/ }));
     expect(await screen.findByRole('dialog', { name: 'Dáng của Hướng dương' })).toBeInTheDocument();
-    expect(await screen.findByText('Đã ra hoa 12 ngày')).toBeInTheDocument();
+    expect(await screen.findByText('Đã ra hoa 12 ngày', {}, LIVE)).toBeInTheDocument();
     expect(screen.getByText('12/20')).toBeInTheDocument();
     const locked = screen.getByTestId('style-giant');
     expect(locked).toHaveAttribute('aria-disabled', 'true');
