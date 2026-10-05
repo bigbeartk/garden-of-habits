@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { DeleteWithConfirm } from './DeleteWithConfirm';
 import { DraftRow, SectionAddButton } from './InlineAdd';
 import { PERIODS, PERIOD_LABEL, type Period } from '../domain/period';
-import { PeriodIcon } from './icons';
+import { BellIcon, PeriodIcon } from './icons';
 import type { Todo } from '../domain/types';
 import './todo.css';
 
@@ -220,7 +220,10 @@ function TodoRow({
           <input className="input" autoFocus value={text} onChange={(e) => setText(e.target.value)} onBlur={commit} aria-label="Sửa việc" maxLength={200} />
         </form>
       ) : (
-        <span className="todo__text" onClick={() => { setText(todo.text); setEditing(true); }}>{todo.text}</span>
+        <span className="todo__text" onClick={() => { setText(todo.text); setEditing(true); }}>
+          {todo.reminderId && <span className="todo__bell" title="Từ Nhắc việc"><BellIcon size={16} /></span>}
+          {todo.text}
+        </span>
       )}
       <DeleteWithConfirm text={todo.text} onConfirm={() => onDelete(todo.id)} />
       <span

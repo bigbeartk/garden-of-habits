@@ -51,3 +51,4 @@
   position: absolute; left: 16px; right: 16px; height: 4px; margin-top: -2px; z-index: 4;
   border-radius: 2px; background: var(--berry); pointer-events: none;
 }
+.todo__bell { display: inline-flex; vertical-align: -2px; margin-right: 4px; }

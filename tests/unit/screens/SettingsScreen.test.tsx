@@ -6,6 +6,7 @@ import { createBackup, serializeBackup } from '../../../src/db/backup';
 import { getSetting, setSetting } from '../../../src/db/settings';
 import { CATALOG } from '../../../src/content/catalog';
 import { makeDay, makeDb, makeDeps, renderWithDeps } from '../helpers';
+import { addReminder } from '../../../src/domain/reminderService';
 
 vi.mock('../../../src/db/share', () => ({ shareOrDownload: vi.fn().mockResolvedValue(undefined) }));
 
@@ -75,12 +76,12 @@ describe('SettingsScreen nút quay lại', () => {
 });
 
 describe('SettingsScreen thứ tự thẻ', () => {
-  it('Mẫu việc → Lịch → Sao lưu & khôi phục; hướng dẫn cài app không còn là thẻ', async () => {
+  it('Nhắc việc → Mẫu việc → Lịch → Sao lưu & khôi phục; hướng dẫn cài app không còn là thẻ', async () => {
     const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
     renderWithDeps(<SettingsScreen />, deps);
     await screen.findByRole('heading', { name: 'Lịch' });
     const heads = [...document.querySelectorAll('.settings__section > h2')].map((h) => h.textContent);
-    expect(heads.slice(0, 3)).toEqual(['Mẫu việc', 'Lịch', 'Sao lưu & khôi phục']);
+    expect(heads.slice(0, 4)).toEqual(['Nhắc việc', 'Mẫu việc', 'Lịch', 'Sao lưu & khôi phục']);
     expect(heads).not.toContain('Cài app lên màn hình chính');
   });
 
@@ -99,14 +100,14 @@ describe('SettingsScreen thứ tự thẻ', () => {
 });
 
 describe('SettingsScreen thẻ Mẫu việc', () => {
-  it('thẻ đầu trang ghi mẫu mặc định; Quản lý mẫu mở màn Mẫu, nút quay lại về Cài đặt', async () => {
+  it('thẻ Mẫu việc ghi mẫu mặc định; Quản lý mẫu mở màn Mẫu, nút quay lại về Cài đặt', async () => {
     const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
     await deps.db.templates.put({ id: 't', name: 'Sáng sớm', items: [], isDefault: true, createdAt: 1, updatedAt: 1 });
     const user = userEvent.setup();
     renderWithDeps(<SettingsScreen />, deps);
     const card = (await screen.findByRole('heading', { name: 'Mẫu việc' })).closest('.card') as HTMLElement;
     expect(await within(card).findByText(/Đang dùng: Sáng sớm/)).toBeInTheDocument();
-    expect(document.querySelector('.settings__section')).toBe(card); // đứng đầu trang
+    expect(document.querySelectorAll('.settings__section')[1]).toBe(card); // ngay sau thẻ Nhắc việc
     await user.click(within(card).getByRole('button', { name: 'Quản lý mẫu' }));
     expect(await screen.findByRole('heading', { name: 'Mẫu việc cần làm' })).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Quay lại Cài đặt' }));
@@ -225,5 +226,22 @@ describe('SettingsScreen mục Ủng hộ tôi', () => {
     } finally {
       fetchMock.mockRestore();
     }
+  });
+});
+
+describe('SettingsScreen — Nhắc việc', () => {
+  it('thẻ Nhắc việc đứng đầu, đếm việc đang theo dõi và mở màn Nhắc việc', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
+    await addReminder(deps, 'Mua quà');
+    await addReminder(deps, 'Vẽ tranh');
+    const user = userEvent.setup();
+    renderWithDeps(<SettingsScreen />, deps);
+    const headings = screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent);
+    expect(headings.slice(0, 2)).toEqual(['Nhắc việc', 'Mẫu việc']);
+    expect(await screen.findByText('2 việc đang theo dõi')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Mở nhắc việc' }));
+    expect(await screen.findByRole('heading', { name: 'Nhắc việc', level: 1 })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Quay lại Cài đặt' }));
+    expect(await screen.findByRole('heading', { name: 'Cài đặt' })).toBeInTheDocument();
   });
 });

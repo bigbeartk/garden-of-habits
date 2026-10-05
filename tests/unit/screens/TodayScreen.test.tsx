@@ -8,6 +8,7 @@ import { COMMON_SAYINGS } from '../../../src/content/sayings';
 import { COMMON_TAPS, SLEEPY_TAPS } from '../../../src/content/taps';
 import { getSpecies } from '../../../src/content/plants/registry';
 import { makeDay, makeDeps, renderWithDeps } from '../helpers';
+import { addReminder, setReminderAutoToday } from '../../../src/domain/reminderService';
 import { getSetting, setSetting } from '../../../src/db/settings';
 
 /** Bấm ＋ ở hàng tiêu đề của buổi rồi gõ vào dòng việc trống vừa hiện. */
@@ -451,5 +452,17 @@ describe('TodayScreen lời cây nói của ngày', () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+});
+
+describe('TodayScreen — việc từ Nhắc việc', () => {
+  it('việc đến từ Nhắc việc có icon chuông', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
+    await deps.db.days.put(makeDay({ date: '2026-10-02', greetedAt: 1, speech: '' }));
+    const r = await addReminder(deps, 'Mua quà');
+    await setReminderAutoToday(deps, r.id, true);
+    renderWithDeps(<TodayScreen />, deps);
+    const row = (await screen.findByRole('checkbox', { name: 'Hoàn thành: Mua quà' })).closest('li')!;
+    expect(row.querySelector('[data-icon="bell"]')).not.toBeNull();
   });
 });
