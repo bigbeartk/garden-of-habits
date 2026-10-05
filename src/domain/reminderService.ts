@@ -55,7 +55,15 @@ export async function toggleReminderDone(deps: DayDeps, id: string): Promise<Tog
   const r = await getReminder(deps, id);
   const t = await today(deps, id);
   if (t?.todo && t.todo.done === (r.doneAt !== null)) return toggleTodo(deps, t.day.date, t.todo.id);
-  await deps.db.reminders.update(id, { doneAt: r.doneAt === null ? deps.now().getTime() : null, updatedAt: deps.now().getTime() });
+  const write = () => deps.db.reminders.update(id, { doneAt: r.doneAt === null ? deps.now().getTime() : null, updatedAt: deps.now().getTime() });
+  // bỏ hoàn thành việc đã xong từ hôm trước mà vẫn bật "Hôm nay": đưa lại vào buổi Sáng ngay, đừng đợi tới mai
+  if (r.doneAt !== null && r.autoToday && t && !t.todo) {
+    await mutateDay(deps, t.day.date, 'today-only', (d) => {
+      if (!d.todos.some((x) => x.reminderId === id)) d.todos.push(reminderTodo(r, d.todos.length));
+    }, write);
+  } else {
+    await write();
+  }
   return null;
 }
 

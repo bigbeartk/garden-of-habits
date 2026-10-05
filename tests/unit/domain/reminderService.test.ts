@@ -149,3 +149,30 @@ describe('đồng bộ hai chiều', () => {
     expect((await deps.db.days.get('2026-10-05'))!.todos.map((t) => t.done)).toEqual([true]);
   });
 });
+
+describe('bỏ hoàn thành việc đã xong từ hôm trước', () => {
+  it('đang bật Hôm nay thì việc quay lại buổi Sáng hôm nay ngay', async () => {
+    const { deps, clock } = makeDeps(new Date(2026, 9, 5, 10, 0));
+    await ensureToday(deps);
+    const r = await addReminder(deps, 'Mua quà');
+    await setReminderAutoToday(deps, r.id, true);
+    await toggleReminderDone(deps, r.id);
+    clock.current = new Date(2026, 9, 6, 8, 0);
+    expect(linked((await ensureToday(deps)).todos, r.id)).toHaveLength(0);
+    expect(await toggleReminderDone(deps, r.id)).toBeNull();
+    expect((await deps.db.reminders.get(r.id))!.doneAt).toBeNull();
+    const today = (await deps.db.days.get('2026-10-06'))!;
+    expect(linked(today.todos, r.id).map((t) => [t.text, t.period, t.done])).toEqual([['Mua quà', 'morning', false]]);
+  });
+
+  it('không bật Hôm nay thì chỉ trở lại danh sách', async () => {
+    const { deps, clock } = makeDeps(new Date(2026, 9, 5, 10, 0));
+    await ensureToday(deps);
+    const r = await addReminder(deps, 'Mua quà');
+    await toggleReminderDone(deps, r.id);
+    clock.current = new Date(2026, 9, 6, 8, 0);
+    await ensureToday(deps);
+    await toggleReminderDone(deps, r.id);
+    expect((await deps.db.days.get('2026-10-06'))!.todos).toEqual([]);
+  });
+});
