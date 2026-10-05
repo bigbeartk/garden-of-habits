@@ -50,6 +50,7 @@ describe('plants', () => {
     expect(Object.fromEntries(PLANTS.filter((p) => p.styles).map((p) => [p.id, p.styles!.map((s) => s.id)]))).toEqual({
       sunflower: ['mini', 'giant'],
       corn: ['popcorn', 'rainbow'],
+      cactus: ['bunny', 'barrel'],
     });
   });
 
