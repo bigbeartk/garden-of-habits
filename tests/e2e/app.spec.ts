@@ -24,6 +24,14 @@ async function openTemplates(page: Page) {
   await expect(page.getByRole('heading', { name: 'Mẫu việc cần làm' })).toBeVisible();
 }
 
+/** Màn Nhắc việc nằm trong Cài đặt: thẻ "Nhắc việc" → Mở nhắc việc. */
+async function openReminders(page: Page) {
+  await goTab(page, 'Cài đặt');
+  await closeMenu(page);
+  await page.getByRole('button', { name: 'Mở nhắc việc' }).click();
+  await expect(page.getByRole('heading', { name: 'Nhắc việc', level: 1 })).toBeVisible();
+}
+
 async function openToday(page: Page) {
   await goTab(page, 'Hôm nay');
   await expect(page.getByTestId('plant-scene')).toBeVisible();
@@ -808,4 +816,49 @@ test('dáng cây: ra hoa lần thứ 10 thì hiện khung mừng mở dáng mớ
   await closeDraft(page);
   await page.getByRole('checkbox', { name: 'Hoàn thành: Tưới cây' }).click();
   await expect(page.getByTestId('style-unlock')).toContainText('Mở khoá dáng mới: Hướng dương · Mini!');
+});
+
+test('Nhắc việc: bật Hôm nay thì việc vào buổi Sáng, chưa xong thì hôm sau lại có, tick xong thì xuống mục đã hoàn thành', async ({ page }) => {
+  await page.clock.setFixedTime(at('2026-10-05T10:00:00'));
+  await page.goto('/');
+  await openReminders(page);
+  await page.getByRole('button', { name: '＋ Việc nhắc mới' }).click();
+  await page.getByLabel('Việc nhắc mới').fill('Mua điện thoại cho mẹ');
+  await page.getByRole('button', { name: 'Lưu', exact: true }).click();
+  await page.getByRole('button', { name: '＋ Việc nhắc mới' }).click();
+  await page.getByLabel('Việc nhắc mới').fill('Mua quần áo');
+  await page.getByRole('button', { name: 'Lưu', exact: true }).click();
+  const active = page.getByTestId('reminders-active');
+  await expect(active.getByText('Mua quần áo')).toBeVisible();
+  const sw = page.getByRole('switch', { name: 'Thêm vào hôm nay: Mua điện thoại cho mẹ' });
+  await sw.click();
+  await expect(sw).toHaveAttribute('aria-checked', 'true');
+  // hàng không tràn ngang khổ iPhone 13
+  const box = await active.boundingBox();
+  expect(box!.x + box!.width).toBeLessThanOrEqual(390);
+  await page.screenshot({ path: 'test-results/reminders.png' });
+
+  await openToday(page);
+  await closeMenu(page);
+  const morning = page.getByTestId('todo-section-morning');
+  await expect(morning.getByRole('checkbox', { name: 'Hoàn thành: Mua điện thoại cho mẹ' })).toBeVisible();
+  await expect(morning.locator('[data-icon="bell"]')).toHaveCount(1);
+
+  await page.clock.setFixedTime(at('2026-10-06T10:00:00'));
+  await page.reload();
+  // lần đầu trong ngày App tự chuyển sang Hôm nay (chào buổi sáng): không mở menu để khỏi đua với lần chuyển tab đó
+  await expect(page.getByTestId('plant-scene')).toBeVisible();
+  const box2 = page.getByTestId('todo-section-morning').getByRole('checkbox', { name: 'Hoàn thành: Mua điện thoại cho mẹ' });
+  await expect(box2).toBeVisible();
+  await box2.click();
+  await expect(page.getByTestId('todo-section-morning').getByRole('checkbox', { name: 'Bỏ hoàn thành: Mua điện thoại cho mẹ' })).toBeVisible();
+
+  // sau khi đổi đồng hồ giả, animation đóng menu của WebKit đứng ~5 giây (lệch timeline, không phải lỗi app):
+  // không chờ dải tab thu lại, bấm thẳng nút (chạm ra ngoài cũng tự thu menu)
+  await goTab(page, 'Cài đặt');
+  await page.getByRole('button', { name: 'Mở nhắc việc' }).click();
+  await expect(page.getByRole('heading', { name: 'Nhắc việc', level: 1 })).toBeVisible();
+  await expect(page.getByTestId('reminders-done').getByText('Mua điện thoại cho mẹ')).toBeVisible();
+  await expect(page.getByTestId('reminders-active').getByText('Mua điện thoại cho mẹ')).toHaveCount(0);
+  await page.screenshot({ path: 'test-results/reminders-done.png' });
 });

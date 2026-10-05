@@ -9,13 +9,14 @@
 .rem__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
 
 /* cột: ô tick | chữ | công tắc | xoá */
-.rem__cols, .rem__row { display: grid; grid-template-columns: 28px minmax(0, 1fr) 54px 32px; align-items: center; column-gap: 8px; }
+.rem__cols, .rem__row { display: grid; grid-template-columns: 30px minmax(0, 1fr) 54px 32px; align-items: center; column-gap: 8px; }
 .rem__cols { font-size: 0.75rem; font-weight: 700; color: var(--cocoa-soft); padding-bottom: 4px; border-bottom: 1.5px dashed rgba(91, 70, 54, 0.25); }
 .rem__cols-text { grid-column: 2; }
 .rem__cols-today { grid-column: 3; text-align: center; }
 .rem__row { min-height: 48px; border-bottom: 1px solid rgba(91, 70, 54, 0.08); }
 .rem__row:last-child { border-bottom: none; }
-.rem__row.is-done { grid-template-columns: 28px minmax(0, 1fr); }
+.rem__row.is-done { grid-template-columns: 30px minmax(0, 1fr); }
+.rem__row.is-done .todo__check { background: var(--leaf); }
 .rem__row.is-done .rem__text { color: var(--cocoa-soft); }
 .rem__row .todo__confirm { grid-column: 2 / -1; justify-self: end; }
 
