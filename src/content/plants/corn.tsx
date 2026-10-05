@@ -117,6 +117,128 @@ function CornBloom() {
   );
 }
 
+// ---- Dáng mở khoá ----
+
+/** Một hạt bỏng ngô: ba cục bông trắng chồng nhau, lõi vàng nhạt */
+function Puff({ x, y, r }: { x: number; y: number; r: number }) {
+  return (
+    <g>
+      <circle cx={x - r * 0.45} cy={y + r * 0.2} r={r * 0.7} fill="#FFF8E8" stroke={INK} strokeWidth={1.6} />
+      <circle cx={x + r * 0.45} cy={y + r * 0.25} r={r * 0.65} fill="#FFF8E8" stroke={INK} strokeWidth={1.6} />
+      <circle cx={x} cy={y - r * 0.25} r={r * 0.75} fill="#FFFDF5" stroke={INK} strokeWidth={1.6} />
+      <circle cx={x + r * 0.1} cy={y + r * 0.35} r={r * 0.22} fill="#FFD966" />
+    </g>
+  );
+}
+
+/** Lá bẹ bóc toạc xoè ra hai bên dưới bắp */
+function PeeledHusks({ cx, y, w, h }: { cx: number; y: number; w: number; h: number }) {
+  return (
+    <g fill={HUSK} stroke={INK} strokeWidth={2} strokeLinejoin="round">
+      <path d={`M${cx - 6} ${y} C${cx - w * 0.6} ${y - 2} ${cx - w} ${y - h * 0.4} ${cx - w - 4} ${y - h} C${cx - w * 0.5} ${y - h * 0.7} ${cx - 10} ${y - h * 0.5} ${cx - 2} ${y - 6} Z`} />
+      <path d={`M${cx + 6} ${y} C${cx + w * 0.6} ${y - 2} ${cx + w} ${y - h * 0.4} ${cx + w + 4} ${y - h} C${cx + w * 0.5} ${y - h * 0.7} ${cx + 10} ${y - h * 0.5} ${cx + 2} ${y - 6} Z`} />
+    </g>
+  );
+}
+
+// Bỏng ngô: bắp bóc vỏ, bỏng ngô bung thành hình quạt chữ V bay lên; mặt ở bắp
+const POP_BLOOM: [number, number, number][] = [
+  [42, 40, 11], [158, 40, 11], [64, 26, 13], [136, 26, 13], [100, 18, 14],
+  [56, 60, 14], [144, 60, 14], [82, 42, 16], [118, 42, 16],
+  [76, 70, 15], [124, 70, 15], [100, 58, 17],
+];
+function CornPopcornBud() {
+  return (
+    <g>
+      <Stalk top={112} />
+      <Ribbon y={150} side={-1} reach={56} lift={22} fill={LEAF_BACK} />
+      <Ribbon y={146} side={1} reach={56} lift={24} />
+      {([[100, 70, 9], [86, 78, 7], [114, 78, 7]] as const).map(([x, y, r]) => <Puff key={`${x}-${y}`} x={x} y={y} r={r} />)}
+      <Cob cx={100} cy={102} rx={15} ry={22} />
+      <Husks cx={100} bottom={130} h={24} w={16} />
+    </g>
+  );
+}
+function CornPopcornBloom() {
+  return (
+    <g>
+      <Stalk top={112} />
+      <Ribbon y={152} side={-1} reach={60} lift={20} fill={LEAF_BACK} />
+      <Ribbon y={148} side={1} reach={60} lift={22} />
+      {POP_BLOOM.map(([x, y, r]) => <Puff key={`${x}-${y}`} x={x} y={y} r={r} />)}
+      <Cob cx={100} cy={102} rx={19} ry={26} />
+      <PeeledHusks cx={100} y={134} w={30} h={30} />
+    </g>
+  );
+}
+
+// Cầu vồng: ba bắp hạt nhiều màu (kiểu ngô thuỷ tinh) xoè như bó hoa; bắp giữa to nhất mang mặt
+const GEMS = ['#FF9FB2', '#FFB86B', '#FFE07A', '#9FD884', '#86CBF2', '#BFA6F2'];
+/** `clear`: chừa trống vùng tròn (x, y, r) không có hạt để mặt nổi rõ */
+function GemCob({ cx, cy, rx, ry, rot = 0, clear }: { cx: number; cy: number; rx: number; ry: number; rot?: number; clear?: [number, number, number] }) {
+  const kernels: [number, number, string][] = [];
+  for (let row = 0; row * 7 < ry * 2 - 8; row++) {
+    const y = cy - ry + 7 + row * 7;
+    const off = row % 2 ? 3.5 : 0;
+    let i = row;
+    for (let x = -rx + 5 + off; x <= rx - 5; x += 7) {
+      const free = clear && (cx + x - clear[0]) ** 2 + (y - clear[1]) ** 2 < clear[2] ** 2;
+      if (!free && (x / (rx - 3)) ** 2 + ((y - cy) / (ry - 3)) ** 2 < 1) kernels.push([cx + x, y, GEMS[i++ % GEMS.length]]);
+    }
+  }
+  return (
+    <g transform={`rotate(${rot} ${cx} ${cy + ry})`}>
+      <ellipse cx={cx} cy={cy} rx={rx} ry={ry} fill="#FFF4D6" stroke={INK} strokeWidth={2} />
+      {kernels.map(([x, y, c]) => <rect key={`${x}-${y}`} x={x - 2.8} y={y - 2.8} width={5.6} height={5.6} rx={2.4} fill={c} />)}
+      <ellipse cx={cx - rx * 0.45} cy={cy - ry * 0.45} rx={2.6} ry={5.5} fill="#fff" opacity={0.7} transform={`rotate(20 ${cx - rx * 0.45} ${cy - ry * 0.45})`} />
+    </g>
+  );
+}
+/** Bắp còn bọc lá bẹ, chỉ lộ chóp hạt màu */
+function WrappedCob({ cx, cy, rx, ry, rot, tip }: { cx: number; cy: number; rx: number; ry: number; rot: number; tip: string }) {
+  return (
+    <g transform={`rotate(${rot} ${cx} ${cy + ry})`}>
+      <ellipse cx={cx} cy={cy - ry + 6} rx={rx * 0.55} ry={7} fill={tip} stroke={INK} strokeWidth={1.6} />
+      <path d={`M${cx} ${cy + ry} C${cx - rx * 1.5} ${cy + ry * 0.3} ${cx - rx} ${cy - ry * 0.7} ${cx - 2} ${cy - ry + 4} C${cx + rx} ${cy - ry * 0.7} ${cx + rx * 1.5} ${cy + ry * 0.3} ${cx} ${cy + ry} Z`} fill={HUSK} stroke={INK} strokeWidth={2} strokeLinejoin="round" />
+      <path d={`M${cx - 5} ${cy - ry * 0.4} C${cx - 7} ${cy} ${cx - 5} ${cy + ry * 0.5} ${cx} ${cy + ry * 0.85}`} stroke="#8CCB70" strokeWidth={1.6} fill="none" strokeLinecap="round" />
+    </g>
+  );
+}
+function GemStems() {
+  return (
+    <g stroke={STEM} strokeWidth={6} strokeLinecap="round" fill="none">
+      <path d="M100 160 Q90 140 72 124" />
+      <path d="M100 160 Q110 140 128 124" />
+      <path d="M100 160 L100 120" />
+    </g>
+  );
+}
+function CornRainbowBud() {
+  return (
+    <g>
+      <GemStems />
+      <Ribbon y={152} side={-1} reach={58} lift={16} fill={LEAF_BACK} />
+      <Ribbon y={152} side={1} reach={58} lift={16} fill={LEAF_BACK} />
+      <WrappedCob cx={70} cy={100} rx={13} ry={24} rot={-30} tip={GEMS[0]} />
+      <WrappedCob cx={130} cy={100} rx={13} ry={24} rot={30} tip={GEMS[4]} />
+      <WrappedCob cx={100} cy={92} rx={16} ry={28} rot={0} tip={GEMS[5]} />
+    </g>
+  );
+}
+function CornRainbowBloom() {
+  return (
+    <g>
+      <GemStems />
+      <Ribbon y={154} side={-1} reach={64} lift={14} fill={LEAF_BACK} />
+      <Ribbon y={154} side={1} reach={64} lift={14} fill={LEAF_BACK} />
+      <GemCob cx={68} cy={96} rx={14} ry={28} rot={-32} />
+      <GemCob cx={132} cy={96} rx={14} ry={28} rot={32} />
+      <GemCob cx={100} cy={84} rx={21} ry={36} clear={[100, 86, 15]} />
+      <Husks cx={100} bottom={132} h={26} w={22} />
+    </g>
+  );
+}
+
 export const corn: PlantSpecies = {
   id: 'corn',
   name: 'Ngô',
@@ -136,4 +258,20 @@ export const corn: PlantSpecies = {
   sayings: ['Bắp nè, bắp nè! Hôm nay mình làm gì đây? 🌽', 'Mỗi việc xong là một hạt ngô vàng ươm đó!'],
   praises: ['Thêm một hạt ngô vàng ươm cho bạn 🌽'],
   taps: ['Hạt ngô của mình chắc nịch nè 🌽', 'Nhột quá, rụng râu ngô bây giờ 😆'],
+  styles: [
+    {
+      id: 'popcorn',
+      name: 'Bỏng ngô',
+      unlockAt: 10,
+      stages: { bud: { svg: CornPopcornBud }, bloom: { svg: CornPopcornBloom } },
+      faceAnchor: { bud: { x: 100, y: 104, scale: 0.5 }, bloom: { x: 100, y: 104, scale: 0.6 } },
+    },
+    {
+      id: 'rainbow',
+      name: 'Cầu vồng',
+      unlockAt: 20,
+      stages: { bud: { svg: CornRainbowBud }, bloom: { svg: CornRainbowBloom } },
+      faceAnchor: { bud: { x: 100, y: 96, scale: 0.5 }, bloom: { x: 100, y: 86, scale: 0.7 } },
+    },
+  ],
 };

@@ -46,6 +46,13 @@ describe('plants', () => {
     }
   });
 
+  it('dáng của từng loài theo thứ tự', () => {
+    expect(Object.fromEntries(PLANTS.filter((p) => p.styles).map((p) => [p.id, p.styles!.map((s) => s.id)]))).toEqual({
+      sunflower: ['mini', 'giant'],
+      corn: ['popcorn', 'rainbow'],
+    });
+  });
+
   it('getSpecies với id lạ trả về loài đầu tiên', () => {
     expect(getSpecies('khong-co').id).toBe('sunflower');
   });

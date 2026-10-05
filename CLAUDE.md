@@ -186,6 +186,7 @@ Các loài hiện có:
 | Loài | Dáng 2 (10 ngày) | Dáng 3 (20 ngày) |
 |---|---|---|
 | `sunflower` | `mini` Mini: bụi thấp phân nhánh, 5 bông nhỏ cam đỏ xoè quạt, bông giữa mang mặt | `giant` Khổng lồ: thân rất cao cong dấu hỏi, bông to cúi chào bên phải |
+| `corn` | `popcorn` Bỏng ngô: bắp bóc vỏ (mang mặt), đám bỏng ngô trắng bung hình quạt chữ V | `rainbow` Cầu vồng: ba bắp hạt nhiều màu xoè như bó hoa, bắp giữa chừa vùng mặt |
 
 Hình dùng chung cho mọi loài: `common/SleepingSeed.tsx` (ngày nghỉ) và `common/WiltedPlant.tsx` (ngày bỏ lỡ).
 
