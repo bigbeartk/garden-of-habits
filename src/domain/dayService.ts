@@ -5,7 +5,8 @@ import { newId } from './id';
 import { pickUniform, rollSpecial, type Rng } from './random';
 import { PERIODS, type Period } from './period';
 import { listUnlockedSpecials, pairKey, unlockSpecial } from './specialUnlocks';
-import type { Catalog, DayRecord, TemplateItem, Todo } from './types';
+import { listUnlockedStyles, styleKey, unlockStylesFor } from './styleUnlocks';
+import { BASE_STYLE_ID, type Catalog, type DayRecord, type TemplateItem, type Todo } from './types';
 
 export interface DayDeps {
   db: PlantDB;
@@ -27,6 +28,9 @@ export const SPEECH_MAX = 100;
 export async function ensureToday(deps: DayDeps): Promise<DayRecord> {
   const { db } = deps;
   const date = dayKey(deps.now());
+  // đọc trước khi mở transaction: hàm async lồng nhau bên trong transaction làm Dexie mất ngữ cảnh
+  // khi App và useToday cùng gọi ensureToday (PrematureCommitError)
+  const unlockedStyles = await listUnlockedStyles(deps);
   return db.transaction('rw', [db.days, db.templates, db.planned, db.plannedGoals, db.settings], async () => {
     const existing = await db.days.get(date);
     if (existing) return existing;
@@ -50,6 +54,9 @@ export async function ensureToday(deps: DayDeps): Promise<DayRecord> {
       createdAt: ts,
       updatedAt: ts,
     };
+    // dáng: random trong các dáng đã mở; chỉ gọi RNG khi thật sự có lựa chọn để không lệch chuỗi random cũ
+    const styles = [BASE_STYLE_ID, ...(plant.styles ?? []).map((s) => s.id).filter((id) => unlockedStyles.has(styleKey({ plantId: plant.id, styleId: id })))];
+    record.styleId = styles.length > 1 ? pickUniform(styles, deps.rng) : BASE_STYLE_ID;
     await db.days.add(record);
     await db.planned.bulkDelete(planned.map((p) => p.id));
     if (goal) await db.plannedGoals.delete(date);
@@ -72,7 +79,7 @@ async function mutateDay(deps: DayDeps, date: string, kind: EditKind, fn: (day: 
   const today = dayKey(deps.now());
   if (kind === 'today-only' && date !== today) throw new LockedDayError(date);
   const { db } = deps;
-  return db.transaction('rw', db.days, async () => {
+  const saved = await db.transaction('rw', db.days, async () => {
     const day = await db.days.get(date);
     if (!day) throw new Error(`Không tìm thấy ngày ${date}`);
     fn(day);
@@ -82,6 +89,10 @@ async function mutateDay(deps: DayDeps, date: string, kind: EditKind, fn: (day: 
     await db.days.put(day);
     return day;
   });
+  // hôm nay vừa ra hoa: mở các dáng của loài vừa đủ mốc (lưu lại, bỏ tick sau đó vẫn giữ).
+  // Ngoài transaction (lý do như ensureToday); lỡ không kịp ghi thì số ngày ra hoa trong lịch sử vẫn mở được.
+  if (date === today && !saved.isRestDay && saved.finalStage === 'bloom') await unlockStylesFor(deps, saved.plantId);
+  return saved;
 }
 
 function findTodo(day: DayRecord, id: string): Todo {
@@ -156,7 +167,9 @@ export function setRestDay(deps: DayDeps, date: string, isRest: boolean): Promis
 }
 
 /** Đổi cây hôm nay: loài thường (`specialId` null) hoặc một cây đặc biệt đã mở khoá. */
-export async function changePlant(deps: DayDeps, date: string, plantId: string, specialId: string | null = null): Promise<DayRecord> {
+export async function changePlant(
+  deps: DayDeps, date: string, plantId: string, specialId: string | null = null, styleId: string = BASE_STYLE_ID,
+): Promise<DayRecord> {
   const next = deps.catalog.plants.find((p) => p.id === plantId);
   if (!next) throw new Error(`Không có loại cây "${plantId}"`);
   if (specialId) {
@@ -164,11 +177,16 @@ export async function changePlant(deps: DayDeps, date: string, plantId: string, 
     const unlocked = await listUnlockedSpecials(deps);
     if (!unlocked.some((p) => pairKey(p) === key)) throw new Error('Cây đặc biệt này chưa mở khoá');
   }
+  if (styleId !== BASE_STYLE_ID) {
+    if (!next.styles?.some((s) => s.id === styleId)) throw new Error(`Không có dáng "${styleId}"`);
+    if (!(await listUnlockedStyles(deps)).has(styleKey({ plantId, styleId }))) throw new Error('Dáng cây này chưa mở khoá');
+  }
   return mutateDay(deps, date, 'today-only', (d) => {
     const prev = deps.catalog.plants.find((p) => p.id === d.plantId);
     if (!prev || d.potId === prev.defaultPotId) d.potId = next.defaultPotId;
     d.plantId = next.id;
     d.specialId = specialId;
+    d.styleId = styleId;
   });
 }
 
