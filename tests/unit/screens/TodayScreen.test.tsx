@@ -25,6 +25,33 @@ const setup = () => {
 };
 
 describe('TodayScreen', () => {
+  const blooms = (plantId: string, n: number) =>
+    Array.from({ length: n }, (_, i) => makeDay({ date: `2026-08-${String(i + 1).padStart(2, '0')}`, plantId, finalStage: 'bloom' }));
+
+  it('ra hoa lần thứ 10 thì mừng mở dáng mới', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
+    await deps.db.days.bulkPut(blooms('sunflower', 9));
+    await deps.db.days.put(makeDay({ date: '2026-10-02', plantId: 'sunflower', greetedAt: 1, speech: '' }));
+    const user = userEvent.setup();
+    renderWithDeps(<TodayScreen />, deps);
+    await addTodoInline(user, 'Uống nước');
+    await user.click(await screen.findByRole('checkbox', { name: 'Hoàn thành: Uống nước' }));
+    expect(await screen.findByTestId('style-unlock')).toHaveTextContent('Mở khoá dáng mới: Hướng dương · Mini!');
+  });
+
+  it('dáng đã đủ mốc từ lịch sử thì không mừng', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
+    await deps.db.days.bulkPut(blooms('sunflower', 12));
+    await deps.db.days.put(makeDay({ date: '2026-10-02', plantId: 'sunflower', greetedAt: 1, speech: '' }));
+    const user = userEvent.setup();
+    renderWithDeps(<TodayScreen />, deps);
+    await addTodoInline(user, 'Uống nước');
+    await user.click(await screen.findByRole('checkbox', { name: 'Hoàn thành: Uống nước' }));
+    await waitFor(() => expect(screen.getByTestId('plant-scene')).toHaveAttribute('data-stage', 'bloom'));
+    await waitFor(async () => expect(await getSetting(deps.db, 'unlockedStyles')).toEqual(['sunflower|mini']));
+    expect(screen.queryByTestId('style-unlock')).toBeNull();
+  });
+
   it('cây hôm nay vẽ theo dáng đã lưu', async () => {
     const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
     await deps.db.days.put(makeDay({ date: '2026-10-02', plantId: 'sunflower', finalStage: 'bloom', styleId: 'giant', greetedAt: 1, speech: '' }));

@@ -76,6 +76,9 @@
   pointer-events: none;
 }
 .special-intro__sparkles { display: block; text-align: center; font-size: 0.8rem; animation: special-intro-twinkle 1.2s ease-in-out infinite; }
+.style-unlock { white-space: normal; text-align: center; width: max-content; max-width: 92%; border-radius: var(--radius-md); }
+.style-unlock--below { top: 150px; }
+.style-unlock__hint { display: block; font-size: 0.75rem; font-weight: 600; }
 @keyframes special-intro-pop { from { opacity: 0; scale: 0.4; } to { opacity: 1; scale: 1; } }
 @keyframes special-intro-twinkle { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
 .day-title__input {

@@ -20,12 +20,14 @@ import { pickPraise } from '../content/praises';
 import { pickSaying } from '../content/sayings';
 import { pickTap } from '../content/taps';
 import { getSpecies } from '../content/plants/registry';
+import { getStyle } from '../content/plants/styles';
 import { getSpecial } from '../content/specials/registry';
 import {
   SPEECH_MAX, addTodo, changePlant, changePot, deleteTodo, editTodo, markGreeted, moveTodo, setDaySpeech, setNote, setRestDay, setTitle,
   toggleTodo,
 } from '../domain/dayService';
 import { stageIndex } from '../domain/growth';
+import { listUnlockedStyles } from '../domain/styleUnlocks';
 import { periodOf } from '../domain/period';
 import { timeOfDay } from '../domain/timeOfDay';
 import { getSetting, setSetting } from '../db/settings';
@@ -80,6 +82,25 @@ export function TodayScreen() {
     const t = setTimeout(() => setIntro(false), 5000);
     return () => clearTimeout(t);
   }, [intro]);
+
+  /** dáng vừa mở khoá trong lúc màn đang mở (không tính lần nạp đầu, nên mở nhờ lịch sử cũ không mừng) */
+  const unlockedStyles = useLiveQuery(() => listUnlockedStyles(deps), [deps]);
+  const seenStyles = useRef<Set<string> | null>(null);
+  const [newStyles, setNewStyles] = useState<string[]>([]);
+  useEffect(() => {
+    if (!unlockedStyles) return;
+    const seen = seenStyles.current;
+    if (seen) {
+      const added = [...unlockedStyles].filter((k) => !seen.has(k));
+      if (added.length) setNewStyles(added);
+    }
+    seenStyles.current = unlockedStyles;
+  }, [unlockedStyles]);
+  useEffect(() => {
+    if (!newStyles.length) return;
+    const t = setTimeout(() => setNewStyles([]), 5000);
+    return () => clearTimeout(t);
+  }, [newStyles]);
 
   useEffect(() => {
     if (!speech) return;
@@ -150,6 +171,7 @@ export function TodayScreen() {
               Hôm nay mình là cây đặc biệt: {special.name}!
             </div>
           )}
+          {newStyles.length > 0 && <StyleUnlock keys={newStyles} below={intro && !!special} />}
           <SpeechBubble
             text={said?.text ?? null}
             kind={said?.kind}
@@ -254,5 +276,18 @@ export function TodayScreen() {
         onSave={(note) => run(setNote(deps, day.date, note))}
       />
     </section>
+  );
+}
+
+/** Khung mừng dáng mới mở khoá (~5 giây); mở nhiều dáng cùng lúc thì hiện dáng đầu kèm +N. */
+function StyleUnlock({ keys, below }: { keys: string[]; below: boolean }) {
+  const [plantId, styleId] = keys[0].split('|');
+  const species = getSpecies(plantId);
+  return (
+    <div className={`special-intro style-unlock${below ? ' style-unlock--below' : ''}`} data-testid="style-unlock" role="status">
+      <span className="special-intro__sparkles" aria-hidden="true">🔓 ✨ 🔓</span>
+      Mở khoá dáng mới: {species.name} · {getStyle(species, styleId)?.name}!{keys.length > 1 ? ` +${keys.length - 1}` : ''}
+      <span className="style-unlock__hint">Vào Đổi cây để thử nha</span>
+    </div>
   );
 }
