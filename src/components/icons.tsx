@@ -325,3 +325,14 @@ export function StylesIcon({ size }: { size?: number }) {
     </Svg>
   );
 }
+
+/** Chuông nhỏ: đánh dấu việc đến từ Nhắc việc. */
+export function BellIcon({ size }: { size?: number }) {
+  return (
+    <Svg name="bell" size={size}>
+      <path d="M16 6 C10.8 6 9.5 10 9.5 14 L9.5 19 L6.5 23.5 L25.5 23.5 L22.5 19 L22.5 14 C22.5 10 21.2 6 16 6 Z" fill="#FFF1C1" {...STROKE} />
+      <path d="M13 26.5 C13.8 28.6 18.2 28.6 19 26.5" fill="none" {...STROKE} />
+      <circle cx={16} cy={4.5} r={1.6} fill={INK} />
+    </Svg>
+  );
+}
