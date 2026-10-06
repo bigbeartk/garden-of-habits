@@ -111,10 +111,46 @@
 @keyframes pixel-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(1px); } }
 @keyframes pixel-poster { 0%, 100% { opacity: 1; } 50% { opacity: 0.8; } }
 
+/* --- Cún vẫy đuôi --- */
+.dog-tail, .dog-head, .dog-ear, .dog-leg, .dog-ball, .dog-ball-shadow, .dog-paw, .dog-sun { transform-box: fill-box; }
+.dog-tail { transform-origin: 0% 100%; animation: dog-wag 0.45s ease-in-out infinite alternate; }
+.dog-head { transform-origin: 50% 95%; animation: dog-tilt 6s ease-in-out infinite; }
+.dog-ear { transform-origin: 50% 100%; animation: dog-ear 3.2s ease-in-out infinite; }
+.dog-ear--r { animation-delay: 1.4s; }
+.dog-ball { animation: dog-bounce 0.9s cubic-bezier(0.3, 0, 0.7, 1) infinite alternate; }
+.dog-ball-shadow { transform-origin: 50% 50%; animation: dog-shadow 0.9s cubic-bezier(0.3, 0, 0.7, 1) infinite alternate; }
+.dog-paw { opacity: 0; animation: dog-paw 3.6s ease-in-out infinite; }
+.dog-sun { transform-origin: 50% 50%; animation: dog-sun 24s linear infinite; }
+.dog-cloud { animation: cat-cloud 10s ease-in-out infinite alternate; }
+.dog-cloud--b { animation-duration: 13s; }
+.dog-leg { transform-box: fill-box; animation: dog-tap 3s ease-in-out infinite; }
+.dog-leg--2 { animation-delay: 0.15s; }
+@keyframes dog-tap { 0%, 60%, 80%, 100% { transform: translateY(0); } 70%, 90% { transform: translateY(-5px); } }
+@keyframes dog-wag { from { transform: rotate(-14deg); } to { transform: rotate(14deg); } }
+@keyframes dog-tilt {
+  0%, 55%, 100% { transform: rotate(0); }
+  65%, 82% { transform: rotate(-10deg); }
+}
+@keyframes dog-ear {
+  0%, 86%, 100% { transform: rotate(0); }
+  90% { transform: rotate(-14deg); }
+  94% { transform: rotate(6deg); }
+}
+@keyframes dog-bounce {
+  from { transform: translateY(0) scale(1.08, 0.9); }
+  20% { transform: translateY(-4px) scale(1); }
+  to { transform: translateY(-34px); }
+}
+@keyframes dog-shadow { from { transform: scale(1); opacity: 0.18; } to { transform: scale(0.55); opacity: 0.08; } }
+@keyframes dog-paw { 0% { opacity: 0; } 15%, 55% { opacity: 0.9; } 80%, 100% { opacity: 0; } }
+@keyframes dog-sun { to { transform: rotate(360deg); } }
+
 @media (prefers-reduced-motion: reduce) {
   .cat-body, .cat-paws, .cat-head, .cat-tail, .cat-heart, .cat-twinkle, .cat-cloud, .grass-sun,
+  .dog-tail, .dog-head, .dog-ear, .dog-leg, .dog-ball, .dog-ball-shadow, .dog-sun, .dog-cloud,
   .rain-drop, .rain-glass, .rain-steam, .rain-flame, .rain-lamp, .rain-window-light,
   .pixel-rgb, .pixel-twinkle, .pixel-hero, .pixel-code, .pixel-fans, .pixel-bob, .pixel-poster { animation: none; }
   .grass-blade, .grass-flower { animation: none; transform: none; }
   .rain-drop { opacity: 0.3; }
+  .dog-paw { animation: none; opacity: 0.6; }
 }

@@ -24,6 +24,7 @@ import { RainChillScene } from '../components/backgrounds/RainChillScene';
 import { useNow } from '../hooks/useNow';
 import { useI18n } from '../i18n/I18nProvider';
 import { monthLabel } from '../i18n/fmt';
+import { DogWagScene } from '../components/backgrounds/DogWagScene';
 import './calendar.css';
 
 export function CalendarScreen() {
@@ -84,6 +85,7 @@ export function CalendarScreen() {
       data-theme={theme}
     >
       {theme === 'cat' && <CatStretchScene />}
+      {theme === 'dog' && <DogWagScene />}
       {theme === 'grass' && <GrassBloomScene />}
       {theme === 'rain' && <RainChillScene />}
       {theme === 'gamer' && <PixelGamingRoomScene />}

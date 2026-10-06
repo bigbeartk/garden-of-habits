@@ -124,7 +124,7 @@ export const vi = {
     save: 'Lưu mẫu',
   },
   background: {
-    options: { default: 'Mặc định', cat: 'Mèo vươn vai', grass: 'Cỏ nở', rain: 'Mưa chill', gamer: 'Gaming pixel', photo: 'Ảnh của bạn' } as Record<CalendarTheme, string>,
+    options: { default: 'Mặc định', cat: 'Mèo vươn vai', dog: 'Cún vẫy đuôi', grass: 'Cỏ nở', rain: 'Mưa chill', gamer: 'Gaming pixel', photo: 'Ảnh của bạn' } as Record<CalendarTheme, string>,
     toggle: (name: string) => `Đổi hình nền lịch (đang dùng: ${name})`,
     title: 'Hình nền lịch',
     readFailed: 'Không đọc được tệp này, thử ảnh hoặc video khác nhé.',

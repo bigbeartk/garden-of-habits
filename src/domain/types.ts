@@ -81,7 +81,7 @@ export interface Reminder {
 }
 
 /** Kiểu hình nền màn Lịch: mặc định, nền động (mèo vươn vai / cỏ nở) hoặc ảnh người dùng chọn. */
-export type CalendarTheme = 'default' | 'cat' | 'grass' | 'rain' | 'gamer' | 'photo';
+export type CalendarTheme = 'default' | 'cat' | 'dog' | 'grass' | 'rain' | 'gamer' | 'photo';
 
 export interface CalendarBg {
   mime: string;

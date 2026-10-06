@@ -510,6 +510,26 @@ test('nền Mèo vươn vai: mèo nằm trên mép dưới (không sát thanh Ho
   expect(cat.y, 'mèo nằm dưới hàng nút').toBeGreaterThan(footer.y + footer.height);
 });
 
+test('nền Cún vẫy đuôi: cún nằm dưới các nút của Lịch, không bị nút menu che, không sát thanh Home', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+  await goTab(page, 'Lịch');
+  await closeMenu(page);
+  await page.getByRole('button', { name: /Đổi hình nền lịch/ }).click();
+  await page.getByRole('radio', { name: /Cún vẫy đuôi/ }).click();
+  const scene = page.getByTestId('calendar-theme-dog');
+  await expect(scene).toBeVisible();
+  const vh = page.viewportSize()!.height;
+  const dog = (await scene.locator('.dog').boundingBox())!;
+  expect(vh - (dog.y + dog.height), 'cún cách mép dưới').toBeGreaterThan(40);
+  const footer = (await page.getByRole('button', { name: /Đổi hình nền lịch/ }).boundingBox())!;
+  const head = (await scene.locator('.dog-head').boundingBox())!;
+  expect(head.y, 'cún nằm dưới hàng nút').toBeGreaterThan(footer.y + footer.height);
+  const menu = (await page.getByRole('button', { name: 'Mở menu' }).boundingBox())!;
+  expect(dog.x + dog.width, 'cún không bị nút menu che').toBeLessThan(menu.x);
+  await page.screenshot({ path: 'test-results/calendar-dog.png' });
+});
+
 test('hiệu ứng Vàng ròng đổi màu cây thật trên WebKit (Safari)', async ({ page }) => {
   await page.clock.setFixedTime(at('2026-10-05T10:00:00'));
   await page.goto('/');

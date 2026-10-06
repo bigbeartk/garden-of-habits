@@ -87,6 +87,7 @@
 .bg-swatch__preview { width: 100%; aspect-ratio: 16 / 10; border-radius: 10px; display: grid; place-items: center; overflow: hidden; }
 .bg-swatch--default .bg-swatch__preview { background: linear-gradient(180deg, var(--peach), var(--butter), var(--mint)); }
 .bg-swatch--cat .bg-swatch__preview { background: linear-gradient(180deg, #FFD6DE, #E3D9FF); }
+.bg-swatch--dog .bg-swatch__preview { background: linear-gradient(180deg, #FFF1C1, #CDEFE3); }
 .bg-swatch--grass .bg-swatch__preview { background: linear-gradient(180deg, #D4F1F9, #9ED9A0); }
 .bg-swatch--photo .bg-swatch__preview { background: var(--sky); }
 .bg-swatch--rain .bg-swatch__preview { background: linear-gradient(180deg, #4A5A8C, #8FA3D6); }

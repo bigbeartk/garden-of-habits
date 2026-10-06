@@ -77,7 +77,7 @@ const BackupSchema = z.object({
   plannedGoals: z.array(z.object({ date: z.string(), title: z.string() })).default([]), // file phiên bản 1–3 chưa có
   reminders: z.array(ReminderSchema).default([]), // file phiên bản 1–4 chưa có
   calendarBg: z.object({ mime: z.string(), base64: z.string().regex(/^[A-Za-z0-9+/]*={0,2}$/) }).nullable(),
-  calendarTheme: z.enum(['default', 'cat', 'grass', 'rain', 'gamer', 'photo']).optional(), // file cũ chưa có
+  calendarTheme: z.enum(['default', 'cat', 'dog', 'grass', 'rain', 'gamer', 'photo']).optional(), // file cũ chưa có
   // các công tắc bật/tắt (BOOLEAN_SETTINGS); file cũ có thể chưa có
   showCalendarBgButton: z.boolean().optional(),
   showNoteDot: z.boolean().optional(),

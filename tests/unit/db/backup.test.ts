@@ -217,6 +217,18 @@ describe('sao lưu kiểu hình nền lịch', () => {
   });
 });
 
+describe('sao lưu nền cún', () => {
+  it('giữ calendarTheme dog khi khôi phục', async () => {
+    const src = makeDb();
+    await setSetting(src, 'calendarTheme', 'dog');
+    const r = parseBackup(serializeBackup(await createBackup(src, 1)));
+    if (!r.ok) throw new Error(r.error);
+    const dst = makeDb();
+    await restoreBackup(dst, r.backup, 'replace');
+    expect(await getSetting(dst, 'calendarTheme')).toBe('dog');
+  });
+});
+
 describe('sao lưu nền mới', () => {
   it('nhận calendarTheme rain và gamer', async () => {
     for (const theme of ['rain', 'gamer'] as const) {

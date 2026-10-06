@@ -119,7 +119,7 @@ export const en: Messages = {
     save: 'Save template',
   },
   background: {
-    options: { default: 'Default', cat: 'Stretching cat', grass: 'Blooming grass', rain: 'Chill rain', gamer: 'Pixel gaming', photo: 'Your photo' },
+    options: { default: 'Default', cat: 'Stretching cat', dog: 'Wagging pup', grass: 'Blooming grass', rain: 'Chill rain', gamer: 'Pixel gaming', photo: 'Your photo' },
     toggle: (name) => `Change calendar background (current: ${name})`,
     title: 'Calendar background',
     readFailed: "Couldn't read this file — try another photo or video.",

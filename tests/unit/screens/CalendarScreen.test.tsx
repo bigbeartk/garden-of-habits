@@ -259,7 +259,7 @@ describe('CalendarScreen hình nền', () => {
     expect(await screen.findByRole('radiogroup', { name: 'Hình nền lịch' })).toBeInTheDocument();
   });
 
-  it.each(['cat', 'grass', 'rain', 'gamer'] as const)('nền động %s hiện sau lịch, thẻ lịch kính mờ', async (theme) => {
+  it.each(['cat', 'dog', 'grass', 'rain', 'gamer'] as const)('nền động %s hiện sau lịch, thẻ lịch kính mờ', async (theme) => {
     const { deps } = makeDeps(new Date(2026, 9, 15, 10, 0), CATALOG);
     await setSetting(deps.db, 'calendarTheme', theme);
     renderWithDeps(<CalendarScreen />, deps);

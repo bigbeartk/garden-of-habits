@@ -11,7 +11,7 @@ import { errorText } from '../i18n/errors';
 import { AppError } from '../domain/errors';
 
 /** Nhãn ở `t.background.options[id]`. */
-const OPTIONS: CalendarTheme[] = ['default', 'cat', 'grass', 'rain', 'gamer', 'photo'];
+const OPTIONS: CalendarTheme[] = ['default', 'cat', 'dog', 'grass', 'rain', 'gamer', 'photo'];
 
 /** Hình xem trước nhỏ cho từng kiểu nền */
 function Swatch({ id }: { id: CalendarTheme }) {
@@ -22,6 +22,21 @@ function Swatch({ id }: { id: CalendarTheme }) {
         <circle cx={14} cy={20} r={7} fill="#FFD8A8" stroke="#5B4636" strokeWidth={1.6} />
         <path d="M9 15 L 9 9 L 13 13 Z M17 13 L 20 9 L 20 15 Z" fill="#FFD8A8" stroke="#5B4636" strokeWidth={1.2} strokeLinejoin="round" />
         <path d="M11 20 q1.5 1.2 3 0 M15.5 20 q1.5 1.2 3 0" fill="none" stroke="#5B4636" strokeWidth={1.1} strokeLinecap="round" />
+      </svg>
+    );
+  }
+  if (id === 'dog') {
+    return (
+      <svg viewBox="0 0 48 36" className="bg-swatch__art" aria-hidden="true">
+        <path d="M18 30 C 18 22 24 20 30 20 L 38 20 C 44 20 46 26 45 30 Z" fill="#F4A35C" stroke="#5B4636" strokeWidth={1.4} strokeLinejoin="round" />
+        <path d="M20 14 C 20 8 22 3 24 1 C 27 4 29 8 29 13 Z" fill="#E8914A" stroke="#5B4636" strokeWidth={1.2} strokeLinejoin="round" />
+        <path d="M12 14 C 11 8 12 3 14 0 C 18 3 21 7 22 12 Z" fill="#F4A35C" stroke="#5B4636" strokeWidth={1.2} strokeLinejoin="round" />
+        <path d="M14 10 C 14 6 15 3 16 2 C 18 4 19 7 20 10 Z" fill="#FFB8C8" />
+        <path d="M27 19 C 30 22 30 26 28 30" fill="none" stroke="#E8505B" strokeWidth={2.2} strokeLinecap="round" />
+        <ellipse cx={18} cy={18} rx={10} ry={8.5} fill="#F4A35C" stroke="#5B4636" strokeWidth={1.4} />
+        <path d="M11 18 C 6 18 3 20 3 23 C 3 26 8 27 13 25 Z" fill="#FFF1DD" stroke="#5B4636" strokeWidth={1.1} strokeLinejoin="round" />
+        <ellipse cx={4} cy={21.5} rx={1.6} ry={1.3} fill="#5B4636" />
+        <path d="M14 16 q2 -2 4 0" fill="none" stroke="#5B4636" strokeWidth={1} strokeLinecap="round" />
       </svg>
     );
   }

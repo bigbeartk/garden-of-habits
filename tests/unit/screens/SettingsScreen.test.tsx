@@ -131,14 +131,14 @@ describe('SettingsScreen chọn hình nền lịch', () => {
     return screen.findByRole('radiogroup', { name: 'Hình nền lịch' });
   }
 
-  it('có 6 lựa chọn; chọn nền thì lưu và bảng tự đóng', async () => {
+  it('có 7 lựa chọn; chọn nền thì lưu và bảng tự đóng', async () => {
     const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
     const user = userEvent.setup();
     renderWithDeps(<SettingsScreen />, deps);
     let picker = await openPicker(user);
-    expect(within(picker).getAllByRole('radio')).toHaveLength(6);
+    expect(within(picker).getAllByRole('radio')).toHaveLength(7);
     expect(within(picker).getByRole('radio', { name: /Mặc định/ })).toHaveAttribute('aria-checked', 'true');
-    for (const [name, id] of [[/Mèo vươn vai/, 'cat'], [/Cỏ nở/, 'grass'], [/Mưa chill/, 'rain'], [/Gaming pixel/, 'gamer'], [/Mặc định/, 'default']] as const) {
+    for (const [name, id] of [[/Mèo vươn vai/, 'cat'], [/Cún vẫy đuôi/, 'dog'], [/Cỏ nở/, 'grass'], [/Mưa chill/, 'rain'], [/Gaming pixel/, 'gamer'], [/Mặc định/, 'default']] as const) {
       await user.click(within(picker).getByRole('radio', { name }));
       await waitFor(async () => expect(await getSetting(deps.db, 'calendarTheme')).toBe(id));
       await waitFor(() => expect(screen.queryByRole('radiogroup', { name: 'Hình nền lịch' })).not.toBeInTheDocument());
