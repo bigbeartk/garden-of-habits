@@ -21,7 +21,7 @@ Ngoài phạm vi (dự án "Lên Google Play" riêng): store listing, chính sá
 | Thư viện | Không dùng. Lớp i18n tự viết, kiểu chặt (cách A). |
 | Dữ liệu người dùng gõ (việc, mẫu, ghi chú, mục tiêu, việc nhắc, lời cây nói đã sửa) | **Không dịch.** |
 | Lời cây nói của ngày đã lưu (`DayRecord.speech`) | Giữ nguyên ngôn ngữ lúc chọn. Đổi ngôn ngữ giữa ngày thì câu hôm nay vẫn tiếng cũ, mai mới đổi (chấp nhận được, không đụng DB). |
-| Ngôn ngữ mặc định | Theo máy (`vi*` → `vi`, còn lại `en`); DB đã có dữ liệu mà chưa chọn ngôn ngữ → `vi`. |
+| Ngôn ngữ mặc định | Theo máy (`vi*` → `vi`, còn lại `en`); có ngày **trước hôm nay** mà chưa có setting ngôn ngữ (người dùng cũ) → `vi`. Kết quả ghi một lần vào setting. |
 | Tên app | Giữ `Garden of Habits` cho cả hai ngôn ngữ (manifest, Android `app_name`). Tên DB, mã sao lưu, `appId` giữ nguyên. |
 | `SCHEMA_VERSION` (DB và sao lưu) | Không đổi: chỉ thêm một setting và một trường sao lưu tuỳ chọn. |
 
@@ -44,8 +44,8 @@ src/i18n/
 
 - Setting mới `language: 'vi' | 'en'` trong `SettingsShape`.
 - `detectLang(navigator.languages)`: phần tử đầu tiên bắt đầu bằng `vi` hoặc `en` quyết định; không có → `en`.
-- `resolveLang(db)`: có setting → dùng; chưa có nhưng bảng `days` có bản ghi → `'vi'` (người dùng cũ); chưa có gì → `detectLang`. Kết quả suy ra **không ghi** vào DB; chỉ ghi khi người dùng tự chọn.
-- `I18nProvider` bọc `App` (trong `main.tsx`, cạnh `DepsProvider`). Trong lúc đọc DB, dùng `detectLang` để render ngay (không màn trắng). Đổi ngôn ngữ: state cục bộ đổi ngay (optimistic), rồi ghi setting; cập nhật `document.documentElement.lang`.
+- `resolveLang(db, todayKey)`: có setting → dùng; chưa có mà bảng `days` có bản ghi **trước hôm nay** → `'vi'` (người dùng cũ; không tính hôm nay vì `ensureToday` tạo bản ghi hôm nay ngay lần mở đầu của máy mới); không thì `detectLang`. Kết quả suy ra **được ghi một lần** vào setting `language`, để máy mới tiếng Anh sang hôm sau không bị coi là người dùng cũ. Hệ quả: đổi ngôn ngữ máy sau đó không tự đổi app (đổi trong Cài đặt).
+- `I18nProvider` bọc `App` (trong `main.tsx`, cạnh `DepsProvider`). Trong lúc đọc DB, render ngay bằng gợi ý trong `localStorage` (`goh-lang`, ngôn ngữ đã giải ra lần trước; bọc try/catch) hoặc `detectLang` nếu chưa có, để không màn trắng và người dùng cũ (iPhone tiếng Anh) không bị nháy tiếng Anh từ lần mở thứ hai trở đi. Đổi ngôn ngữ: state cục bộ đổi ngay (optimistic), rồi ghi setting; cập nhật `document.documentElement.lang`.
 - **Cài đặt** thêm thẻ **"Ngôn ngữ · Language"** đứng sau "Lịch": radiogroup 2 nút `Tiếng Việt` / `English` (nhãn nút luôn viết bằng chính ngôn ngữ đó). Thứ tự thẻ: Nhắc việc → Mẫu việc → Lịch → Ngôn ngữ → Sao lưu & khôi phục → Ủng hộ tôi.
 - **Sao lưu:** thêm trường tuỳ chọn `"language": "vi" | "en"`. `replace` → ghi theo file (nếu có); `merge` → giữ ngôn ngữ của máy nếu máy đã có setting, không thì lấy từ file.
 
@@ -65,8 +65,8 @@ type Localized<T> = { vi: T; en: T };
 
 ## 3. Lỗi ở tầng domain / db
 
-- `src/domain/errors.ts`: `class AppError extends Error { code: ErrorCode; params }`. Các `throw new Error('…tiếng Việt…')` trong `dayService`, `plannedService`, `reminderService`, `templateService` đổi thành `AppError` có mã (`emptyTask`, `emptyReminder`, `emptyTemplateName`, `dayNotFound`, `todoNotFound`, `templateNotFound`, `reminderNotFound`, `plannedNotFuture`, `specialLocked`, `styleLocked`, `unknownPlant`, `unknownPot`, `unknownStyle`). `LockedDayError` kế thừa `AppError` (`dayLocked`, param `date`). `message` vẫn là câu tiếng Việt để log/test cũ đọc được.
-- `parseBackup` trả `{ ok: false, error: BackupErrorCode, path? }` (`notJson`, `wrongFormat`, `tooNew`, `corrupt`); màn hình dịch bằng `t.backup.errors`.
+- `src/domain/errors.ts`: `class AppError extends Error { code: ErrorCode; params }`. Các `throw new Error('…tiếng Việt…')` trong `dayService`, `plannedService`, `reminderService`, `templateService` đổi thành `AppError` có mã (`emptyTask`, `emptyReminder`, `emptyTemplateName`, `dayNotFound`, `todoNotFound`, `templateNotFound`, `reminderNotFound`, `plannedNotFuture`, `specialLocked`, `styleLocked`, `unknownPlant`, `unknownPot`, `unknownStyle`). `LockedDayError` kế thừa `AppError` (`dayLocked`, param `date`). `message` vẫn là câu tiếng Việt (lấy từ `vi.errors`, không viết cứng trong domain) để log/test cũ đọc được.
+- `parseBackup` trả thêm `code: BackupErrorCode` (`notJson`, `wrongFormat`, `tooNew`, `corrupt`) và `path?` bên cạnh `error` (câu tiếng Việt lấy từ `vi.ts`, giữ cho test cũ); màn hình dịch bằng `t.backup.errors[code](path)`.
 - `errorText(e, t)`: `AppError` → `t.errors[code](params)`; lỗi khác → `e.message`. Mọi chỗ `setError(e.message)` đổi thành `setError(errorText(e, t))`.
 - Lỗi nội bộ không bao giờ tới tay người dùng (`pickUniform: danh sách rỗng`) giữ nguyên.
 - `platform`: `DOMException('Đã huỷ chia sẻ', 'AbortError')` chỉ để nhận diện bằng `name`, giữ nguyên.
@@ -84,7 +84,7 @@ type Localized<T> = { vi: T; en: T };
 **Lưới an toàn chống sót chữ Việt** — unit test `tests/unit/i18n/no-hardcoded-vi.test.ts`: dùng TypeScript compiler API duyệt mọi file `.ts/.tsx` trong `src/app`, `src/components`, `src/screens`, `src/domain`, `src/db`, `src/hooks`, `src/platform`; mọi **string literal / template literal / JSX text** (không tính comment) chứa chữ có dấu tiếng Việt → fail, trừ danh sách cho phép ngắn có lý do (vd. `message` của `AppError`, chuỗi nội bộ của `platform`). `src/i18n/vi.ts` và `src/content/` nằm ngoài phạm vi quét (đã có test riêng bắt đủ `en`).
 
 **Unit (Vitest):**
-- `detectLang`, `resolveLang` (máy mới → theo máy; có ngày cũ → `vi`; có setting → setting).
+- `detectLang`, `resolveLang` (máy mới → theo máy và ghi lại; có ngày trước hôm nay → `vi`; chỉ có bản ghi hôm nay → theo máy; có setting → setting; máy mới tiếng Anh sang hôm sau vẫn `en`).
 - `fmt` cho cả hai ngôn ngữ (tháng, thứ, ngày dài, số nhiều).
 - `errorText` cho mọi `ErrorCode`; `parseBackup` trả mã.
 - Sao lưu/khôi phục setting `language` (replace và merge; file cũ không có trường này).
