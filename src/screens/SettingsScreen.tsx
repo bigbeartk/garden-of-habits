@@ -59,10 +59,10 @@ export function SettingsScreen() {
       const file = new File([serializeBackup(await createBackup(deps.db, now.getTime()))], name, { type: 'application/json' });
       await shareOrDownload(file);
       await setSetting(deps.db, 'lastBackupAt', now.getTime());
-      setStatus(`Đã tạo file ${name} ✓ ${native ? 'Nhớ lưu vào Google Drive hoặc Tệp nhé.' : 'Nhớ lưu vào Tệp hoặc iCloud Drive nhé.'}`);
+      setStatus(t.settings.backupCreated(name, native));
     } catch (e) {
       if ((e as Error).name === 'AbortError') return;
-      setError(`Không sao lưu được: ${errorText(e, t)}`);
+      setError(t.settings.backupFailed(errorText(e, t)));
     }
   }
 
@@ -86,9 +86,9 @@ export function SettingsScreen() {
     try {
       const res = await restoreBackup(deps.db, pending, mode);
       setPending(null);
-      setStatus(`Đã khôi phục ${res.days} ngày và ${res.templates} mẫu ✓`);
+      setStatus(t.settings.restored(res.days, res.templates));
     } catch (e) {
-      setError(`Khôi phục thất bại, dữ liệu hiện tại vẫn được giữ nguyên. ${errorText(e, t)}`);
+      setError(t.settings.restoreFailed(errorText(e, t)));
     }
   }
 
@@ -102,13 +102,13 @@ export function SettingsScreen() {
     <section className="screen screen--settings">
       <header className="tpl-page__head">
         <BackButton inline onClick={() => nav('calendar')} />
-        <h1 className="screen__title">Cài đặt</h1>
+        <h1 className="screen__title">{t.settings.title}</h1>
         {!native && (
           <button
             type="button"
             className="icon-btn settings__help-btn"
-            aria-label="Hướng dẫn cài app"
-            title="Hướng dẫn cài app"
+            aria-label={t.settings.installGuide}
+            title={t.settings.installGuide}
             onClick={() => setShowInstall(true)}
           >
             <HelpIcon size={26} />
@@ -121,55 +121,54 @@ export function SettingsScreen() {
       {error && <p role="alert" className="error">{error}</p>}
 
       <div className="card settings__section">
-        <h2>Nhắc việc</h2>
+        <h2>{t.settings.remindersTitle}</h2>
         {reminderCount !== undefined && (
-          <p className="muted">{reminderCount ? `${reminderCount} việc đang theo dõi` : 'Chưa có việc nhắc nào'}</p>
+          <p className="muted">{reminderCount ? t.settings.remindersCount(reminderCount) : t.settings.remindersNone}</p>
         )}
-        <button type="button" className="btn btn--primary" onClick={() => setShowReminders(true)}>Mở nhắc việc</button>
+        <button type="button" className="btn btn--primary" onClick={() => setShowReminders(true)}>{t.settings.openReminders}</button>
       </div>
 
       <div className="card settings__section">
-        <h2>Mẫu việc</h2>
+        <h2>{t.settings.templatesTitle}</h2>
         {defaultTemplate !== undefined && (
-          <p className="muted">{defaultTemplate ? `⭐ Đang dùng: ${defaultTemplate.name}` : 'Chưa có mẫu mặc định'}</p>
+          <p className="muted">{defaultTemplate ? t.settings.templateInUse(defaultTemplate.name) : t.settings.templateNone}</p>
         )}
-        <button type="button" className="btn btn--primary" onClick={() => setShowTemplates(true)}>Quản lý mẫu</button>
+        <button type="button" className="btn btn--primary" onClick={() => setShowTemplates(true)}>{t.settings.manageTemplates}</button>
       </div>
 
       <div className="card settings__section">
-        <h2>Lịch</h2>
+        <h2>{t.settings.calendarTitle}</h2>
         <BackgroundPicker />
-        <SettingSwitch settingKey="showCalendarBgButton" label="Hiện nút đổi hình nền ở trang Lịch" onError={setError} />
-        <SettingSwitch settingKey="showNoteDot" label="Hiện chấm đỏ ở ngày có ghi chú" onError={setError} />
+        <SettingSwitch settingKey="showCalendarBgButton" label={t.settings.showBgButton} onError={setError} />
+        <SettingSwitch settingKey="showNoteDot" label={t.settings.showNoteDot} onError={setError} />
       </div>
 
       <LanguagePicker />
 
       <div className="card settings__section">
-        <h2>Sao lưu & khôi phục</h2>
+        <h2>{t.settings.backupTitle}</h2>
         <p className="muted">
-          {lastBackupAt ? `Lần sao lưu gần nhất: ${dateTime(lang, lastBackupAt)}` : 'Bạn chưa sao lưu lần nào.'}
+          {lastBackupAt ? t.settings.lastBackup(dateTime(lang, lastBackupAt)) : t.settings.neverBackedUp}
         </p>
-        <button type="button" className="btn btn--primary" onClick={doBackup}>💾 Sao lưu dữ liệu</button>
+        <button type="button" className="btn btn--primary" onClick={doBackup}>{t.settings.backupNow}</button>
         <label className="btn">
-          📂 Khôi phục từ file
+          {t.settings.restoreFromFile}
           <input type="file" accept="application/json,.json" hidden onChange={onRestoreFile} data-testid="restore-input" />
         </label>
         {pending && (
           <div className="settings__preview">
             <p>
-              File sao lưu ngày {dateTime(lang, pending.exportedAt)}: {pending.days.length} ngày · {pending.templates.length} mẫu
-              {pending.calendarBg ? ' · có ảnh nền' : ''}
+              {t.settings.preview(dateTime(lang, pending.exportedAt), pending.days.length, pending.templates.length, !!pending.calendarBg)}
             </p>
             <div className="settings__row">
-              <button type="button" className="btn btn--primary" onClick={() => doRestore('merge')}>Gộp với dữ liệu hiện tại</button>
+              <button type="button" className="btn btn--primary" onClick={() => doRestore('merge')}>{t.settings.merge}</button>
               <ConfirmButton
-                label="Thay thế toàn bộ"
-                confirmLabel="Chắc chắn thay thế"
+                label={t.settings.replace}
+                confirmLabel={t.settings.replaceConfirm}
                 className="btn"
                 onConfirm={() => doRestore('replace')}
               />
-              <button type="button" className="btn btn--ghost" onClick={() => setPending(null)}>Huỷ</button>
+              <button type="button" className="btn btn--ghost" onClick={() => setPending(null)}>{t.common.cancelForm}</button>
             </div>
           </div>
         )}
@@ -177,21 +176,20 @@ export function SettingsScreen() {
 
       <SupportCard />
 
-      <BottomSheet open={showInstall && !native} title="Cài app lên màn hình chính" onClose={() => setShowInstall(false)}>
+      <BottomSheet open={showInstall && !native} title={t.install.title} onClose={() => setShowInstall(false)}>
         <ol className="settings__steps">
-          <li>Mở trang này bằng <b>Safari</b> trên iPhone.</li>
-          <li>Bấm nút <b>Chia sẻ</b> (ô vuông có mũi tên lên).</li>
-          <li>Chọn <b>Thêm vào MH chính</b> → <b>Thêm</b>.</li>
-          <li>Từ giờ mở app bằng biểu tượng chậu cây — dùng được cả khi không có mạng.</li>
+          {t.install.steps.map((parts, i) => (
+            <li key={i}>{parts.map((p, j) => (typeof p === 'string' ? p : <b key={j}>{p[0]}</b>))}</li>
+          ))}
         </ol>
         <p className="muted">
-          {persisted === true && 'Dữ liệu đang được lưu bền vững trên máy 🌱'}
-          {persisted === false && 'Hãy cài app lên màn hình chính để dữ liệu không bị Safari tự xoá.'}
+          {persisted === true && t.install.persisted}
+          {persisted === false && t.install.notPersisted}
         </p>
       </BottomSheet>
 
       <p className="muted settings__version" data-testid="app-version">
-        Phiên bản {__APP_VERSION__} · {shortDateTime(lang, new Date(__BUILD_TIME__).getTime())}
+        {t.settings.version} {__APP_VERSION__} · {shortDateTime(lang, new Date(__BUILD_TIME__).getTime())}
         {native && ' · Android'}
       </p>
     </section>

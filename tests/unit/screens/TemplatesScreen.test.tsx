@@ -117,3 +117,11 @@ describe('TemplatesScreen nút quay lại và ngôi sao tự vẽ', () => {
     expect(star.textContent ?? '').not.toMatch(/[☆⭐★]/);
   });
 });
+
+it('Mẫu bằng English', async () => {
+  const { deps } = makeDeps();
+  renderWithDeps(<TemplatesScreen onBack={() => {}} />, deps, undefined, 'en');
+  expect(await screen.findByRole('button', { name: '＋ New template' })).toBeInTheDocument();
+  expect(screen.getByRole('heading', { name: 'Task templates' })).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'Back to Settings' })).toBeInTheDocument();
+});

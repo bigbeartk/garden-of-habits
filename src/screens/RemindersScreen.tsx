@@ -42,8 +42,8 @@ export function RemindersScreen({ onBack }: { onBack: () => void }) {
   return (
     <section className="screen screen--reminders" data-testid="reminders">
       <header className="tpl-page__head">
-        <BackButton inline label="Quay lại Cài đặt" onClick={onBack} />
-        <h1 className="screen__title">Nhắc việc</h1>
+        <BackButton inline label={t.nav.backToSettings} onClick={onBack} />
+        <h1 className="screen__title">{t.reminders.title}</h1>
       </header>
 
       <div className="rem-hero" data-testid="reminders-hero">
@@ -54,15 +54,15 @@ export function RemindersScreen({ onBack }: { onBack: () => void }) {
           <div className="rem-hero__stats">
             <p className="rem-stat">
               <b data-testid="rem-stat-active">{active.length}</b>
-              <span>đang theo dõi</span>
+              <span>{t.reminders.active}</span>
             </p>
             <p className="rem-stat rem-stat--done">
               <b data-testid="rem-stat-done">{done.length}</b>
-              <span>xong tuần này</span>
+              <span>{t.reminders.doneThisWeek}</span>
             </p>
           </div>
           <p className="rem-hero__hint">
-            Bật <span className="rem-hero__chip"><SunIcon size={14} /> Hôm nay</span> thì việc tự vào buổi Sáng mỗi ngày cho tới khi xong.
+            {t.reminders.hintBefore} <span className="rem-hero__chip"><SunIcon size={14} /> {t.reminders.today}</span> {t.reminders.hintAfter}
           </p>
         </div>
       </div>
@@ -71,12 +71,12 @@ export function RemindersScreen({ onBack }: { onBack: () => void }) {
       {adding ? (
         <NewReminder deps={deps} onError={setError} onDone={() => setAdding(false)} />
       ) : (
-        <button type="button" className="tpl-new" onClick={() => setAdding(true)}>＋ Việc nhắc mới</button>
+        <button type="button" className="tpl-new" onClick={() => setAdding(true)}>{t.reminders.add}</button>
       )}
 
       <div className="rem__group" data-testid="reminders-active">
         {all && active.length === 0 && (
-          <p className="card muted rem__empty">Chưa có việc nhắc nào. Bấm ＋ để thêm nhé 🌱</p>
+          <p className="card muted rem__empty">{t.reminders.empty}</p>
         )}
         <ul className="rem__list">
           {active.map((r, i) => (
@@ -91,16 +91,16 @@ export function RemindersScreen({ onBack }: { onBack: () => void }) {
       <div className="card rem__done" data-testid="reminders-done">
         <h2 className="rem__title">
           <SproutIcon size={26} />
-          <span>Đã hoàn thành tuần này</span>
+          <span>{t.reminders.doneTitle}</span>
           <span className="rem__count" data-testid="rem-done-count">{done.length}</span>
         </h2>
-        {all && done.length === 0 && <p className="muted rem__empty">Chưa xong việc nào tuần này</p>}
+        {all && done.length === 0 && <p className="muted rem__empty">{t.reminders.noneDone}</p>}
         <ul className="rem__done-list">
           {done.map((r) => (
             <li key={r.id} className="rem__done-row">
               <button
                 type="button" role="checkbox" aria-checked className="todo__check"
-                aria-label={`Bỏ hoàn thành nhắc: ${r.text}`}
+                aria-label={t.reminders.uncomplete(r.text)}
                 onClick={() => run(toggleReminderDone(deps, r.id))}
               >✓</button>
               <span className="rem__text">{r.text}</span>
@@ -113,6 +113,7 @@ export function RemindersScreen({ onBack }: { onBack: () => void }) {
 }
 
 function ReminderRow({ r, tone, deps, run, onRing }: { r: Reminder; tone: Tone; deps: DayDeps; run: Run; onRing: () => void }) {
+  const { t } = useI18n();
   // giữ trạng thái công tắc ngay trên giao diện để bấm nhanh liên tiếp vẫn đúng
   const [on, setOn] = useState(r.autoToday);
   useEffect(() => setOn(r.autoToday), [r.autoToday]);
@@ -129,13 +130,13 @@ function ReminderRow({ r, tone, deps, run, onRing }: { r: Reminder; tone: Tone; 
       <div className="rem__main">
         <button
           type="button" role="checkbox" aria-checked={false} className="todo__check"
-          aria-label={`Hoàn thành nhắc: ${r.text}`}
+          aria-label={t.reminders.complete(r.text)}
           onClick={() => run(toggleReminderDone(deps, r.id))}
         />
         {editing ? (
           <form className="rem__edit" onSubmit={(e) => { e.preventDefault(); commit(); }}>
             <input
-              className="input" autoFocus value={text} maxLength={200} aria-label="Sửa việc nhắc"
+              className="input" autoFocus value={text} maxLength={200} aria-label={t.reminders.edit}
               onChange={(e) => setText(e.target.value)} onBlur={commit}
               onKeyDown={(e) => { if (e.key === 'Escape') setEditing(false); }}
             />
@@ -146,7 +147,7 @@ function ReminderRow({ r, tone, deps, run, onRing }: { r: Reminder; tone: Tone; 
       </div>
       <div className="rem__foot">
         <button
-          type="button" role="switch" aria-checked={on} aria-label={`Thêm vào hôm nay: ${r.text}`}
+          type="button" role="switch" aria-checked={on} aria-label={t.reminders.addToToday(r.text)}
           className={`rem__today${on ? ' is-on' : ''}`}
           onClick={() => {
             const next = !on;
@@ -156,7 +157,7 @@ function ReminderRow({ r, tone, deps, run, onRing }: { r: Reminder; tone: Tone; 
           }}
         >
           <SunIcon size={20} />
-          <span>Hôm nay</span>
+          <span>{t.reminders.today}</span>
           <span className="rem__today-dot" aria-hidden="true" />
         </button>
         <DeleteWithConfirm text={r.text} onConfirm={() => run(deleteReminder(deps, r.id))} />
@@ -189,13 +190,13 @@ function NewReminder({ deps, onDone, onError }: { deps: DayDeps; onDone: () => v
       <div className="rem__new-field">
         <BellIcon size={26} />
         <input
-          className="input" autoFocus maxLength={200} aria-label="Việc nhắc mới" placeholder="Việc cần nhớ…"
+          className="input" autoFocus maxLength={200} aria-label={t.reminders.newLabel} placeholder={t.reminders.newPlaceholder}
           value={text} onChange={(e) => setText(e.target.value)}
         />
       </div>
       <div className="rem__new-actions">
-        <button type="button" className="btn btn--ghost" onClick={onDone}>Huỷ</button>
-        <button type="submit" className="btn btn--primary">Lưu</button>
+        <button type="button" className="btn btn--ghost" onClick={onDone}>{t.common.cancelForm}</button>
+        <button type="submit" className="btn btn--primary">{t.reminders.save}</button>
       </div>
     </form>
   );

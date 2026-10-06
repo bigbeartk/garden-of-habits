@@ -274,3 +274,13 @@ it('file sao lưu hỏng báo lỗi tiếng Anh khi đang dùng English', async 
   await user.upload(screen.getByTestId('restore-input'), jsonFile('{'));
   expect(await screen.findByText("This file isn't valid JSON.")).toBeInTheDocument();
 });
+
+it('Cài đặt bằng English', async () => {
+  const { deps } = makeDeps();
+  renderWithDeps(<SettingsScreen />, deps, undefined, 'en');
+  expect(await screen.findByRole('heading', { name: 'Settings', level: 1 })).toBeInTheDocument();
+  for (const name of ['💾 Back up data', 'Manage templates', 'Open reminders', 'Install guide']) {
+    expect(screen.getByRole('button', { name })).toBeInTheDocument();
+  }
+  expect(screen.getByText("You haven't backed up yet.")).toBeInTheDocument();
+});

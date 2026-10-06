@@ -31,7 +31,7 @@ export function TemplatesScreen({ onBack }: { onBack: () => void }) {
     try {
       const day = await ensureToday(deps);
       await addTodos(deps, day.date, t.items);
-      setMessage(`Đã thêm ${t.items.length} việc vào hôm nay 🌱`);
+      setMessage(i18n.t.templates.added(t.items.length));
     } catch (e) {
       setError(errorText(e, i18n.t));
     }
@@ -40,18 +40,18 @@ export function TemplatesScreen({ onBack }: { onBack: () => void }) {
   return (
     <section className="screen screen--templates">
       <header className="tpl-page__head">
-        <BackButton inline label="Quay lại Cài đặt" onClick={onBack} />
-        <h1 className="screen__title">Mẫu việc cần làm</h1>
+        <BackButton inline label={i18n.t.nav.backToSettings} onClick={onBack} />
+        <h1 className="screen__title">{i18n.t.templates.title}</h1>
       </header>
       <p className="muted tpl-page__hint">
-        Mẫu <span className="tpl-page__hint-star"><StarIcon size={18} filled /></span> mặc định sẽ tự lên danh sách mỗi sáng (từ 4 giờ).
+        {i18n.t.templates.hintBefore} <span className="tpl-page__hint-star"><StarIcon size={18} filled /></span> {i18n.t.templates.hintAfter}
       </p>
       {editing !== 'new' && (
-        <button type="button" className="tpl-new" onClick={() => setEditing('new')}>＋ Mẫu mới</button>
+        <button type="button" className="tpl-new" onClick={() => setEditing('new')}>{i18n.t.templates.newTemplate}</button>
       )}
       {message && (
         <p role="status" className="toast">
-          {message} <button type="button" className="link" onClick={() => nav('today')}>Xem</button>
+          {message} <button type="button" className="link" onClick={() => nav('today')}>{i18n.t.templates.view}</button>
         </p>
       )}
       {error && <p role="alert" className="error">{error}</p>}
@@ -65,7 +65,7 @@ export function TemplatesScreen({ onBack }: { onBack: () => void }) {
         />
       )}
       {templates.length === 0 && editing !== 'new' && (
-        <p className="empty card">Chưa có mẫu nào. Tạo một mẫu cho buổi sáng nhé 🌱</p>
+        <p className="empty card">{i18n.t.templates.empty}</p>
       )}
       <ul className="tpl__list">
         {templates.map((t) => (
@@ -88,11 +88,11 @@ export function TemplatesScreen({ onBack }: { onBack: () => void }) {
                     type="button"
                     className={`tpl__star${t.isDefault ? ' is-on' : ''}`}
                     aria-pressed={t.isDefault}
-                    aria-label={t.isDefault ? `Bỏ mặc định: ${t.name}` : `Đặt làm mặc định: ${t.name}`}
+                    aria-label={t.isDefault ? i18n.t.templates.unsetDefault(t.name) : i18n.t.templates.setDefault(t.name)}
                     onClick={() => setDefaultTemplate(deps.db, t.isDefault ? null : t.id, nowMs())}
                   >
                     <StarIcon size={22} filled={t.isDefault} />
-                    <span>{t.isDefault ? 'Mặc định' : 'Đặt mặc định'}</span>
+                    <span>{t.isDefault ? i18n.t.templates.isDefault : i18n.t.templates.makeDefault}</span>
                   </button>
                 </div>
                 <div className="tpl__periods">
@@ -111,12 +111,12 @@ export function TemplatesScreen({ onBack }: { onBack: () => void }) {
                       </div>
                     );
                   })}
-                  {t.items.length === 0 && <p className="muted tpl__empty">Mẫu này chưa có việc nào.</p>}
+                  {t.items.length === 0 && <p className="muted tpl__empty">{i18n.t.templates.noItems}</p>}
                 </div>
                 <div className="tpl__actions">
-                  <button type="button" className="btn btn--primary tpl__apply" onClick={() => applyToToday(t)}>Thêm vào hôm nay</button>
-                  <button type="button" className="tpl__mini" onClick={() => setEditing(t.id)}>Sửa</button>
-                  <ConfirmButton label="Xoá" confirmLabel="Chắc chắn xoá" className="tpl__mini" onConfirm={() => deleteTemplate(deps.db, t.id)} />
+                  <button type="button" className="btn btn--primary tpl__apply" onClick={() => applyToToday(t)}>{i18n.t.templates.addToToday}</button>
+                  <button type="button" className="tpl__mini" onClick={() => setEditing(t.id)}>{i18n.t.templates.edit}</button>
+                  <ConfirmButton label={i18n.t.templates.delete} confirmLabel={i18n.t.templates.deleteConfirm} className="tpl__mini" onConfirm={() => deleteTemplate(deps.db, t.id)} />
                 </div>
               </>
             )}

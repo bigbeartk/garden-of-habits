@@ -7,15 +7,8 @@ import { expect, it } from 'vitest';
 const VI = /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/i;
 const ROOTS = ['src/app', 'src/components', 'src/screens', 'src/domain', 'src/db', 'src/hooks', 'src/platform', 'src/utils', 'src/main.tsx'];
 
-/**
- * File còn chữ Việt viết cứng, chờ chuyển sang i18n. Chuyển xong file nào thì XOÁ khỏi đây;
- * cuối cùng danh sách phải rỗng. Không bao giờ THÊM file vào đây.
- */
-const NOT_YET_MIGRATED = new Set<string>([
-  'src/screens/RemindersScreen.tsx',
-  'src/screens/SettingsScreen.tsx',
-  'src/screens/TemplatesScreen.tsx',
-]);
+/** File còn chữ Việt viết cứng chờ chuyển sang i18n. Đã chuyển hết: giữ rỗng. */
+const NOT_YET_MIGRATED = new Set<string>(); // đã chuyển hết — không thêm lại
 
 /** Chuỗi được phép (không bao giờ tới mắt người dùng). */
 const ALLOWED = new Set<string>([

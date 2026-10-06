@@ -113,3 +113,11 @@ describe('RemindersScreen', () => {
     await waitFor(async () => expect((await deps.db.reminders.get(r.id))!.text).toBe('Mua hoa'));
   });
 });
+
+it('Nhắc việc bằng English', async () => {
+  const { deps } = makeDeps();
+  renderWithDeps(<RemindersScreen onBack={() => {}} />, deps, undefined, 'en');
+  expect(await screen.findByRole('button', { name: '＋ New reminder' })).toBeInTheDocument();
+  expect(screen.getByRole('heading', { name: 'Reminders', level: 1 })).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'Back to Settings' })).toBeInTheDocument();
+});
