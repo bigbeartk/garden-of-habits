@@ -241,7 +241,7 @@ function CornRainbowBloom() {
 
 export const corn: PlantSpecies = {
   id: 'corn',
-  name: 'Ngô',
+  name: { vi: 'Ngô', en: 'Corn' },
   defaultPotId: 'rattan',
   stages: {
     seed: { svg: CornSeed },
@@ -255,20 +255,29 @@ export const corn: PlantSpecies = {
     bud: { x: 100, y: 92, scale: 0.55 },
     bloom: { x: 100, y: 86, scale: 0.85 },
   },
-  sayings: ['Bắp nè, bắp nè! Hôm nay mình làm gì đây? 🌽', 'Mỗi việc xong là một hạt ngô vàng ươm đó!'],
-  praises: ['Thêm một hạt ngô vàng ươm cho bạn 🌽'],
-  taps: ['Hạt ngô của mình chắc nịch nè 🌽', 'Nhột quá, rụng râu ngô bây giờ 😆'],
+  sayings: {
+    vi: ['Bắp nè, bắp nè! Hôm nay mình làm gì đây? 🌽', 'Mỗi việc xong là một hạt ngô vàng ươm đó!'],
+    en: ['Corn here, corn here! What are we doing today? 🌽', 'Every task you finish is a shiny golden kernel!'],
+  },
+  praises: {
+    vi: ['Thêm một hạt ngô vàng ươm cho bạn 🌽'],
+    en: ['One more golden kernel for you 🌽'],
+  },
+  taps: {
+    vi: ['Hạt ngô của mình chắc nịch nè 🌽', 'Nhột quá, rụng râu ngô bây giờ 😆'],
+    en: ['Feel how plump my kernels are 🌽', 'That tickles — you\'ll make my corn silk fall off 😆'],
+  },
   styles: [
     {
       id: 'popcorn',
-      name: 'Bỏng ngô',
+      name: { vi: 'Bỏng ngô', en: 'Popcorn' },
       unlockAt: 10,
       stages: { bud: { svg: CornPopcornBud }, bloom: { svg: CornPopcornBloom } },
       faceAnchor: { bud: { x: 100, y: 104, scale: 0.5 }, bloom: { x: 100, y: 104, scale: 0.6 } },
     },
     {
       id: 'rainbow',
-      name: 'Cầu vồng',
+      name: { vi: 'Cầu vồng', en: 'Rainbow' },
       unlockAt: 20,
       stages: { bud: { svg: CornRainbowBud }, bloom: { svg: CornRainbowBloom } },
       faceAnchor: { bud: { x: 100, y: 96, scale: 0.5 }, bloom: { x: 100, y: 86, scale: 0.7 } },

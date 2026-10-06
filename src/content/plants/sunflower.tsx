@@ -141,7 +141,7 @@ function SunflowerGiantBloom() {
 
 export const sunflower: PlantSpecies = {
   id: 'sunflower',
-  name: 'Hướng dương',
+  name: { vi: 'Hướng dương', en: 'Sunflower' },
   defaultPotId: 'terracotta',
   stages: {
     seed: { svg: SunflowerSeed },
@@ -155,20 +155,29 @@ export const sunflower: PlantSpecies = {
     bud: { x: 100, y: 86, scale: 0.55 },
     bloom: { x: 100, y: 80, scale: 0.8 },
   },
-  sayings: ['Hôm nay mình hướng về phía bạn nè! 🌻', 'Nắng lên rồi, mình cùng tỏa sáng nha ☀️'],
-  praises: ['Bạn sáng chói như mặt trời luôn 🌻'],
-  taps: ['Bạn là mặt trời của mình đó ☀️', 'Mình quay theo bạn nè 🌻'],
+  sayings: {
+    vi: ['Hôm nay mình hướng về phía bạn nè! 🌻', 'Nắng lên rồi, mình cùng tỏa sáng nha ☀️'],
+    en: ['Today I\'m turning my face toward you! 🌻', 'The sun\'s up — let\'s shine together ☀️'],
+  },
+  praises: {
+    vi: ['Bạn sáng chói như mặt trời luôn 🌻'],
+    en: ['You\'re as bright as the sun! 🌻'],
+  },
+  taps: {
+    vi: ['Bạn là mặt trời của mình đó ☀️', 'Mình quay theo bạn nè 🌻'],
+    en: ['You\'re my sunshine ☀️', 'Look, I\'m turning to follow you 🌻'],
+  },
   styles: [
     {
       id: 'mini',
-      name: 'Mini',
+      name: { vi: 'Mini', en: 'Mini' },
       unlockAt: 10,
       stages: { bud: { svg: SunflowerMiniBud }, bloom: { svg: SunflowerMiniBloom } },
       faceAnchor: { bud: { x: 100, y: 79, scale: 0.38 }, bloom: { x: 100, y: 79, scale: 0.45 } },
     },
     {
       id: 'giant',
-      name: 'Khổng lồ',
+      name: { vi: 'Khổng lồ', en: 'Giant' },
       unlockAt: 20,
       stages: { bud: { svg: SunflowerGiantBud }, bloom: { svg: SunflowerGiantBloom } },
       faceAnchor: { bud: { x: 146, y: 76, scale: 0.55 }, bloom: { x: 146, y: 95, scale: 0.8 } },

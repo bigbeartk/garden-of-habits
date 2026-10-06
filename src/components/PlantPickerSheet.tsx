@@ -13,6 +13,7 @@ import { getSpecial } from '../content/specials/registry';
 import { listUnlockedSpecials } from '../domain/specialUnlocks';
 import { listUnlockedStyles, styleKey, styleProgress } from '../domain/styleUnlocks';
 import { BASE_STYLE_ID } from '../domain/types';
+import { useI18n } from '../i18n/I18nProvider';
 
 interface Props {
   open: boolean;
@@ -28,6 +29,7 @@ interface Props {
  * Nút lá ở góc ô loài mở màn dáng của loài đó (thay nội dung bảng); dáng chưa mở không lộ hình.
  */
 export function PlantPickerSheet({ open, currentId, currentSpecialId, currentStyleId: rawStyleId, onClose, onPick }: Props) {
+  const { tr } = useI18n();
   const deps = useDeps();
   // dáng không thuộc loài hôm nay (file sao lưu, nội dung đã đổi) coi như Gốc
   const currentStyleId = getStyle(getSpecies(currentId), rawStyleId)?.id ?? BASE_STYLE_ID;
@@ -42,7 +44,7 @@ export function PlantPickerSheet({ open, currentId, currentSpecialId, currentSty
   // Back của Android ở màn dáng: về lưới loài thay vì đóng bảng
   useBackHandler(open && styleFor !== null, () => setStyleFor(null), 'sheet');
 
-  const title = styleFor ? `Dáng của ${getSpecies(styleFor).name}` : 'Chọn cây hôm nay';
+  const title = styleFor ? `Dáng của ${tr(getSpecies(styleFor).name)}` : 'Chọn cây hôm nay';
   return (
     <BottomSheet open={open} title={title} onClose={onClose}>
       {styleFor ? (
@@ -58,15 +60,15 @@ export function PlantPickerSheet({ open, currentId, currentSpecialId, currentSty
                   <button
                     type="button"
                     className={`picker__item${selected ? ' is-selected' : ''}`}
-                    aria-label={p.name}
+                    aria-label={tr(p.name)}
                     aria-pressed={selected}
                     onClick={() => onPick(p.id, null, BASE_STYLE_ID)}
                   >
                     <PlantScene className="picker__scene" testId="picker-scene" plantId={p.id} potId={p.defaultPotId} stage="bloom" specialId={null} mood="smile" />
-                    <span>{p.name}</span>
+                    <span>{tr(p.name)}</span>
                   </button>
                   {!!p.styles?.length && (
-                    <button type="button" className="picker__style-btn" aria-label={`Dáng cây: ${p.name} (${opened}/3)`} onClick={() => setStyleFor(p.id)}>
+                    <button type="button" className="picker__style-btn" aria-label={`Dáng cây: ${tr(p.name)} (${opened}/3)`} onClick={() => setStyleFor(p.id)}>
                       <StylesIcon size={20} />
                       <span className="picker__style-count" aria-hidden="true">{opened}/3</span>
                       {p.id === currentId && currentStyleId !== BASE_STYLE_ID && <span className="icon-btn__badge" />}
@@ -83,8 +85,9 @@ export function PlantPickerSheet({ open, currentId, currentSpecialId, currentSty
             <div className="picker" data-testid="picker-specials">
               {unlocked.map(({ plantId, specialId }) => {
                 const species = getSpecies(plantId);
-                const effect = getSpecial(specialId)?.name ?? '';
-                const name = `${species.name} · ${effect}`;
+                const special = getSpecial(specialId);
+                const effect = special ? tr(special.name) : '';
+                const name = `${tr(species.name)} · ${effect}`;
                 const selected = plantId === currentId && specialId === currentSpecialId;
                 return (
                   <button
@@ -97,7 +100,7 @@ export function PlantPickerSheet({ open, currentId, currentSpecialId, currentSty
                     onClick={() => onPick(plantId, specialId, plantId === currentId ? currentStyleId : BASE_STYLE_ID)}
                   >
                     <PlantScene className="picker__scene" testId="picker-scene" plantId={plantId} potId={species.defaultPotId} stage="bloom" specialId={specialId} mood="smile" />
-                    <span>{species.name}</span>
+                    <span>{tr(species.name)}</span>
                     <span className="picker__effect">{effect}</span>
                   </button>
                 );
@@ -118,6 +121,7 @@ function StyleView({ plantId, currentId, currentStyleId, onBack, onPick }: {
   onBack: () => void;
   onPick: Props['onPick'];
 }) {
+  const { tr } = useI18n();
   const deps = useDeps();
   const species = getSpecies(plantId);
   const progress = useLiveQuery(() => styleProgress(deps, plantId), [deps, plantId]);
@@ -160,7 +164,7 @@ function StyleView({ plantId, currentId, currentStyleId, onBack, onPick }: {
               onClick={() => onPick(plantId, null, s.id)}
             >
               <PlantScene className="picker__scene" testId="picker-scene" plantId={plantId} potId={species.defaultPotId} stage="bloom" specialId={null} styleId={s.id} mood="smile" />
-              <span>{getStyle(species, s.id)?.name}</span>
+              <span>{tr(getStyle(species, s.id)!.name)}</span>
             </button>
           ) : (
             <button

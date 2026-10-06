@@ -126,7 +126,7 @@ describe('TodayScreen', () => {
     const bubble = await screen.findByTestId('speech-bubble');
     await waitFor(() => expect(bubble).toHaveAttribute('data-kind', 'tap'));
     const first = bubble.textContent!;
-    expect([...COMMON_TAPS, ...(species.taps ?? [])]).toContain(first);
+    expect([...COMMON_TAPS.vi, ...(species.taps?.vi ?? [])]).toContain(first);
     expect(scene).toHaveAttribute('data-mood', 'smile');
     await user.click(screen.getByRole('button', { name: 'Chạm vào cây' }));
     await waitFor(() => expect(screen.getByTestId('speech-bubble').textContent).not.toBe(first));
@@ -138,7 +138,7 @@ describe('TodayScreen', () => {
     await user.click(screen.getByRole('button', { name: 'Ngày tiết kiệm năng lượng' }));
     await screen.findByTestId('rest-message');
     await user.click(screen.getByRole('button', { name: 'Chạm vào cây' }));
-    await waitFor(() => expect(SLEEPY_TAPS).toContain(screen.getByTestId('speech-bubble').textContent));
+    await waitFor(() => expect(SLEEPY_TAPS.vi).toContain(screen.getByTestId('speech-bubble').textContent));
     expect(screen.getByTestId('plant-scene')).toHaveAttribute('data-mood', 'sleep');
   });
 
@@ -292,7 +292,7 @@ describe('TodayScreen cây khen', () => {
     await addTodoInline(user, 'Việc B');
     await user.click(await screen.findByRole('checkbox', { name: 'Hoàn thành: Việc A' }));
     const species = getSpecies(screen.getByTestId('plant-scene').getAttribute('data-plant')!);
-    const pool = [...COMMON_PRAISES, ...(species.praises ?? [])];
+    const pool = [...COMMON_PRAISES.vi, ...(species.praises?.vi ?? [])];
     await waitFor(() => expect(pool).toContain(screen.getByTestId('speech-bubble').textContent));
   });
 
@@ -300,7 +300,7 @@ describe('TodayScreen cây khen', () => {
     const { user } = setup();
     await addTodoInline(user, 'Việc duy nhất');
     await user.click(await screen.findByRole('checkbox', { name: 'Hoàn thành: Việc duy nhất' }));
-    await waitFor(() => expect(BLOOM_PRAISES).toContain(screen.getByTestId('speech-bubble').textContent));
+    await waitFor(() => expect(BLOOM_PRAISES.vi).toContain(screen.getByTestId('speech-bubble').textContent));
   });
 });
 
@@ -358,7 +358,7 @@ describe('TodayScreen lời cây nói của ngày', () => {
     const { deps } = setup();
     await waitFor(async () => expect((await deps.db.days.get('2026-10-02'))?.speech).toBeTruthy());
     const day = (await deps.db.days.get('2026-10-02'))!;
-    expect([...COMMON_SAYINGS, ...(getSpecies(day.plantId).sayings ?? [])]).toContain(day.speech);
+    expect([...COMMON_SAYINGS.vi, ...(getSpecies(day.plantId).sayings?.vi ?? [])]).toContain(day.speech);
     await waitFor(() => expect(screen.getByTestId('speech-bubble')).toHaveTextContent(day.speech!));
     expect(screen.getByTestId('speech-bubble')).toHaveAttribute('data-kind', 'daily');
   });

@@ -22,9 +22,9 @@ describe('pots', () => {
 
 describe('chậu mới cho hoa hồng và dưa hấu', () => {
   it('có chậu Sứ hoa hồng và Xô thiếc làm chậu mặc định', () => {
-    expect(getPot('rose-porcelain').name).toBe('Sứ hoa hồng');
-    expect(getPot('tin-bucket').name).toBe('Xô thiếc');
-    expect(getPot('blue-ceramic').name).toBe('Gốm xanh lam');
+    expect(getPot('rose-porcelain').name.vi).toBe('Sứ hoa hồng');
+    expect(getPot('tin-bucket').name.vi).toBe('Xô thiếc');
+    expect(getPot('blue-ceramic').name.vi).toBe('Gốm xanh lam');
   });
 });
 
@@ -44,13 +44,13 @@ describe('specials', () => {
   it('getSpecial: null và id lạ trả về null', () => {
     expect(getSpecial(null)).toBeNull();
     expect(getSpecial('khong-co')).toBeNull();
-    expect(getSpecial('glow')?.name).toBe('Phát sáng');
+    expect(getSpecial('glow')?.name.vi).toBe('Phát sáng');
   });
 });
 
 describe('xương rồng ngầu', () => {
   it('có chậu Bê tông làm chậu mặc định của xương rồng', () => {
-    expect(getPot('concrete').name).toBe('Bê tông');
+    expect(getPot('concrete').name.vi).toBe('Bê tông');
     expect(getSpecies('cactus').defaultPotId).toBe('concrete');
   });
 
@@ -87,7 +87,8 @@ describe('hoa hồng quý cô', () => {
 describe('đủ 12 chậu', () => {
   it('có Bể kính và Chậu mèo', () => {
     expect(POTS).toHaveLength(12);
-    expect(getPot('glass-bowl').name).toBe('Bể kính');
-    expect(getPot('cat').name).toBe('Chậu mèo');
+    expect(getPot('glass-bowl').name.vi).toBe('Bể kính');
+    expect(getPot('cat').name.vi).toBe('Chậu mèo');
+    expect(POTS.every((p) => p.name.vi.length > 0 && p.name.en.length > 0)).toBe(true);
   });
 });

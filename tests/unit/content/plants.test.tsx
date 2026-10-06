@@ -9,7 +9,8 @@ import { GROWTH_STAGES } from '../../../src/domain/growth';
 describe('plants', () => {
   it('có 9 loài theo thứ tự', () => {
     expect(PLANTS.map((p) => p.id)).toEqual(['sunflower', 'corn', 'cactus', 'pothos', 'orange', 'cherry', 'rose', 'watermelon', 'hydrangea']);
-    expect(PLANTS.map((p) => p.name)).toEqual(['Hướng dương', 'Ngô', 'Xương rồng', 'Monstera', 'Cây cam', 'Cherry', 'Hoa hồng', 'Dưa hấu', 'Tulip']);
+    expect(PLANTS.map((p) => p.name.vi)).toEqual(['Hướng dương', 'Ngô', 'Xương rồng', 'Monstera', 'Cây cam', 'Cherry', 'Hoa hồng', 'Dưa hấu', 'Tulip']);
+    expect(PLANTS.map((p) => p.name.en)).toEqual(['Sunflower', 'Corn', 'Cactus', 'Monstera', 'Orange tree', 'Cherry', 'Rose', 'Watermelon', 'Tulip']);
   });
 
   it('mỗi loài có đủ 4 giai đoạn, toạ độ mặt và chậu mặc định hợp lệ', () => {
@@ -36,7 +37,8 @@ describe('plants', () => {
       expect(new Set(styles.map((s) => s.id)).size).toBe(2);
       for (const s of styles) {
         expect(s.id).not.toBe('base');
-        expect(s.name.length).toBeGreaterThan(0);
+        expect(s.name.vi.length).toBeGreaterThan(0);
+        expect(s.name.en.length).toBeGreaterThan(0);
         for (const stage of ['bud', 'bloom'] as const) {
           expect(s.faceAnchor[stage].scale).toBeGreaterThan(0);
           const { unmount } = render(<svg><ArtView art={s.stages[stage]} /></svg>);

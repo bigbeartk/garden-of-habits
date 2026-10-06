@@ -40,7 +40,7 @@ import './today.css';
 type Sheet = null | 'plant' | 'pot' | 'note';
 
 export function TodayScreen() {
-  const { t } = useI18n();
+  const { t, lang, tr } = useI18n();
   const deps = useDeps();
   const nav = useNav();
   const { day, now, error: loadError } = useToday();
@@ -70,7 +70,7 @@ export function TodayScreen() {
   useEffect(() => {
     if (!day || day.speech !== undefined || pickedFor.current === day.date) return;
     pickedFor.current = day.date;
-    setDaySpeech(deps, day.date, pickSaying(getSpecies(day.plantId), deps.rng)).catch((e: Error) => setError(errorText(e, t)));
+    setDaySpeech(deps, day.date, pickSaying(getSpecies(day.plantId), deps.rng, lang)).catch((e: Error) => setError(errorText(e, t)));
   }, [day, deps]);
 
   useEffect(() => {
@@ -150,7 +150,7 @@ export function TodayScreen() {
   /** Chạm cây: cây cười, nảy lên và nói một câu (đang ngủ thì nói câu ngái ngủ). */
   function handleTapPlant() {
     if (!day!.isRestDay) setTapKey((k) => k + 1);
-    const text = pickTap(getSpecies(day!.plantId), deps.rng, { last: speech?.text ?? null, sleeping: day!.isRestDay });
+    const text = pickTap(getSpecies(day!.plantId), deps.rng, { last: speech?.text ?? null, sleeping: day!.isRestDay, lang });
     setSpeech({ text, kind: 'tap' });
   }
 
@@ -162,7 +162,7 @@ export function TodayScreen() {
         setCelebrating(true);
         if (stageIndex(r.day.finalStage) > stageIndex(r.prevStage)) setBurstKey((k) => k + 1);
         const bloomed = r.day.finalStage === 'bloom' && r.prevStage !== 'bloom';
-        setSpeech({ text: pickPraise(getSpecies(r.day.plantId), deps.rng, bloomed), kind: 'praise' });
+        setSpeech({ text: pickPraise(getSpecies(r.day.plantId), deps.rng, bloomed, lang), kind: 'praise' });
       }
     } catch (e) {
       setError(errorText(e, t));
@@ -177,7 +177,7 @@ export function TodayScreen() {
           {intro && special && (
             <div className="special-intro" data-testid="special-intro" role="status">
               <span className="special-intro__sparkles" aria-hidden="true">✨ ✨ ✨</span>
-              Hôm nay mình là cây đặc biệt: {special.name}!
+              Hôm nay mình là cây đặc biệt: {tr(special.name)}!
             </div>
           )}
           {newStyles.length > 0 && <StyleUnlock keys={newStyles} below={intro && !!special} />}
@@ -212,7 +212,7 @@ export function TodayScreen() {
             <StageBurst playKey={burstKey} />
           </PlantScene>
           <button type="button" className="today__plant-tap" aria-label="Chạm vào cây" onClick={handleTapPlant} />
-          {special && <span className="today__badge">✨ Cây đặc biệt: {special.name}</span>}
+          {special && <span className="today__badge">✨ Cây đặc biệt: {tr(special.name)}</span>}
         </div>
         <div className="today__actions">
           <IconButton label="Đổi cây" icon={<PlantSwapIcon size={30} />} onClick={() => setSheet('plant')} disabled={day.isRestDay} />
@@ -290,12 +290,13 @@ export function TodayScreen() {
 
 /** Khung mừng dáng mới mở khoá (~5 giây); mở nhiều dáng cùng lúc thì hiện dáng đầu kèm +N. */
 function StyleUnlock({ keys, below }: { keys: string[]; below: boolean }) {
+  const { tr } = useI18n();
   const [plantId, styleId] = keys[0].split('|');
   const species = getSpecies(plantId);
   return (
     <div className={`special-intro style-unlock${below ? ' style-unlock--below' : ''}`} data-testid="style-unlock" role="status">
       <span className="special-intro__sparkles" aria-hidden="true">🔓 ✨ 🔓</span>
-      Mở khoá dáng mới: {species.name} · {getStyle(species, styleId)?.name}!{keys.length > 1 ? ` +${keys.length - 1}` : ''}
+      Mở khoá dáng mới: {tr(species.name)} · {tr(getStyle(species, styleId)!.name)}!{keys.length > 1 ? ` +${keys.length - 1}` : ''}
       <span className="style-unlock__hint">Vào Đổi cây để thử nha</span>
     </div>
   );

@@ -225,7 +225,7 @@ function CactusBarrelBloom() {
 
 export const cactus: PlantSpecies = {
   id: 'cactus',
-  name: 'Xương rồng',
+  name: { vi: 'Xương rồng', en: 'Cactus' },
   defaultPotId: 'concrete',
   faceStyle: 'cool',
   stages: {
@@ -240,20 +240,29 @@ export const cactus: PlantSpecies = {
     bud: { x: 100, y: 102, scale: 0.72 },
     bloom: { x: 100, y: 88, scale: 0.85 },
   },
-  sayings: ['Nắng sa mạc còn chưa làm khó được mình, việc hôm nay xá gì 😎', 'Gai góc là phong cách. Làm việc thôi 🌵'],
-  praises: ['Chuẩn bài. Ngầu đó 😎', 'Một việc nữa đã bị hạ gục 🌵'],
-  taps: ['Đụng vô là dính gai đó nha 😎', 'Bình tĩnh, mình chỉ ngầu thôi chứ không cắn đâu 🌵', 'Kính râm này là hàng hiệu đó 😎'],
+  sayings: {
+    vi: ['Nắng sa mạc còn chưa làm khó được mình, việc hôm nay xá gì 😎', 'Gai góc là phong cách. Làm việc thôi 🌵'],
+    en: ['Desert sun can\'t stop me. Today\'s tasks? Easy 😎', 'Spiky is a style. Let\'s get to work 🌵'],
+  },
+  praises: {
+    vi: ['Chuẩn bài. Ngầu đó 😎', 'Một việc nữa đã bị hạ gục 🌵'],
+    en: ['Textbook. Pretty cool 😎', 'Another task down 🌵'],
+  },
+  taps: {
+    vi: ['Đụng vô là dính gai đó nha 😎', 'Bình tĩnh, mình chỉ ngầu thôi chứ không cắn đâu 🌵', 'Kính râm này là hàng hiệu đó 😎'],
+    en: ['Touch me and you get spikes 😎', 'Chill, I\'m just cool — I don\'t bite 🌵', 'These shades are designer, by the way 😎'],
+  },
   styles: [
     {
       id: 'bunny',
-      name: 'Tai thỏ',
+      name: { vi: 'Tai thỏ', en: 'Bunny ears' },
       unlockAt: 10,
       stages: { bud: { svg: CactusBunnyBud }, bloom: { svg: CactusBunnyBloom } },
       faceAnchor: { bud: { x: 100, y: 128, scale: 0.7 }, bloom: { x: 100, y: 118, scale: 0.85 } },
     },
     {
       id: 'barrel',
-      name: 'Cầu vàng',
+      name: { vi: 'Cầu vàng', en: 'Golden barrel' },
       unlockAt: 20,
       stages: { bud: { svg: CactusBarrelBud }, bloom: { svg: CactusBarrelBloom } },
       faceAnchor: { bud: { x: 100, y: 138, scale: 0.65 }, bloom: { x: 100, y: 128, scale: 0.95 } },

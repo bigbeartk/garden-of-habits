@@ -222,7 +222,7 @@ function OrangeBonsaiBloom() {
 
 export const orange: PlantSpecies = {
   id: 'orange',
-  name: 'Cây cam',
+  name: { vi: 'Cây cam', en: 'Orange tree' },
   defaultPotId: 'wood',
   stages: {
     seed: { svg: OrangeSeed },
@@ -236,20 +236,29 @@ export const orange: PlantSpecies = {
     bud: { x: 100, y: 78, scale: 0.72 },
     bloom: { x: 100, y: 78, scale: 0.72 },
   },
-  sayings: ['Vitamin C cho ngày mới nè! 🍊', 'Làm xong việc là có cam ngọt ăn đó!'],
-  praises: ['Ngọt như cam luôn đó 🍊'],
-  taps: ['Thơm mùi cam không? 🍊', 'Mình mọng nước vitamin C nè 🍊'],
+  sayings: {
+    vi: ['Vitamin C cho ngày mới nè! 🍊', 'Làm xong việc là có cam ngọt ăn đó!'],
+    en: ['Vitamin C for a fresh new day! 🍊', 'Finish your tasks and get a sweet orange!'],
+  },
+  praises: {
+    vi: ['Ngọt như cam luôn đó 🍊'],
+    en: ['Sweet as an orange 🍊'],
+  },
+  taps: {
+    vi: ['Thơm mùi cam không? 🍊', 'Mình mọng nước vitamin C nè 🍊'],
+    en: ['Smell that orange zest? 🍊', 'I\'m bursting with vitamin C 🍊'],
+  },
   styles: [
     {
       id: 'kumquat',
-      name: 'Quất Tết',
+      name: { vi: 'Quất Tết', en: 'Lunar New Year kumquat' },
       unlockAt: 10,
       stages: { bud: { svg: OrangeKumquatBud }, bloom: { svg: OrangeKumquatBloom } },
       faceAnchor: { bud: { x: 100, y: 100, scale: 0.6 }, bloom: { x: 100, y: 100, scale: 0.6 } },
     },
     {
       id: 'bonsai',
-      name: 'Bonsai',
+      name: { vi: 'Bonsai', en: 'Bonsai' },
       unlockAt: 20,
       stages: { bud: { svg: OrangeBonsaiBud }, bloom: { svg: OrangeBonsaiBloom } },
       faceAnchor: { bud: { x: 96, y: 64, scale: 0.42 }, bloom: { x: 96, y: 55, scale: 0.55 } },

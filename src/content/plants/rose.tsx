@@ -216,7 +216,7 @@ function RoseDomeBloom() {
 
 export const rose: PlantSpecies = {
   id: 'rose',
-  name: 'Hoa hồng',
+  name: { vi: 'Hoa hồng', en: 'Rose' },
   defaultPotId: 'rose-porcelain',
   faceStyle: 'lady',
   stages: {
@@ -231,20 +231,29 @@ export const rose: PlantSpecies = {
     bud: { x: 100, y: 78, scale: 0.5 },
     bloom: { x: 100, y: 94, scale: 0.8 },
   },
-  sayings: ['Chào cưng, hôm nay mình cùng toả sáng nha 💖', 'Quý cô hoa hồng đã sẵn sàng, còn bạn thì sao? 🌹'],
-  praises: ['Tuyệt vời, đúng chuẩn quý cô 💅', 'Thanh lịch và giỏi giang, là bạn đó 🌹'],
-  taps: ['Ối, nhẹ tay thôi, vương miện lệch bây giờ 👑', 'Gai của mình là để giữ phong thái đó nha 🌹', 'Hôn gió một cái nè 💋'],
+  sayings: {
+    vi: ['Chào cưng, hôm nay mình cùng toả sáng nha 💖', 'Quý cô hoa hồng đã sẵn sàng, còn bạn thì sao? 🌹'],
+    en: ['Hello darling, let\'s shine together today 💖', 'Lady Rose is ready. Are you, my dear? 🌹'],
+  },
+  praises: {
+    vi: ['Tuyệt vời, đúng chuẩn quý cô 💅', 'Thanh lịch và giỏi giang, là bạn đó 🌹'],
+    en: ['Marvelous, darling — truly ladylike 💅', 'Elegant and capable — that is you 🌹'],
+  },
+  taps: {
+    vi: ['Ối, nhẹ tay thôi, vương miện lệch bây giờ 👑', 'Gai của mình là để giữ phong thái đó nha 🌹', 'Hôn gió một cái nè 💋'],
+    en: ['Oh! Gently, darling, my crown will slip 👑', 'My thorns are simply for poise, dear 🌹', 'Mwah — a blown kiss for you 💋'],
+  },
   styles: [
     {
       id: 'arch',
-      name: 'Cổng vòm',
+      name: { vi: 'Cổng vòm', en: 'Arch' },
       unlockAt: 10,
       stages: { bud: { svg: RoseArchBud }, bloom: { svg: RoseArchBloom } },
       faceAnchor: { bud: { x: 100, y: 37, scale: 0.22 }, bloom: { x: 100, y: 49, scale: 0.42 } },
     },
     {
       id: 'dome',
-      name: 'Chuông kính',
+      name: { vi: 'Chuông kính', en: 'Glass dome' },
       unlockAt: 20,
       stages: { bud: { svg: RoseDomeBud }, bloom: { svg: RoseDomeBloom } },
       faceAnchor: { bud: { x: 100, y: 92, scale: 0.4 }, bloom: { x: 100, y: 93, scale: 0.66 } },

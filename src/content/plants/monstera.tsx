@@ -179,7 +179,7 @@ function MonsteraTrailingBloom() {
 /** id giữ là 'pothos' (trước đây là Trầu bà) để ngày cũ, sao lưu và cây đặc biệt đã mở khoá vẫn khớp. */
 export const monstera: PlantSpecies = {
   id: 'pothos',
-  name: 'Monstera',
+  name: { vi: 'Monstera', en: 'Monstera' },
   defaultPotId: 'mint',
   stages: {
     seed: { svg: MonsteraSeed },
@@ -193,20 +193,29 @@ export const monstera: PlantSpecies = {
     bud: { x: 100, y: 90, scale: 0.45 },
     bloom: { x: 100, y: 90, scale: 0.6 },
   },
-  sayings: ['Lá xẻ thuỳ của mình vẫy chào bạn nè 🌿', 'Mỗi chiếc lá mới của mình là một bất ngờ đó!'],
-  praises: ['Thêm một chiếc lá xẻ mới mọc ra vì bạn đó 🌿'],
-  taps: ['Lá mình có lỗ là để đón nắng đó ☀️', 'Mình xoè lá ra ôm bạn nè 💚'],
+  sayings: {
+    vi: ['Lá xẻ thuỳ của mình vẫy chào bạn nè 🌿', 'Mỗi chiếc lá mới của mình là một bất ngờ đó!'],
+    en: ['My split leaves are waving hi to you 🌿', 'Every new leaf of mine is a little surprise!'],
+  },
+  praises: {
+    vi: ['Thêm một chiếc lá xẻ mới mọc ra vì bạn đó 🌿'],
+    en: ['A brand-new split leaf just grew for you 🌿'],
+  },
+  taps: {
+    vi: ['Lá mình có lỗ là để đón nắng đó ☀️', 'Mình xoè lá ra ôm bạn nè 💚'],
+    en: ['The holes in my leaves let the sunshine in ☀️', 'I\'m spreading my leaves to hug you 💚'],
+  },
   styles: [
     {
       id: 'pole',
-      name: 'Leo cột',
+      name: { vi: 'Leo cột', en: 'Moss pole' },
       unlockAt: 10,
       stages: { bud: { svg: MonsteraPoleBud }, bloom: { svg: MonsteraPoleBloom } },
       faceAnchor: { bud: { x: 100, y: 62, scale: 0.36 }, bloom: { x: 100, y: 32, scale: 0.45 } },
     },
     {
       id: 'trailing',
-      name: 'Rủ',
+      name: { vi: 'Rủ', en: 'Trailing' },
       unlockAt: 20,
       stages: { bud: { svg: MonsteraTrailingBud }, bloom: { svg: MonsteraTrailingBloom } },
       faceAnchor: { bud: { x: 100, y: 114, scale: 0.38 }, bloom: { x: 100, y: 104, scale: 0.5 } },

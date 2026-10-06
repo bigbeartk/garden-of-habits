@@ -14,6 +14,7 @@ import { SettingSwitch } from '../components/SettingSwitch';
 import { addDays, dayKey } from '../domain/dayKey';
 import { gardenReport } from '../domain/garden';
 import { useNow } from '../hooks/useNow';
+import { useI18n } from '../i18n/I18nProvider';
 import './garden.css';
 
 const PLANT_IDS = PLANTS.map((p) => p.id);
@@ -23,6 +24,7 @@ const PLANT_IDS = PLANTS.map((p) => p.id);
  * với số ngày được chọn ở bên dưới. Loài chưa trồng ngày nào hiện mờ.
  */
 export function GardenScreen() {
+  const { tr } = useI18n();
   const deps = useDeps();
   const nav = useNav();
   const todayKey = dayKey(useNow());
@@ -106,7 +108,7 @@ export function GardenScreen() {
             return (
               <li key={`${plantId}-${specialId}`} className="garden__bed garden__bed--special" data-testid={`garden-special-${plantId}-${specialId}`}>
                 <PlantScene className="garden__plant" plantId={plantId} potId={species.defaultPotId} stage="bloom" specialId={specialId} mood="smile" />
-                <span className="garden__name">{special ? `${species.name} · ${special.name}` : species.name}</span>
+                <span className="garden__name">{special ? `${tr(species.name)} · ${tr(special.name)}` : tr(species.name)}</span>
                 <span className="garden__tally">
                   <span className="garden__count">{count}</span> ngày
                 </span>
@@ -125,7 +127,7 @@ export function GardenScreen() {
                 specialId={null}
                 mood={count > 0 ? 'smile' : 'sleep'}
               />
-              <span className="garden__name">{species.name}</span>
+              <span className="garden__name">{tr(species.name)}</span>
               <span className="garden__tally">
                 <span className="garden__count">{count}</span> ngày
               </span>

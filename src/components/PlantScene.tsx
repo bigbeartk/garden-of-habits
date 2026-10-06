@@ -10,6 +10,7 @@ import { getPot } from '../content/pots/registry';
 import { getSpecial } from '../content/specials/registry';
 import type { GrowthStage } from '../domain/growth';
 import { BASE_STYLE_ID } from '../domain/types';
+import { useI18n } from '../i18n/I18nProvider';
 import './scene.css';
 
 export type SceneMode = 'plant' | 'sleeping' | 'wilted';
@@ -34,6 +35,7 @@ export interface PlantSceneProps {
 export function PlantScene({
   plantId, potId, stage, specialId, styleId, mood, mode = 'plant', bounceKey = 0, className, title, testId, children,
 }: PlantSceneProps) {
+  const { tr } = useI18n();
   const species = getSpecies(plantId);
   const look = getStageArt(species, styleId, stage);
   const pot = getPot(potId);
@@ -49,7 +51,7 @@ export function PlantScene({
       viewBox="0 0 200 240"
       className={`plant-scene ${className ?? ''}`}
       role="img"
-      aria-label={title ?? species.name}
+      aria-label={title ?? tr(species.name)}
       data-testid={testId ?? 'plant-scene'}
       data-plant={species.id}
       data-pot={pot.id}

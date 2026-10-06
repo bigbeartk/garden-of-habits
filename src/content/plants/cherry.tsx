@@ -205,7 +205,7 @@ function CherryLanternBloom() {
 
 export const cherry: PlantSpecies = {
   id: 'cherry',
-  name: 'Cherry',
+  name: { vi: 'Cherry', en: 'Cherry' },
   defaultPotId: 'polka',
   stages: {
     seed: { svg: CherrySeed },
@@ -219,20 +219,29 @@ export const cherry: PlantSpecies = {
     bud: { x: 100, y: 84, scale: 0.62 },
     bloom: { x: 100, y: 84, scale: 0.62 },
   },
-  sayings: ['Hôm nay mình hồng hào lắm nè 🍒', 'Một quả cherry cho mỗi việc hoàn thành!'],
-  praises: ['Thưởng bạn một quả cherry nè 🍒'],
-  taps: ['Một cặp cherry tặng bạn 🍒', 'Bạn ngọt như cherry vậy đó 🍒'],
+  sayings: {
+    vi: ['Hôm nay mình hồng hào lắm nè 🍒', 'Một quả cherry cho mỗi việc hoàn thành!'],
+    en: ['I\'m feeling extra rosy today 🍒', 'One cherry for every task you finish!'],
+  },
+  praises: {
+    vi: ['Thưởng bạn một quả cherry nè 🍒'],
+    en: ['Here, have a cherry 🍒'],
+  },
+  taps: {
+    vi: ['Một cặp cherry tặng bạn 🍒', 'Bạn ngọt như cherry vậy đó 🍒'],
+    en: ['A pair of cherries, just for you 🍒', 'You\'re as sweet as a cherry 🍒'],
+  },
   styles: [
     {
       id: 'weeping',
-      name: 'Rủ',
+      name: { vi: 'Rủ', en: 'Weeping' },
       unlockAt: 10,
       stages: { bud: { svg: CherryWeepingBud }, bloom: { svg: CherryWeepingBloom } },
       faceAnchor: { bud: { x: 100, y: 53, scale: 0.42 }, bloom: { x: 100, y: 53, scale: 0.42 } },
     },
     {
       id: 'lantern',
-      name: 'Cần câu',
+      name: { vi: 'Cần câu', en: 'Fishing rod' },
       unlockAt: 20,
       stages: { bud: { svg: CherryLanternBud }, bloom: { svg: CherryLanternBloom } },
       faceAnchor: { bud: { x: 150, y: 109, scale: 0.32 }, bloom: { x: 150, y: 120, scale: 0.46 } },

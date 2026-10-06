@@ -180,7 +180,7 @@ function WatermelonTrellisBloom() {
 
 export const watermelon: PlantSpecies = {
   id: 'watermelon',
-  name: 'Dưa hấu',
+  name: { vi: 'Dưa hấu', en: 'Watermelon' },
   defaultPotId: 'tin-bucket',
   stages: {
     seed: { svg: WatermelonSeed },
@@ -194,20 +194,29 @@ export const watermelon: PlantSpecies = {
     bud: { x: 100, y: 144, scale: 0.45 },
     bloom: { x: 100, y: 130, scale: 0.85 },
   },
-  sayings: ['Dưa hấu mát lạnh chào bạn nè 🍉', 'Ngày nóng hay lạnh mình cũng mọng nước vì bạn!'],
-  praises: ['Thưởng bạn một miếng dưa hấu mát rượi 🍉'],
-  taps: ['Gõ thử nghe… chín rồi đó! 🍉', 'Mát lạnh như dưa hấu mùa hè 🍉'],
+  sayings: {
+    vi: ['Dưa hấu mát lạnh chào bạn nè 🍉', 'Ngày nóng hay lạnh mình cũng mọng nước vì bạn!'],
+    en: ['A cool watermelon says hi 🍉', 'Hot day or cold, I stay juicy for you!'],
+  },
+  praises: {
+    vi: ['Thưởng bạn một miếng dưa hấu mát rượi 🍉'],
+    en: ['Have a nice cold slice of watermelon 🍉'],
+  },
+  taps: {
+    vi: ['Gõ thử nghe… chín rồi đó! 🍉', 'Mát lạnh như dưa hấu mùa hè 🍉'],
+    en: ['Knock knock… yep, I\'m ripe! 🍉', 'Cool as a summer watermelon 🍉'],
+  },
   styles: [
     {
       id: 'square',
-      name: 'Vuông',
+      name: { vi: 'Vuông', en: 'Square' },
       unlockAt: 10,
       stages: { bud: { svg: WatermelonSquareBud }, bloom: { svg: WatermelonSquareBloom } },
       faceAnchor: { bud: { x: 100, y: 142, scale: 0.45 }, bloom: { x: 100, y: 128, scale: 0.85 } },
     },
     {
       id: 'trellis',
-      name: 'Giàn leo',
+      name: { vi: 'Giàn leo', en: 'Trellis' },
       unlockAt: 20,
       stages: { bud: { svg: WatermelonTrellisBud }, bloom: { svg: WatermelonTrellisBloom } },
       faceAnchor: { bud: { x: 82, y: 135, scale: 0.26 }, bloom: { x: 100, y: 54, scale: 0.58 } },

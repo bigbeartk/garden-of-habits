@@ -205,7 +205,7 @@ function TulipBouquetBloom() {
 /** id giữ là 'hydrangea' (trước đây là Cẩm tú cầu) để ngày cũ, sao lưu và cây đặc biệt đã mở khoá vẫn khớp. */
 export const tulip: PlantSpecies = {
   id: 'hydrangea',
-  name: 'Tulip',
+  name: { vi: 'Tulip', en: 'Tulip' },
   defaultPotId: 'blue-ceramic',
   stages: {
     seed: { svg: TulipSeed },
@@ -219,20 +219,29 @@ export const tulip: PlantSpecies = {
     bud: { x: 100, y: 78, scale: 0.6 },
     bloom: { x: 100, y: 90, scale: 1 },
   },
-  sayings: ['Bông tulip đỏ xinh xắn chào bạn nè 🌷', 'Hôm nay mình nở thật tươi để cổ vũ bạn đó!'],
-  praises: ['Thêm một cánh tulip hé nở vì bạn đó 🌷'],
-  taps: ['Hihi, nhột cánh hoa mình quá 🌷', 'Bông tulip này tặng bạn nè 💐'],
+  sayings: {
+    vi: ['Bông tulip đỏ xinh xắn chào bạn nè 🌷', 'Hôm nay mình nở thật tươi để cổ vũ bạn đó!'],
+    en: ['A pretty red tulip says hello 🌷', 'Today I\'m blooming bright to cheer you on!'],
+  },
+  praises: {
+    vi: ['Thêm một cánh tulip hé nở vì bạn đó 🌷'],
+    en: ['Another tulip petal opened up for you 🌷'],
+  },
+  taps: {
+    vi: ['Hihi, nhột cánh hoa mình quá 🌷', 'Bông tulip này tặng bạn nè 💐'],
+    en: ['Hehe, that tickles my petals 🌷', 'This tulip is for you 💐'],
+  },
   styles: [
     {
       id: 'parrot',
-      name: 'Vẹt',
+      name: { vi: 'Vẹt', en: 'Parrot' },
       unlockAt: 10,
       stages: { bud: { svg: TulipParrotBud }, bloom: { svg: TulipParrotBloom } },
       faceAnchor: { bud: { x: 100, y: 78, scale: 0.6 }, bloom: { x: 100, y: 88, scale: 0.9 } },
     },
     {
       id: 'bouquet',
-      name: 'Bó hoa',
+      name: { vi: 'Bó hoa', en: 'Bouquet' },
       unlockAt: 20,
       stages: { bud: { svg: TulipBouquetBud }, bloom: { svg: TulipBouquetBloom } },
       faceAnchor: { bud: { x: 100, y: 59, scale: 0.42 }, bloom: { x: 100, y: 73, scale: 0.75 } },

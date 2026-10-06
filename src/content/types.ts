@@ -1,6 +1,7 @@
 import type { FC } from 'react';
 import type { GrowthStage } from '../domain/growth';
 import type { FaceStyle } from './Face';
+import type { Localized } from '../i18n/lang';
 
 /**
  * Hình vẽ trong hệ toạ độ viewBox 0 0 200 240, mặt đất ở y = 160, tâm x = 100.
@@ -17,17 +18,17 @@ export interface FaceAnchor {
 
 export interface PlantSpecies {
   id: string;
-  name: string;
+  name: Localized<string>;
   defaultPotId: string;
   stages: Record<GrowthStage, Art>;
   faceAnchor: Record<GrowthStage, FaceAnchor>;
   /** kiểu mặt: mặc định 'cute' (mắt tròn, má hồng); 'cool' đeo kính râm, không má hồng; 'lady' mi cong + môi son */
   faceStyle?: FaceStyle;
-  sayings?: string[];                                // câu cây nói mỗi ngày riêng của loài
+  sayings?: Localized<string[]>;                                // câu cây nói mỗi ngày riêng của loài
   /** câu khen riêng khi xong một việc (gộp với câu khen chung) */
-  praises?: string[];
+  praises?: Localized<string[]>;
   /** câu riêng khi bị chạm vào (gộp với câu chung trong taps.ts) */
-  taps?: string[];
+  taps?: Localized<string[]>;
   /** 2 dáng mở khoá, theo thứ tự unlockAt (10, 20) */
   styles?: PlantStyle[];
 }
@@ -38,7 +39,7 @@ export type StyleStage = 'bud' | 'bloom';
 /** Một dáng mở khoá của loài (biến hình hẳn ở bud/bloom). */
 export interface PlantStyle {
   id: string;
-  name: string;
+  name: Localized<string>;
   /** số ngày loài này ra hoa cần có để mở */
   unlockAt: number;
   stages: Record<StyleStage, Art>;
@@ -49,13 +50,13 @@ export interface PlantStyle {
 
 export interface PotStyle {
   id: string;
-  name: string;
+  name: Localized<string>;
   art: Art;
 }
 
 export interface SpecialVariant {
   id: string;
-  name: string;
+  name: Localized<string>;
   /** trọng số khi đã trúng 10% */
   weight: number;
   /** vẽ đè lên cây */

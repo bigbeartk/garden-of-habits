@@ -13,7 +13,7 @@ import { longDate } from '../i18n/fmt';
 export function DayDetailSheet({ dateKey, status, record, onClose }: {
   dateKey: string | null; status: CellStatus | null; record?: DayRecord; onClose: () => void;
 }) {
-  const { t, lang } = useI18n();
+  const { t, lang, tr } = useI18n();
   const open = dateKey !== null && status !== null;
   const special = record && !record.isRestDay ? getSpecial(record.specialId) : null;
 
@@ -24,9 +24,9 @@ export function DayDetailSheet({ dateKey, status, record, onClose }: {
           {record?.title && <h3 className="detail__title">{record.title}</h3>}
           <div className="detail__scene"><MiniPlant status={status!} record={record} /></div>
           {status === 'plant' && record && (
-            <p className="detail__line">{getSpecies(record.plantId).name} · {t.stage[record.finalStage]}</p>
+            <p className="detail__line">{tr(getSpecies(record.plantId).name)} · {t.stage[record.finalStage]}</p>
           )}
-          {special && <p className="detail__line">✨ Cây đặc biệt: {special.name}</p>}
+          {special && <p className="detail__line">✨ Cây đặc biệt: {tr(special.name)}</p>}
           {status === 'rest' && <p className="detail__line">💤 Ngày tiết kiệm năng lượng</p>}
           {status === 'missed' && <p className="detail__line muted">Hôm đó cây chưa được chăm sóc 🥀</p>}
           {record && !record.isRestDay && record.todos.length > 0 && (

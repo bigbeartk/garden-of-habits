@@ -27,7 +27,7 @@ export function ArtGallery() {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: `repeat(4, ${CELL.width}px)`, gap: 6, padding: 6 }}>
       {PLANTS.flatMap((p) => [
-        ...GROWTH_STAGES.map((s) => <Cell key={`${p.id}-${s}`} species={p} styleId="base" stage={s} label={s === 'seed' ? p.name : undefined} />),
+        ...GROWTH_STAGES.map((s) => <Cell key={`${p.id}-${s}`} species={p} styleId="base" stage={s} label={s === 'seed' ? p.name.vi : undefined} />),
         ...(p.styles ?? []).flatMap((st) =>
           (['bud', 'bloom'] as const).map((s) => <Cell key={`${p.id}-${st.id}-${s}`} species={p} styleId={st.id} stage={s} label={`${st.name} · ${s}`} />),
         ),
