@@ -169,6 +169,24 @@ export const vi = {
     goalLabel: 'Mục tiêu ngày này',
     goalPlaceholder: 'Đặt mục tiêu cho ngày này…',
   },
+  garden: {
+    title: 'Khu vườn',
+    options: 'Tuỳ chọn hiển thị',
+    from: 'Từ ngày',
+    to: 'Đến ngày',
+    thisMonth: 'Tháng này',
+    last30: '30 ngày',
+    all: 'Tất cả',
+    onlyPlanted: 'Chỉ hiện cây đã trồng',
+    separateSpecial: 'Tách riêng cây đặc biệt',
+    days: (_n: number) => 'ngày',
+    blooms: (_n: number) => 'ra hoa',
+    tasks: (_n: number) => 'việc',
+    specials: (_n: number) => 'đặc biệt',
+    empty: 'Chưa có cây nào trong khoảng này',
+    wilted: 'Cây héo',
+    rest: 'Ngày nghỉ',
+  },
 };
 
 export type Messages = typeof vi;

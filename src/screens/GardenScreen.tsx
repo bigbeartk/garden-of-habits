@@ -24,7 +24,7 @@ const PLANT_IDS = PLANTS.map((p) => p.id);
  * với số ngày được chọn ở bên dưới. Loài chưa trồng ngày nào hiện mờ.
  */
 export function GardenScreen() {
-  const { tr } = useI18n();
+  const { t, tr } = useI18n();
   const deps = useDeps();
   const nav = useNav();
   const todayKey = dayKey(useNow());
@@ -52,12 +52,12 @@ export function GardenScreen() {
     <section className="screen screen--garden" data-testid="garden">
       <header className="garden__head">
         <BackButton inline onClick={() => nav('calendar')} />
-        <h1 className="screen__title">Khu vườn</h1>
+        <h1 className="screen__title">{t.garden.title}</h1>
         <button
           type="button"
           className="icon-btn garden__options-btn"
-          aria-label="Tuỳ chọn hiển thị"
-          title="Tuỳ chọn hiển thị"
+          aria-label={t.garden.options}
+          title={t.garden.options}
           aria-expanded={optionsOpen}
           aria-controls="garden-options"
           onClick={() => setOptionsOpen((o) => !o)}
@@ -71,36 +71,36 @@ export function GardenScreen() {
       <div className="garden__range card">
         <div className="garden__dates">
           <label className="garden__date">
-            <span>Từ ngày</span>
+            <span>{t.garden.from}</span>
             <input className="input" type="date" value={from} max={todayKey} onChange={(e) => e.target.value && setFrom(e.target.value)} />
           </label>
           <label className="garden__date">
-            <span>Đến ngày</span>
+            <span>{t.garden.to}</span>
             <input className="input" type="date" value={to} max={todayKey} onChange={(e) => e.target.value && setTo(e.target.value)} />
           </label>
         </div>
         <div className="garden__presets">
-          <button type="button" className="garden__preset" onClick={() => preset(monthStart)}>Tháng này</button>
-          <button type="button" className="garden__preset" onClick={() => preset(addDays(todayKey, -29))}>30 ngày</button>
-          <button type="button" className="garden__preset" onClick={() => preset(firstKey ?? todayKey)}>Tất cả</button>
+          <button type="button" className="garden__preset" onClick={() => preset(monthStart)}>{t.garden.thisMonth}</button>
+          <button type="button" className="garden__preset" onClick={() => preset(addDays(todayKey, -29))}>{t.garden.last30}</button>
+          <button type="button" className="garden__preset" onClick={() => preset(firstKey ?? todayKey)}>{t.garden.all}</button>
         </div>
         {optionsOpen && (
           <div id="garden-options" className="garden__options">
-            <SettingSwitch settingKey="gardenOnlyPlanted" label="Chỉ hiện cây đã trồng" defaultOn={false} onError={() => {}} />
-            <SettingSwitch settingKey="gardenSeparateSpecial" label="Tách riêng cây đặc biệt" defaultOn={false} onError={() => {}} />
+            <SettingSwitch settingKey="gardenOnlyPlanted" label={t.garden.onlyPlanted} defaultOn={false} onError={() => {}} />
+            <SettingSwitch settingKey="gardenSeparateSpecial" label={t.garden.separateSpecial} defaultOn={false} onError={() => {}} />
           </div>
         )}
       </div>
 
       <p className="garden__summary" data-testid="garden-summary">
-        <b>{report.days}</b> ngày · <b>{report.bloomDays}</b> ra hoa · <b>{report.todosDone}</b> việc · ✨ <b>{report.specialDays}</b> đặc biệt
+        <b>{report.days}</b> {t.garden.days(report.days)} · <b>{report.bloomDays}</b> {t.garden.blooms(report.bloomDays)} · <b>{report.todosDone}</b> {t.garden.tasks(report.todosDone)} · ✨ <b>{report.specialDays}</b> {t.garden.specials(report.specialDays)}
       </p>
 
-      {nothing && <p className="garden__empty">Chưa có cây nào trong khoảng này</p>}
+      {nothing && <p className="garden__empty">{t.garden.empty}</p>}
       <ul className="garden__beds">
         {beds.map((bed) => {
-          if (bed.kind === 'wilted') return <SpecialBed key="wilted" testId="garden-wilted" mode="wilted" label="Cây héo" count={bed.count} />;
-          if (bed.kind === 'rest') return <SpecialBed key="rest" testId="garden-rest" mode="sleeping" label="Ngày nghỉ" count={bed.count} />;
+          if (bed.kind === 'wilted') return <SpecialBed key="wilted" testId="garden-wilted" mode="wilted" label={t.garden.wilted} count={bed.count} />;
+          if (bed.kind === 'rest') return <SpecialBed key="rest" testId="garden-rest" mode="sleeping" label={t.garden.rest} count={bed.count} />;
           if (bed.kind === 'special') {
             const { plantId, specialId, count } = bed;
             const species = getSpecies(plantId);
@@ -110,7 +110,7 @@ export function GardenScreen() {
                 <PlantScene className="garden__plant" plantId={plantId} potId={species.defaultPotId} stage="bloom" specialId={specialId} mood="smile" />
                 <span className="garden__name">{special ? `${tr(species.name)} · ${tr(special.name)}` : tr(species.name)}</span>
                 <span className="garden__tally">
-                  <span className="garden__count">{count}</span> ngày
+                  <span className="garden__count">{count}</span> {t.garden.days(count)}
                 </span>
               </li>
             );
@@ -129,7 +129,7 @@ export function GardenScreen() {
               />
               <span className="garden__name">{tr(species.name)}</span>
               <span className="garden__tally">
-                <span className="garden__count">{count}</span> ngày
+                <span className="garden__count">{count}</span> {t.garden.days(count)}
               </span>
             </li>
           );
@@ -141,12 +141,13 @@ export function GardenScreen() {
 
 /** Luống riêng cho ngày bỏ lỡ (cây héo) và ngày tiết kiệm năng lượng (hạt giống ngủ), đứng sau các cây thật cùng nhóm. */
 function SpecialBed({ testId, mode, label, count }: { testId: string; mode: 'wilted' | 'sleeping'; label: string; count: number }) {
+  const { t } = useI18n();
   return (
     <li className={`garden__bed garden__bed--${mode}${count === 0 ? ' is-empty' : ''}`} data-testid={testId}>
       <PlantScene className="garden__plant" plantId={PLANT_IDS[0]} potId={DEFAULT_POT_ID} stage="seed" specialId={null} mood="sleep" mode={mode} title={label} />
       <span className="garden__name">{label}</span>
       <span className="garden__tally">
-        <span className="garden__count">{count}</span> ngày
+        <span className="garden__count">{count}</span> {t.garden.days(count)}
       </span>
     </li>
   );

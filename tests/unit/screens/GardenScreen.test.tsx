@@ -184,3 +184,20 @@ describe('Khu vườn và cây đặc biệt', () => {
     await waitFor(async () => expect(await getSetting(deps.db, 'gardenSeparateSpecial')).toBe(true));
   });
 });
+
+describe('GardenScreen: English', () => {
+  it('tóm tắt, nhãn và đơn vị số nhiều bằng English', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
+    await deps.db.days.bulkPut([
+      makeDay({ date: '2026-10-01', plantId: 'corn', finalStage: 'bloom', todos: [{ id: 'a', text: 'x', done: true, doneAt: 1, order: 0, period: 'morning' }] }),
+      makeDay({ date: '2026-10-02', plantId: 'corn' }),
+    ]);
+    renderWithDeps(<GardenScreen />, deps, undefined, 'en');
+    const summary = await screen.findByTestId('garden-summary');
+    await waitFor(() => expect(summary).toHaveTextContent(/^2 days · 1 bloom · 1 task · ✨ 0 special$/));
+    expect(screen.getByRole('heading', { name: 'Garden' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Display options' })).toBeInTheDocument();
+    expect(within(screen.getByTestId('garden-plant-corn')).getByText('days')).toBeInTheDocument();
+    expect(within(screen.getByTestId('garden-wilted')).getByText('Wilted')).toBeInTheDocument();
+  });
+});

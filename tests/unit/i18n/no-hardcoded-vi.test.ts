@@ -12,7 +12,6 @@ const ROOTS = ['src/app', 'src/components', 'src/screens', 'src/domain', 'src/db
  * cuối cùng danh sách phải rỗng. Không bao giờ THÊM file vào đây.
  */
 const NOT_YET_MIGRATED = new Set<string>([
-  'src/screens/GardenScreen.tsx',
   'src/screens/RemindersScreen.tsx',
   'src/screens/SettingsScreen.tsx',
   'src/screens/TemplatesScreen.tsx',
