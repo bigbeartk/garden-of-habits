@@ -15,3 +15,10 @@
 .support__qr { width: 100%; max-width: 280px; height: auto; border-radius: var(--radius-md); border: 2px solid var(--cocoa); box-shadow: var(--shadow-pop); background: #fff; }
 .support__actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
 .support__paypal { text-decoration: none; color: inherit; display: inline-flex; align-items: center; }
+/* chọn ngôn ngữ: <select> gốc, bỏ kiểu mặc định để có viền sticker + mũi tên ▾ tự vẽ */
+.lang-select {
+  -webkit-appearance: none; appearance: none; width: auto; min-width: 180px; align-self: flex-start;
+  padding-right: 40px; border-color: var(--cocoa); border-radius: 999px; box-shadow: var(--shadow-pop);
+  font: inherit; font-weight: 600; color: var(--cocoa); cursor: pointer;
+  background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%235B4636' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 16px center / 12px 8px;
+}
