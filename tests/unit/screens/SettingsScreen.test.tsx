@@ -251,11 +251,8 @@ describe('SettingsScreen: ngôn ngữ', () => {
     const { deps } = makeDeps();
     const user = userEvent.setup();
     renderWithDeps(<SettingsScreen />, deps);
-    const select = screen.getByRole('combobox', { name: 'Ngôn ngữ · Language' });
-    expect(select).toHaveValue('vi');
-    expect(within(select).getAllByRole('option').map((o) => o.textContent)).toEqual(['Tiếng Việt', 'English']);
-    await user.selectOptions(select, 'en');
-    expect(screen.getByRole('combobox', { name: 'Ngôn ngữ · Language' })).toHaveValue('en');
+    await user.click(screen.getByRole('button', { name: /^Ngôn ngữ · Language/ }));
+    await user.click(screen.getByRole('option', { name: 'English' }));
     expect(screen.getByRole('heading', { name: 'Settings', level: 1 })).toBeInTheDocument();
     await waitFor(async () => expect(await getSetting(deps.db, 'language')).toBe('en'));
   });

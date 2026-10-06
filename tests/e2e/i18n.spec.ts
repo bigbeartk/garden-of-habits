@@ -56,7 +56,8 @@ test.describe('máy tiếng Anh', () => {
     await page.clock.setFixedTime(at('2026-10-02T10:00:00'));
     await page.goto('/');
     await goTabEn(page, 'Settings');
-    await page.getByRole('combobox', { name: 'Ngôn ngữ · Language' }).selectOption('vi');
+    await page.getByRole('button', { name: /^Ngôn ngữ · Language/ }).click();
+    await page.getByRole('option', { name: 'Tiếng Việt' }).click();
     await expect(page.getByRole('heading', { name: 'Sao lưu & khôi phục' })).toBeVisible();
     await page.reload();
     await expect(page.getByRole('button', { name: 'Tháng trước' })).toBeVisible();

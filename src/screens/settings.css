@@ -15,10 +15,34 @@
 .support__qr { width: 100%; max-width: 280px; height: auto; border-radius: var(--radius-md); border: 2px solid var(--cocoa); box-shadow: var(--shadow-pop); background: #fff; }
 .support__actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
 .support__paypal { text-decoration: none; color: inherit; display: inline-flex; align-items: center; }
-/* chọn ngôn ngữ: <select> gốc, bỏ kiểu mặc định để có viền sticker + mũi tên ▾ tự vẽ */
-.lang-select {
-  -webkit-appearance: none; appearance: none; width: auto; min-width: 180px; align-self: flex-start;
-  padding-right: 40px; border-color: var(--cocoa); border-radius: 999px; box-shadow: var(--shadow-pop);
-  font: inherit; font-weight: 600; color: var(--cocoa); cursor: pointer;
-  background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%235B4636' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 16px center / 12px 8px;
+/* chọn ngôn ngữ: dropdown tự vẽ (LanguagePicker), lúc đóng và lúc mở cùng phong cách sticker */
+.lang-dd { position: relative; align-self: flex-start; min-width: 200px; }
+.lang-dd__toggle {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; min-height: 44px;
+  padding: 10px 16px 10px 18px; border: 2px solid var(--cocoa); border-radius: 999px; background: #fff;
+  box-shadow: var(--shadow-pop); font: inherit; font-weight: 600; color: var(--cocoa); cursor: pointer; text-align: left;
+}
+.lang-dd__arrow {
+  flex: none; width: 12px; height: 8px; transition: transform 0.18s ease;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%235B4636' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat center / contain;
+}
+.lang-dd__toggle.is-open .lang-dd__arrow { transform: rotate(180deg); }
+.lang-dd__list {
+  position: absolute; z-index: 20; top: calc(100% + 8px); left: 0; right: 0; margin: 0; padding: 6px; list-style: none;
+  background: #fff; border: 2px solid var(--cocoa); border-radius: var(--radius-md); box-shadow: var(--shadow-pop);
+  outline: none; transform-origin: top center; animation: lang-dd-in 0.16s ease-out;
+}
+.lang-dd__option {
+  padding: 10px 40px 10px 14px; border-radius: 999px; font-weight: 600; color: var(--cocoa); cursor: pointer;
+  -webkit-user-select: none; user-select: none;
+}
+.lang-dd__option + .lang-dd__option { margin-top: 4px; }
+.lang-dd__option.is-active { background: var(--butter); }
+.lang-dd__option.is-selected {
+  background: var(--peach) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.5l3 3 6-6.5' fill='none' stroke='%235B4636' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 14px center / 16px 16px;
+}
+@keyframes lang-dd-in { from { opacity: 0; transform: translateY(-6px) scale(0.97); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .lang-dd__list { animation: none; }
+  .lang-dd__arrow { transition: none; }
 }
