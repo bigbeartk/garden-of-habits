@@ -879,3 +879,27 @@ test('Nhắc việc: bật Hôm nay thì việc vào buổi Sáng, chưa xong th
   await expect(page.getByTestId('reminders-active').getByText('Mua điện thoại cho mẹ')).toHaveCount(0);
   await page.screenshot({ path: 'test-results/reminders-done.png' });
 });
+
+test('xoá toàn bộ dữ liệu: gõ XOA rồi xoá, app bắt đầu lại từ đầu và vẫn sạch sau khi tải lại', async ({ page }) => {
+  await page.clock.setFixedTime(at('2026-10-02T10:00:00'));
+  await page.goto('/');
+  await openToday(page);
+  await addTodo(page, 'Uống nước');
+  await closeDraft(page);
+  await goTab(page, 'Cài đặt');
+  await closeMenu(page);
+  await page.getByRole('button', { name: '🗑 Xoá toàn bộ dữ liệu' }).click();
+  const dialog = page.getByRole('dialog', { name: 'Xoá toàn bộ dữ liệu?' });
+  await expect(dialog.getByText(/1 ngày cây/)).toBeVisible();
+  const confirm = dialog.getByRole('button', { name: 'Xoá vĩnh viễn' });
+  await expect(confirm).toBeDisabled();
+  await dialog.getByLabel('Gõ XOA để xác nhận').fill('XOA');
+  await page.screenshot({ path: 'test-results/reset-data.png' });
+  await confirm.click();
+  // về Hôm nay với ngày mới tinh
+  await expect(page.getByTestId('plant-scene')).toBeVisible();
+  await expect(page.getByRole('checkbox', { name: 'Hoàn thành: Uống nước' })).toHaveCount(0);
+  await page.reload();
+  await openToday(page);
+  await expect(page.getByRole('checkbox', { name: 'Hoàn thành: Uống nước' })).toHaveCount(0);
+});

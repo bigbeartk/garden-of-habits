@@ -22,6 +22,7 @@ import { TemplatesScreen } from './TemplatesScreen';
 import { useI18n } from '../i18n/I18nProvider';
 import { dateTime, shortDateTime } from '../i18n/fmt';
 import { errorText } from '../i18n/errors';
+import { ResetDataSheet } from '../components/ResetDataSheet';
 import './settings.css';
 
 export function SettingsScreen() {
@@ -37,6 +38,8 @@ export function SettingsScreen() {
   const [showInstall, setShowInstall] = useState(false);
   /** đang mở màn Mẫu (nằm trong tab Cài đặt) */
   const [showTemplates, setShowTemplates] = useState(false);
+  /** bảng xác nhận xoá toàn bộ dữ liệu */
+  const [showReset, setShowReset] = useState(false);
   /** app Android: đã là app cài sẵn, không cần hướng dẫn "Thêm vào MH chính" */
   const native = isNative();
   const defaultTemplate = useLiveQuery(async () => (await listTemplates(deps.db)).find((t) => t.isDefault) ?? null, [deps.db]);
@@ -161,7 +164,19 @@ export function SettingsScreen() {
             </div>
           </div>
         )}
+        <hr className="settings__divider" />
+        <button type="button" className="btn btn--danger" onClick={() => setShowReset(true)}>{t.settings.reset.button}</button>
       </div>
+
+      <ResetDataSheet
+        open={showReset}
+        onClose={() => setShowReset(false)}
+        onBackup={doBackup}
+        onDone={() => {
+          setShowReset(false);
+          nav('today');
+        }}
+      />
 
       <SupportCard />
 

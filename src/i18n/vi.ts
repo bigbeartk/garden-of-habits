@@ -215,6 +215,18 @@ export const vi = {
     replace: 'Thay thế toàn bộ',
     replaceConfirm: 'Chắc chắn thay thế',
     version: 'Phiên bản',
+    reset: {
+      button: '🗑 Xoá toàn bộ dữ liệu',
+      title: 'Xoá toàn bộ dữ liệu?',
+      lose: 'Sẽ mất vĩnh viễn:',
+      summary: (days: number, templates: number, reminders: number, planned: number) =>
+        `${days} ngày cây · ${templates} mẫu · ${reminders} việc nhắc · ${planned} việc đã lên lịch`,
+      extra: 'Cùng ảnh nền lịch, cây đặc biệt và dáng cây đã mở khoá, mọi tuỳ chọn. App sẽ bắt đầu lại như mới cài.',
+      backupFirst: 'Hãy sao lưu trước nhé, xoá rồi không lấy lại được.',
+      word: 'XOA',
+      inputLabel: 'Gõ XOA để xác nhận',
+      confirm: 'Xoá vĩnh viễn',
+    },
   },
   install: {
     title: 'Cài app lên màn hình chính',

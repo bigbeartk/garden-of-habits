@@ -286,3 +286,54 @@ it('khôi phục file có ngôn ngữ khác thì giao diện đổi theo ngay', 
   await user.click(screen.getByRole('button', { name: 'Yes, replace' }));
   expect(await screen.findByRole('heading', { name: 'Cài đặt', level: 1 })).toBeInTheDocument();
 });
+
+describe('SettingsScreen — xoá toàn bộ dữ liệu', () => {
+  it('phải gõ đúng XOA mới xoá được; xoá xong tạo lại ngày hôm nay và chuyển sang Hôm nay', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
+    await deps.db.days.put(makeDay({ date: '2026-09-20', note: 'cũ' }));
+    await deps.db.templates.put({ id: 't', name: 'Sáng', items: [], isDefault: true, createdAt: 1, updatedAt: 1 });
+    const nav = vi.fn();
+    const user = userEvent.setup();
+    renderWithDeps(<SettingsScreen />, deps, nav);
+    await user.click(screen.getByRole('button', { name: '🗑 Xoá toàn bộ dữ liệu' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Xoá toàn bộ dữ liệu?' });
+    expect(await within(dialog).findByText(/1 ngày cây · 1 mẫu/)).toBeInTheDocument();
+    expect(within(dialog).getByRole('button', { name: '💾 Sao lưu dữ liệu' })).toBeInTheDocument();
+    const confirm = within(dialog).getByRole('button', { name: 'Xoá vĩnh viễn' });
+    expect(confirm).toBeDisabled();
+    await user.type(within(dialog).getByLabelText('Gõ XOA để xác nhận'), 'XO');
+    expect(confirm).toBeDisabled();
+    await user.type(within(dialog).getByLabelText('Gõ XOA để xác nhận'), 'A');
+    expect(confirm).toBeEnabled();
+    await user.click(confirm);
+    await waitFor(() => expect(nav).toHaveBeenCalledWith('today'));
+    expect(await deps.db.templates.count()).toBe(0);
+    const days = await deps.db.days.toArray();
+    expect(days.map((d) => d.date)).toEqual(['2026-10-02']);
+    expect(days[0].greetedAt).toBeNull();
+  });
+
+  it('đóng bảng thì không xoá gì, ô gõ được làm trống', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
+    await deps.db.days.put(makeDay({ date: '2026-09-20' }));
+    const user = userEvent.setup();
+    renderWithDeps(<SettingsScreen />, deps);
+    await user.click(screen.getByRole('button', { name: '🗑 Xoá toàn bộ dữ liệu' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Xoá toàn bộ dữ liệu?' });
+    await user.type(within(dialog).getByLabelText('Gõ XOA để xác nhận'), 'XOA');
+    await user.click(within(dialog).getByRole('button', { name: 'Đóng' }));
+    expect(await deps.db.days.count()).toBe(1);
+    await user.click(screen.getByRole('button', { name: '🗑 Xoá toàn bộ dữ liệu' }));
+    expect(within(await screen.findByRole('dialog')).getByLabelText('Gõ XOA để xác nhận')).toHaveValue('');
+  });
+
+  it('bản tiếng Anh gõ DELETE', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
+    const user = userEvent.setup();
+    renderWithDeps(<SettingsScreen />, deps, undefined, 'en');
+    await user.click(screen.getByRole('button', { name: '🗑 Delete all data' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Delete all data?' });
+    await user.type(within(dialog).getByLabelText('Type DELETE to confirm'), 'delete');
+    expect(within(dialog).getByRole('button', { name: 'Delete forever' })).toBeEnabled();
+  });
+});

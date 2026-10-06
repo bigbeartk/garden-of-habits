@@ -210,6 +210,18 @@ export const en: Messages = {
     replace: 'Replace everything',
     replaceConfirm: 'Yes, replace',
     version: 'Version',
+    reset: {
+      button: '🗑 Delete all data',
+      title: 'Delete all data?',
+      lose: 'You will permanently lose:',
+      summary: (days, templates, reminders, planned) =>
+        `${days} ${days === 1 ? 'plant day' : 'plant days'} · ${templates} ${templates === 1 ? 'template' : 'templates'} · ${reminders} ${reminders === 1 ? 'reminder' : 'reminders'} · ${planned} planned ${planned === 1 ? 'task' : 'tasks'}`,
+      extra: 'Plus the calendar background, unlocked special plants and styles, and all options. The app starts over like a fresh install.',
+      backupFirst: "Back up first — this can't be undone.",
+      word: 'DELETE',
+      inputLabel: 'Type DELETE to confirm',
+      confirm: 'Delete forever',
+    },
   },
   install: {
     title: 'Install the app on your Home Screen',

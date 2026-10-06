@@ -46,3 +46,13 @@
   .lang-dd__list { animation: none; }
   .lang-dd__arrow { transition: none; }
 }
+/* xoá toàn bộ dữ liệu: nút đỏ nhạt tách khỏi các nút sao lưu, bảng xác nhận */
+.settings__divider { align-self: stretch; margin: 6px 0 2px; border: 0; border-top: 2px dashed var(--lavender); }
+.btn--danger { background: #FFE3E8; color: #A3324C; }
+.btn--danger:disabled { opacity: 0.45; cursor: not-allowed; box-shadow: none; }
+.reset { display: flex; flex-direction: column; gap: 10px; align-items: stretch; }
+.reset p { margin: 0; }
+.reset__lose { font-weight: 700; }
+.reset__summary { font-weight: 600; }
+.reset__warn { padding: 10px 14px; border-radius: var(--radius-sm); background: var(--butter); font-weight: 600; }
+.reset__label { font-weight: 600; margin-top: 4px; }
