@@ -7,6 +7,7 @@ export const vi = {
     backToCalendar: 'Quay lại Lịch',
     backToSettings: 'Quay lại Cài đặt',
   },
+  language: { title: 'Ngôn ngữ · Language' },
 };
 
 export type Messages = typeof vi;

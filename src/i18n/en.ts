@@ -8,4 +8,5 @@ export const en: Messages = {
     backToCalendar: 'Back to Calendar',
     backToSettings: 'Back to Settings',
   },
+  language: { title: 'Ngôn ngữ · Language' },
 };

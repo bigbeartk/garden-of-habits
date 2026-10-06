@@ -8,6 +8,7 @@ import { BackgroundPicker } from '../components/BackgroundPicker';
 import { BottomSheet } from '../components/BottomSheet';
 import { ConfirmButton } from '../components/ConfirmButton';
 import { HelpIcon } from '../components/icons';
+import { LanguagePicker } from '../components/LanguagePicker';
 import { SettingSwitch } from '../components/SettingSwitch';
 import { SupportCard } from '../components/SupportCard';
 import {
@@ -140,6 +141,8 @@ export function SettingsScreen() {
         <SettingSwitch settingKey="showCalendarBgButton" label="Hiện nút đổi hình nền ở trang Lịch" onError={setError} />
         <SettingSwitch settingKey="showNoteDot" label="Hiện chấm đỏ ở ngày có ghi chú" onError={setError} />
       </div>
+
+      <LanguagePicker />
 
       <div className="card settings__section">
         <h2>Sao lưu & khôi phục</h2>

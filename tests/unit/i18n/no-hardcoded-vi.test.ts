@@ -54,6 +54,7 @@ const ALLOWED = new Set<string>([
   'Đã huỷ chia sẻ', // platform: AbortError chỉ để nhận diện bằng name
   'pickUniform: danh sách rỗng', // lỗi lập trình, không tới người dùng
   'pickWeighted: danh sách rỗng',
+  'Tiếng Việt', // tên ngôn ngữ, luôn viết bằng chính nó (LanguagePicker)
 ]);
 
 function files(p: string): string[] {

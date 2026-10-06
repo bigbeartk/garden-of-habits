@@ -76,12 +76,12 @@ describe('SettingsScreen nút quay lại', () => {
 });
 
 describe('SettingsScreen thứ tự thẻ', () => {
-  it('Nhắc việc → Mẫu việc → Lịch → Sao lưu & khôi phục; hướng dẫn cài app không còn là thẻ', async () => {
+  it('Nhắc việc → Mẫu việc → Lịch → Ngôn ngữ → Sao lưu & khôi phục; hướng dẫn cài app không còn là thẻ', async () => {
     const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
     renderWithDeps(<SettingsScreen />, deps);
     await screen.findByRole('heading', { name: 'Lịch' });
     const heads = [...document.querySelectorAll('.settings__section > h2')].map((h) => h.textContent);
-    expect(heads.slice(0, 4)).toEqual(['Nhắc việc', 'Mẫu việc', 'Lịch', 'Sao lưu & khôi phục']);
+    expect(heads.slice(0, 5)).toEqual(['Nhắc việc', 'Mẫu việc', 'Lịch', 'Ngôn ngữ · Language', 'Sao lưu & khôi phục']);
     expect(heads).not.toContain('Cài app lên màn hình chính');
   });
 
@@ -243,5 +243,26 @@ describe('SettingsScreen — Nhắc việc', () => {
     expect(await screen.findByRole('heading', { name: 'Nhắc việc', level: 1 })).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Quay lại Cài đặt' }));
     expect(await screen.findByRole('heading', { name: 'Cài đặt' })).toBeInTheDocument();
+  });
+});
+
+describe('SettingsScreen: ngôn ngữ', () => {
+  it('thẻ Ngôn ngữ đổi giao diện sang English và lưu lại', async () => {
+    const { deps } = makeDeps();
+    const user = userEvent.setup();
+    renderWithDeps(<SettingsScreen />, deps);
+    const group = screen.getByRole('radiogroup', { name: 'Ngôn ngữ · Language' });
+    expect(within(group).getByRole('radio', { name: 'Tiếng Việt' })).toHaveAttribute('aria-checked', 'true');
+    await user.click(within(group).getByRole('radio', { name: 'English' }));
+    expect(within(group).getByRole('radio', { name: 'English' })).toHaveAttribute('aria-checked', 'true');
+    await waitFor(async () => expect(await getSetting(deps.db, 'language')).toBe('en'));
+  });
+
+  it('thẻ Ngôn ngữ đứng sau thẻ Lịch, trước Sao lưu', () => {
+    const { deps } = makeDeps();
+    renderWithDeps(<SettingsScreen />, deps);
+    const heads = screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent);
+    expect(heads.indexOf('Ngôn ngữ · Language')).toBe(heads.indexOf('Lịch') + 1);
+    expect(heads.indexOf('Sao lưu & khôi phục')).toBe(heads.indexOf('Ngôn ngữ · Language') + 1);
   });
 });

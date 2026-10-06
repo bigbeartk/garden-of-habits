@@ -415,3 +415,39 @@ describe('sao lưu việc nhắc', () => {
     expect(r.ok && r.backup.reminders).toEqual([]);
   });
 });
+
+describe('language trong sao lưu', () => {
+  it('createBackup ghi language nếu đã chọn', async () => {
+    const db = makeDb();
+    await setSetting(db, 'language', 'en');
+    expect((await createBackup(db, 1)).language).toBe('en');
+  });
+
+  it('replace: file có language → ghi; file không có → giữ ngôn ngữ của máy', async () => {
+    const db = makeDb();
+    await setSetting(db, 'language', 'en');
+    const base = await createBackup(makeDb(), 1); // không có language
+    await restoreBackup(db, base, 'replace');
+    expect(await getSetting(db, 'language')).toBe('en');
+    await restoreBackup(db, { ...base, language: 'vi' }, 'replace');
+    expect(await getSetting(db, 'language')).toBe('vi');
+  });
+
+  it('merge: máy đã chọn → giữ; máy chưa chọn → lấy từ file', async () => {
+    const a = makeDb();
+    await setSetting(a, 'language', 'vi');
+    const file = { ...(await createBackup(makeDb(), 1)), language: 'en' as const };
+    await restoreBackup(a, file, 'merge');
+    expect(await getSetting(a, 'language')).toBe('vi');
+    const b = makeDb();
+    await restoreBackup(b, file, 'merge');
+    expect(await getSetting(b, 'language')).toBe('en');
+  });
+
+  it('parseBackup nhận language và từ chối giá trị lạ', async () => {
+    const ok = parseBackup(JSON.stringify({ ...(await createBackup(makeDb(), 1)), language: 'en' }));
+    expect(ok.ok && ok.backup.language).toBe('en');
+    const bad = parseBackup(JSON.stringify({ ...(await createBackup(makeDb(), 1)), language: 'fr' }));
+    expect(bad.ok).toBe(false);
+  });
+});

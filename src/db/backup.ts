@@ -85,6 +85,7 @@ const BackupSchema = z.object({
   gardenSeparateSpecial: z.boolean().optional(),
   unlockedSpecials: z.array(z.string()).optional(), // cây đặc biệt đã mở khoá; file cũ chưa có
   unlockedStyles: z.array(z.string()).optional(), // dáng cây đã mở khoá; file cũ chưa có
+  language: z.enum(['vi', 'en']).optional(), // ngôn ngữ giao diện; file cũ chưa có
 });
 
 export type BackupFile = z.infer<typeof BackupSchema>;
@@ -119,6 +120,7 @@ export async function createBackup(db: PlantDB, now: number): Promise<BackupFile
     const calendarTheme = await getSetting(db, 'calendarTheme');
     const unlockedSpecials = await getSetting(db, 'unlockedSpecials');
     const unlockedStyles = await getSetting(db, 'unlockedStyles');
+    const language = await getSetting(db, 'language');
     const switches: Partial<Record<BooleanSetting, boolean>> = {};
     for (const key of BOOLEAN_SETTINGS) {
       const v = await getSetting(db, key);
@@ -137,6 +139,7 @@ export async function createBackup(db: PlantDB, now: number): Promise<BackupFile
       ...(calendarTheme ? { calendarTheme } : {}),
       ...(unlockedSpecials ? { unlockedSpecials } : {}),
       ...(unlockedStyles ? { unlockedStyles } : {}),
+      ...(language ? { language } : {}),
       ...switches,
     };
   });
@@ -196,6 +199,8 @@ export async function restoreBackup(db: PlantDB, backup: BackupFile, mode: Resto
       else await deleteSetting(db, 'unlockedSpecials');
       if (backup.unlockedStyles) await setSetting(db, 'unlockedStyles', backup.unlockedStyles);
       else await deleteSetting(db, 'unlockedStyles');
+      // file không có ngôn ngữ (file cũ): giữ ngôn ngữ đang dùng, đừng xoá về mặc định
+      if (backup.language) await setSetting(db, 'language', backup.language);
       for (const key of BOOLEAN_SETTINGS) {
         const v = backup[key];
         if (v !== undefined) await setSetting(db, key, v);
@@ -238,6 +243,7 @@ export async function restoreBackup(db: PlantDB, backup: BackupFile, mode: Resto
         const mine = (await getSetting(db, 'unlockedStyles')) ?? [];
         await setSetting(db, 'unlockedStyles', [...new Set([...mine, ...backup.unlockedStyles])]);
       }
+      if (backup.language && (await getSetting(db, 'language')) === undefined) await setSetting(db, 'language', backup.language);
       for (const key of BOOLEAN_SETTINGS) {
         const v = backup[key];
         if (v !== undefined && (await getSetting(db, key)) === undefined) await setSetting(db, key, v);
