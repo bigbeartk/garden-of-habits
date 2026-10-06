@@ -2,16 +2,17 @@ import { dayKey } from './dayKey';
 import { mutateDay, reminderTodo, toggleTodo, type DayDeps, type ToggleResult } from './dayService';
 import { newId } from './id';
 import type { DayRecord, Reminder, Todo } from './types';
+import { AppError } from './errors';
 
 function cleanText(text: string): string {
   const clean = text.trim();
-  if (!clean) throw new Error('Nội dung việc nhắc không được để trống');
+  if (!clean) throw new AppError('emptyReminder');
   return clean;
 }
 
 async function getReminder(deps: DayDeps, id: string): Promise<Reminder> {
   const r = await deps.db.reminders.get(id);
-  if (!r) throw new Error('Không tìm thấy việc nhắc');
+  if (!r) throw new AppError('reminderNotFound');
   return r;
 }
 

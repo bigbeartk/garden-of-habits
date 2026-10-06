@@ -42,7 +42,7 @@ describe('backup', () => {
   });
 
   it('parseBackup: JSON hỏng', () => {
-    expect(parseBackup('{oops')).toEqual({ ok: false, error: 'File không phải JSON hợp lệ.' });
+    expect(parseBackup('{oops')).toEqual({ ok: false, code: 'notJson', error: 'File không phải JSON hợp lệ.' });
   });
 
   it('parseBackup: file không phải của app', () => {

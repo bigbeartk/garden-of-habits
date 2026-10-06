@@ -6,6 +6,8 @@ import { getSetting, setSetting } from '../db/settings';
 import type { CalendarTheme } from '../domain/types';
 import { useCalendarTheme } from '../hooks/useCalendarBg';
 import { prepareBackground } from '../utils/image';
+import { useI18n } from '../i18n/I18nProvider';
+import { errorText } from '../i18n/errors';
 
 const OPTIONS: { id: CalendarTheme; label: string }[] = [
   { id: 'default', label: 'Mặc định' },
@@ -75,6 +77,7 @@ function Swatch({ id }: { id: CalendarTheme }) {
 
 /** Chọn hình nền màn Lịch: mặc định, 2 nền động, hoặc ảnh từ máy. */
 export function BackgroundPicker() {
+  const { t } = useI18n();
   const deps = useDeps();
   const theme = useCalendarTheme();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -110,7 +113,7 @@ export function BackgroundPicker() {
     }
     setSetting(deps.db, 'calendarTheme', id)
       .then(() => setOpen(false))
-      .catch((e: Error) => setError(e.message));
+      .catch((e: Error) => setError(errorText(e, t)));
   }
 
   const current = OPTIONS.find((o) => o.id === theme) ?? OPTIONS[0];

@@ -22,10 +22,11 @@ import { RemindersScreen } from './RemindersScreen';
 import { TemplatesScreen } from './TemplatesScreen';
 import { useI18n } from '../i18n/I18nProvider';
 import { dateTime, shortDateTime } from '../i18n/fmt';
+import { errorText } from '../i18n/errors';
 import './settings.css';
 
 export function SettingsScreen() {
-  const { lang } = useI18n();
+  const { t, lang } = useI18n();
   const deps = useDeps();
   const nav = useNav();
   const lastBackupAt = useLiveQuery(() => getSetting(deps.db, 'lastBackupAt'), [deps.db]);
@@ -61,7 +62,7 @@ export function SettingsScreen() {
       setStatus(`Đã tạo file ${name} ✓ ${native ? 'Nhớ lưu vào Google Drive hoặc Tệp nhé.' : 'Nhớ lưu vào Tệp hoặc iCloud Drive nhé.'}`);
     } catch (e) {
       if ((e as Error).name === 'AbortError') return;
-      setError(`Không sao lưu được: ${(e as Error).message}`);
+      setError(`Không sao lưu được: ${errorText(e, t)}`);
     }
   }
 
@@ -73,7 +74,7 @@ export function SettingsScreen() {
     const result = parseBackup(await file.text());
     if (!result.ok) {
       setPending(null);
-      setError(result.error);
+      setError(t.backup.errors[result.code](result.path));
       return;
     }
     setError(null);
@@ -87,7 +88,7 @@ export function SettingsScreen() {
       setPending(null);
       setStatus(`Đã khôi phục ${res.days} ngày và ${res.templates} mẫu ✓`);
     } catch (e) {
-      setError(`Khôi phục thất bại, dữ liệu hiện tại vẫn được giữ nguyên. ${(e as Error).message}`);
+      setError(`Khôi phục thất bại, dữ liệu hiện tại vẫn được giữ nguyên. ${errorText(e, t)}`);
     }
   }
 

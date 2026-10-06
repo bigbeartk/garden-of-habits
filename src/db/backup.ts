@@ -4,6 +4,7 @@ import { deleteSetting, getSetting, setSetting, BOOLEAN_SETTINGS, type BooleanSe
 import { GROWTH_STAGES } from '../domain/growth';
 import { PERIODS } from '../domain/period';
 import { formatDate } from '../domain/dayKey';
+import { vi } from '../i18n/vi';
 
 export const BACKUP_FORMAT = 'chau-cay-chibi-backup';
 export const BACKUP_REMIND_AFTER_MS = 7 * 24 * 60 * 60 * 1000;
@@ -89,7 +90,12 @@ const BackupSchema = z.object({
 });
 
 export type BackupFile = z.infer<typeof BackupSchema>;
-export type ParseResult = { ok: true; backup: BackupFile } | { ok: false; error: string };
+export type BackupErrorCode = keyof typeof vi.backup.errors;
+/** `error`: câu tiếng Việt (giữ cho test cũ); giao diện dịch bằng `t.backup.errors[code](path)`. */
+export type ParseResult = { ok: true; backup: BackupFile } | { ok: false; error: string; code: BackupErrorCode; path?: string };
+
+const fail = (code: BackupErrorCode, path?: string): ParseResult =>
+  ({ ok: false, code, error: vi.backup.errors[code](path), ...(path !== undefined ? { path } : {}) });
 export type RestoreMode = 'replace' | 'merge';
 
 export function bytesToBase64(buf: ArrayBuffer): string {
@@ -158,19 +164,19 @@ export function parseBackup(text: string): ParseResult {
   try {
     raw = JSON.parse(text);
   } catch {
-    return { ok: false, error: 'File không phải JSON hợp lệ.' };
+    return fail('notJson');
   }
   if (typeof raw !== 'object' || raw === null || (raw as { format?: unknown }).format !== BACKUP_FORMAT) {
-    return { ok: false, error: 'Đây không phải file sao lưu của Garden of Habits.' };
+    return fail('wrongFormat');
   }
   const version = (raw as { schemaVersion?: unknown }).schemaVersion;
   if (typeof version === 'number' && version > SCHEMA_VERSION) {
-    return { ok: false, error: 'File sao lưu được tạo từ phiên bản app mới hơn. Hãy cập nhật app rồi thử lại.' };
+    return fail('tooNew');
   }
   const result = BackupSchema.safeParse(raw);
   if (!result.success) {
     const issue = result.error.issues[0];
-    return { ok: false, error: `File sao lưu bị hỏng hoặc thiếu dữ liệu (ở "${issue.path.join(".")}").` };
+    return fail('corrupt', issue.path.join('.'));
   }
   return { ok: true, backup: result.data };
 }

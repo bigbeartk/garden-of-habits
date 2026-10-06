@@ -33,11 +33,14 @@ import { timeOfDay } from '../domain/timeOfDay';
 import { getSetting, setSetting } from '../db/settings';
 import { useBackupReminder } from '../hooks/useBackupReminder';
 import { useToday } from '../hooks/useToday';
+import { useI18n } from '../i18n/I18nProvider';
+import { errorText } from '../i18n/errors';
 import './today.css';
 
 type Sheet = null | 'plant' | 'pot' | 'note';
 
 export function TodayScreen() {
+  const { t } = useI18n();
   const deps = useDeps();
   const nav = useNav();
   const { day, now, error: loadError } = useToday();
@@ -67,14 +70,14 @@ export function TodayScreen() {
   useEffect(() => {
     if (!day || day.speech !== undefined || pickedFor.current === day.date) return;
     pickedFor.current = day.date;
-    setDaySpeech(deps, day.date, pickSaying(getSpecies(day.plantId), deps.rng)).catch((e: Error) => setError(e.message));
+    setDaySpeech(deps, day.date, pickSaying(getSpecies(day.plantId), deps.rng)).catch((e: Error) => setError(errorText(e, t)));
   }, [day, deps]);
 
   useEffect(() => {
     if (!day || day.greetedAt !== null || greetedFor.current === day.date) return;
     greetedFor.current = day.date;
     setIntro(true);
-    markGreeted(deps, day.date).catch((e: Error) => setError(e.message));
+    markGreeted(deps, day.date).catch((e: Error) => setError(errorText(e, t)));
   }, [day, deps]);
 
   useEffect(() => {
@@ -128,7 +131,7 @@ export function TodayScreen() {
   }
 
   const run = (p: Promise<unknown>) => {
-    p.catch((e: Error) => setError(e.message));
+    p.catch((e: Error) => setError(errorText(e, t)));
   };
   // câu khen/chạm hiện tạm; ngoài lúc đó cây nói lời của ngày (nếu không bị ẩn)
   const daily = !day.isRestDay && showSpeech === true && day.speech !== undefined ? { text: day.speech, kind: 'daily' as const } : null;
@@ -162,7 +165,7 @@ export function TodayScreen() {
         setSpeech({ text: pickPraise(getSpecies(r.day.plantId), deps.rng, bloomed), kind: 'praise' });
       }
     } catch (e) {
-      setError((e as Error).message);
+      setError(errorText(e, t));
     }
   }
 

@@ -10,6 +10,8 @@ import type { DayDeps } from '../domain/dayService';
 import { addReminder, deleteReminder, editReminder, setReminderAutoToday, toggleReminderDone } from '../domain/reminderService';
 import { activeReminders, doneThisWeek } from '../domain/reminderView';
 import type { Reminder } from '../domain/types';
+import { useI18n } from '../i18n/I18nProvider';
+import { errorText } from '../i18n/errors';
 import '../components/todo.css';
 import './reminders.css';
 
@@ -21,6 +23,7 @@ type Tone = (typeof TONES)[number];
 
 /** Màn Nhắc việc, mở từ thẻ "Nhắc việc" trong Cài đặt; `onBack` quay về Cài đặt. */
 export function RemindersScreen({ onBack }: { onBack: () => void }) {
+  const { t } = useI18n();
   const deps = useDeps();
   const all = useLiveQuery(() => deps.db.reminders.toArray(), [deps.db]);
   const [adding, setAdding] = useState(false);
@@ -31,7 +34,7 @@ export function RemindersScreen({ onBack }: { onBack: () => void }) {
   const today = dayKey(deps.now());
   const run: Run = (p) => {
     setError(null);
-    p.catch((e: Error) => setError(e.message));
+    p.catch((e: Error) => setError(errorText(e, t)));
   };
   const active = all ? activeReminders(all) : [];
   const done = all ? doneThisWeek(all, today) : [];
@@ -163,6 +166,7 @@ function ReminderRow({ r, tone, deps, run, onRing }: { r: Reminder; tone: Tone; 
 }
 
 function NewReminder({ deps, onDone, onError }: { deps: DayDeps; onDone: () => void; onError: (msg: string) => void }) {
+  const { t } = useI18n();
   const [text, setText] = useState('');
   async function save() {
     // việc rỗng không bao giờ được lưu: chỉ đóng dòng
@@ -170,7 +174,7 @@ function NewReminder({ deps, onDone, onError }: { deps: DayDeps; onDone: () => v
       try {
         await addReminder(deps, text);
       } catch (e) {
-        onError((e as Error).message);
+        onError(errorText(e, t));
         return;
       }
     }

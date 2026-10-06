@@ -4,12 +4,13 @@ import type { DayDeps } from './dayService';
 import { newId } from './id';
 import type { Period } from './period';
 import type { PlannedTodo } from './types';
+import { AppError } from './errors';
 
 /** Lên lịch một việc cho ngày sau hôm nay; đến ngày đó `ensureToday` đưa nó vào danh sách todo. */
 export async function addPlanned(deps: DayDeps, date: string, text: string, period: Period): Promise<PlannedTodo> {
-  if (date <= dayKey(deps.now())) throw new Error('Chỉ lên lịch được cho ngày sau hôm nay');
+  if (date <= dayKey(deps.now())) throw new AppError('plannedNotFuture');
   const clean = text.trim();
-  if (!clean) throw new Error('Nội dung việc cần làm không được để trống');
+  if (!clean) throw new AppError('emptyTask');
   return deps.db.transaction('rw', deps.db.planned, async () => {
     // createdAt luôn tăng trong cùng một ngày để giữ đúng thứ tự thêm
     const last = (await listPlanned(deps.db, date)).at(-1)?.createdAt ?? 0;
@@ -38,13 +39,13 @@ export async function plannedCountsInRange(db: PlantDB, from: string, to: string
 
 export async function editPlanned(db: PlantDB, id: string, text: string): Promise<void> {
   const clean = text.trim();
-  if (!clean) throw new Error('Nội dung việc cần làm không được để trống');
+  if (!clean) throw new AppError('emptyTask');
   await db.planned.update(id, { text: clean });
 }
 
 /** Đặt mục tiêu cho ngày sau hôm nay; nội dung trống thì xoá mục tiêu. */
 export async function setPlannedGoal(deps: DayDeps, date: string, title: string): Promise<void> {
-  if (date <= dayKey(deps.now())) throw new Error('Chỉ lên lịch được cho ngày sau hôm nay');
+  if (date <= dayKey(deps.now())) throw new AppError('plannedNotFuture');
   const clean = title.trim();
   if (clean) await deps.db.plannedGoals.put({ date, title: clean });
   else await deps.db.plannedGoals.delete(date);

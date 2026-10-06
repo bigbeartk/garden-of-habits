@@ -12,6 +12,7 @@ import { PERIODS } from '../domain/period';
 import { PeriodIcon, StarIcon } from '../components/icons';
 import type { Template } from '../domain/types';
 import { useI18n } from '../i18n/I18nProvider';
+import { errorText } from '../i18n/errors';
 import './templates.css';
 
 /** Màn Mẫu, mở từ thẻ "Mẫu việc" trong Cài đặt; `onBack` quay về Cài đặt. */
@@ -32,7 +33,7 @@ export function TemplatesScreen({ onBack }: { onBack: () => void }) {
       await addTodos(deps, day.date, t.items);
       setMessage(`Đã thêm ${t.items.length} việc vào hôm nay 🌱`);
     } catch (e) {
-      setError((e as Error).message);
+      setError(errorText(e, i18n.t));
     }
   }
 

@@ -7,6 +7,7 @@ import { PERIODS, type Period } from './period';
 import { listUnlockedSpecials, pairKey, unlockSpecial } from './specialUnlocks';
 import { listUnlockedStyles, styleKey, unlockStylesFor } from './styleUnlocks';
 import { BASE_STYLE_ID, type Catalog, type DayRecord, type Reminder, type TemplateItem, type Todo } from './types';
+import { AppError, LockedDayError } from './errors';
 
 export interface DayDeps {
   db: PlantDB;
@@ -15,12 +16,7 @@ export interface DayDeps {
   now: () => Date;
 }
 
-export class LockedDayError extends Error {
-  constructor(date: string) {
-    super(`Ngày ${date} đã qua, chỉ có thể sửa ghi chú.`);
-    this.name = 'LockedDayError';
-  }
-}
+export { LockedDayError } from './errors';
 
 /** Độ dài tối đa của lời cây nói */
 export const SPEECH_MAX = 100;
@@ -103,7 +99,7 @@ export async function mutateDay(
   let before = 'seed' as GrowthStage; // giai đoạn trước khi sửa (gán trong transaction)
   const saved = await db.transaction('rw', [db.days, db.reminders], async () => {
     const day = await db.days.get(date);
-    if (!day) throw new Error(`Không tìm thấy ngày ${date}`);
+    if (!day) throw new AppError('dayNotFound', { date });
     before = day.finalStage;
     fn(day);
     day.todos.sort((a, b) => a.order - b.order).forEach((t, i) => (t.order = i));
@@ -123,7 +119,7 @@ export async function mutateDay(
 
 function findTodo(day: DayRecord, id: string): Todo {
   const todo = day.todos.find((t) => t.id === id);
-  if (!todo) throw new Error('Không tìm thấy việc cần làm');
+  if (!todo) throw new AppError('todoNotFound');
   return todo;
 }
 
@@ -135,7 +131,7 @@ function syncReminder(deps: DayDeps, reminderId: string | undefined, patch: Part
 
 export function addTodo(deps: DayDeps, date: string, text: string, period: Period = 'morning'): Promise<DayRecord> {
   const clean = text.trim();
-  if (!clean) return Promise.reject(new Error('Nội dung việc cần làm không được để trống'));
+  if (!clean) return Promise.reject(new AppError('emptyTask'));
   return mutateDay(deps, date, 'today-only', (d) => {
     d.todos.push(...toTodos([{ text: clean, period }], d.todos.length));
   });
@@ -170,7 +166,7 @@ export async function toggleTodo(deps: DayDeps, date: string, id: string): Promi
 
 export function editTodo(deps: DayDeps, date: string, id: string, text: string): Promise<DayRecord> {
   const clean = text.trim();
-  if (!clean) return Promise.reject(new Error('Nội dung việc cần làm không được để trống'));
+  if (!clean) return Promise.reject(new AppError('emptyTask'));
   let reminderId: string | undefined;
   return mutateDay(deps, date, 'today-only', (d) => {
     const todo = findTodo(d, id);
@@ -210,15 +206,15 @@ export async function changePlant(
   deps: DayDeps, date: string, plantId: string, specialId: string | null = null, styleId: string = BASE_STYLE_ID,
 ): Promise<DayRecord> {
   const next = deps.catalog.plants.find((p) => p.id === plantId);
-  if (!next) throw new Error(`Không có loại cây "${plantId}"`);
+  if (!next) throw new AppError('unknownPlant', { id: plantId });
   if (specialId) {
     const key = pairKey({ plantId, specialId });
     const unlocked = await listUnlockedSpecials(deps);
-    if (!unlocked.some((p) => pairKey(p) === key)) throw new Error('Cây đặc biệt này chưa mở khoá');
+    if (!unlocked.some((p) => pairKey(p) === key)) throw new AppError('specialLocked');
   }
   if (styleId !== BASE_STYLE_ID) {
-    if (!next.styles?.some((s) => s.id === styleId)) throw new Error(`Không có dáng "${styleId}"`);
-    if (!(await listUnlockedStyles(deps)).has(styleKey({ plantId, styleId }))) throw new Error('Dáng cây này chưa mở khoá');
+    if (!next.styles?.some((s) => s.id === styleId)) throw new AppError('unknownStyle', { id: styleId });
+    if (!(await listUnlockedStyles(deps)).has(styleKey({ plantId, styleId }))) throw new AppError('styleLocked');
   }
   return mutateDay(deps, date, 'today-only', (d) => {
     const prev = deps.catalog.plants.find((p) => p.id === d.plantId);
@@ -230,7 +226,7 @@ export async function changePlant(
 }
 
 export function changePot(deps: DayDeps, date: string, potId: string): Promise<DayRecord> {
-  if (!deps.catalog.potIds.includes(potId)) return Promise.reject(new Error(`Không có loại chậu "${potId}"`));
+  if (!deps.catalog.potIds.includes(potId)) return Promise.reject(new AppError('unknownPot', { id: potId }));
   return mutateDay(deps, date, 'today-only', (d) => {
     d.potId = potId;
   });

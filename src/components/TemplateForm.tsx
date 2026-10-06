@@ -4,6 +4,7 @@ import { PeriodIcon } from './icons';
 import { parseItems } from '../domain/templateService';
 import type { TemplateItem } from '../domain/types';
 import { useI18n } from '../i18n/I18nProvider';
+import { errorText } from '../i18n/errors';
 
 type Texts = Record<Period, string>;
 
@@ -33,7 +34,7 @@ export function TemplateForm({ initialName = '', initialItems = [], onSave, onCa
         try {
           await onSave(name, items);
         } catch (err) {
-          setError((err as Error).message);
+          setError(errorText(err, t));
         }
       }}
     >

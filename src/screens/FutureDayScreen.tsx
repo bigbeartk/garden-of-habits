@@ -13,6 +13,7 @@ import { timeOfDay } from '../domain/timeOfDay';
 import { useNow } from '../hooks/useNow';
 import { useI18n } from '../i18n/I18nProvider';
 import { longDate, weekdayName } from '../i18n/fmt';
+import { errorText } from '../i18n/errors';
 import './today.css';
 
 /**
@@ -20,7 +21,7 @@ import './today.css';
  * hạt giống bí ẩn đang ngủ vì cây chỉ được random lúc 4:00 ngày đó; nút ＋ ở mỗi buổi để lên lịch việc.
  */
 export function FutureDayScreen({ date, onBack }: { date: string; onBack: () => void }) {
-  const { lang } = useI18n();
+  const { t, lang } = useI18n();
   const deps = useDeps();
   const now = useNow();
   const items = useLiveQuery(() => listPlanned(deps.db, date), [deps.db, date]) ?? [];
@@ -30,7 +31,7 @@ export function FutureDayScreen({ date, onBack }: { date: string; onBack: () => 
   const weekday = weekdayName(lang, date);
 
   const run = (p: Promise<unknown>) => {
-    p.then(() => setError(null)).catch((e: Error) => setError(e.message));
+    p.then(() => setError(null)).catch((e: Error) => setError(errorText(e, t)));
   };
 
   return (

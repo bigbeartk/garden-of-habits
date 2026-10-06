@@ -266,3 +266,11 @@ describe('SettingsScreen: ngôn ngữ', () => {
     expect(heads.indexOf('Sao lưu & khôi phục')).toBe(heads.indexOf('Ngôn ngữ · Language') + 1);
   });
 });
+
+it('file sao lưu hỏng báo lỗi tiếng Anh khi đang dùng English', async () => {
+  const { deps } = makeDeps();
+  const user = userEvent.setup();
+  renderWithDeps(<SettingsScreen />, deps, undefined, 'en');
+  await user.upload(screen.getByTestId('restore-input'), jsonFile('{'));
+  expect(await screen.findByText("This file isn't valid JSON.")).toBeInTheDocument();
+});
