@@ -39,7 +39,7 @@ export function FutureDayScreen({ date, onBack }: { date: string; onBack: () => 
       <SkyBackground time={timeOfDay(now)}>
         <div className="today__stage">
           <BackButton onClick={onBack} />
-          <SpeechBubble text={`Hẹn gặp bạn vào ${weekday} nha! 🌱`} />
+          <SpeechBubble text={t.future.seeYou(weekday)} />
           <PlantScene
             className="today__plant"
             plantId=""
@@ -48,7 +48,7 @@ export function FutureDayScreen({ date, onBack }: { date: string; onBack: () => 
             specialId={null}
             mood="sleep"
             mode="sleeping"
-            title="Hạt giống bí ẩn"
+            title={t.future.mysterySeed}
           />
         </div>
         <div className="future__spacer" />
@@ -58,12 +58,12 @@ export function FutureDayScreen({ date, onBack }: { date: string; onBack: () => 
         {error && <p role="alert" className="error" onClick={() => setError(null)}>{error}</p>}
         <header className="today__head">
           <h1 className="screen__title future__title">{label}</h1>
-          <span className="pill">{items.length} việc</span>
+          <span className="pill">{t.future.taskCount(items.length)}</span>
         </header>
         <GoalInput
           value={goal}
-          label="Mục tiêu ngày này"
-          placeholder="Đặt mục tiêu cho ngày này…"
+          label={t.future.goalLabel}
+          placeholder={t.future.goalPlaceholder}
           onSave={(g) => run(setPlannedGoal(deps, date, g))}
         />
         <PlannedList

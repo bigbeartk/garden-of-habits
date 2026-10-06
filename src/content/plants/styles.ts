@@ -2,7 +2,6 @@ import type { FaceStyle } from '../Face';
 import type { Art, FaceAnchor, PlantSpecies, PlantStyle } from '../types';
 import type { GrowthStage } from '../../domain/growth';
 
-
 /** Dáng có id này của loài; Gốc hoặc id lạ → null. */
 export function getStyle(species: PlantSpecies, styleId?: string | null): PlantStyle | null {
   return species.styles?.find((s) => s.id === styleId) ?? null;

@@ -10,6 +10,7 @@ import { getSpecies } from '../../../src/content/plants/registry';
 import { makeDay, makeDeps, renderWithDeps } from '../helpers';
 import { addReminder, setReminderAutoToday } from '../../../src/domain/reminderService';
 import { getSetting, setSetting } from '../../../src/db/settings';
+import { ensureToday } from '../../../src/domain/dayService';
 
 /** Bấm ＋ ở hàng tiêu đề của buổi rồi gõ vào dòng việc trống vừa hiện. */
 async function addTodoInline(user: ReturnType<typeof userEvent.setup>, text: string, period: 'Sáng' | 'Chiều' | 'Tối' = 'Sáng') {
@@ -464,5 +465,30 @@ describe('TodayScreen — việc từ Nhắc việc', () => {
     renderWithDeps(<TodayScreen />, deps);
     const row = (await screen.findByRole('checkbox', { name: 'Hoàn thành: Mua quà' })).closest('li')!;
     expect(row.querySelector('[data-icon="bell"]')).not.toBeNull();
+  });
+});
+
+describe('TodayScreen: English', () => {
+  it('đổi sang English giữa ngày: lời của ngày đã lưu giữ nguyên, câu chạm theo English', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
+    await ensureToday(deps);
+    const day = (await deps.db.days.toArray())[0];
+    await deps.db.days.put({ ...day, speech: 'Câu tiếng Việt đã lưu' });
+    renderWithDeps(<TodayScreen />, deps, undefined, 'en');
+    expect(await screen.findByText('Câu tiếng Việt đã lưu')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Tap the plant' }));
+    const species = getSpecies(day.plantId);
+    await waitFor(() =>
+      expect([...COMMON_TAPS.en, ...(species.taps?.en ?? [])]).toContain(screen.getByTestId('speech-bubble').textContent),
+    );
+  });
+
+  it('Hôm nay bằng English', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
+    renderWithDeps(<TodayScreen />, deps, undefined, 'en');
+    expect(await screen.findByLabelText("Today's goal")).toBeInTheDocument();
+    for (const name of ['Change plant', 'Change pot', 'Note', 'Rest day', 'Add morning task', 'Back to Calendar']) {
+      expect(screen.getByRole('button', { name })).toBeInTheDocument();
+    }
   });
 });

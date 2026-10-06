@@ -124,10 +124,10 @@ export function TodayScreen() {
   }, [celebrating, waterKey]);
 
   if (loadError) {
-    return <section className="screen"><p role="alert" className="error">Không tải được dữ liệu: {loadError.message}</p></section>;
+    return <section className="screen"><p role="alert" className="error">{t.today.loadFailed(loadError.message)}</p></section>;
   }
   if (!day) {
-    return <section className="screen" aria-busy="true"><p className="muted">Đang tưới cây…</p></section>;
+    return <section className="screen" aria-busy="true"><p className="muted">{t.today.loading}</p></section>;
   }
 
   const run = (p: Promise<unknown>) => {
@@ -177,7 +177,7 @@ export function TodayScreen() {
           {intro && special && (
             <div className="special-intro" data-testid="special-intro" role="status">
               <span className="special-intro__sparkles" aria-hidden="true">✨ ✨ ✨</span>
-              Hôm nay mình là cây đặc biệt: {tr(special.name)}!
+              {t.today.specialIntro(tr(special.name))}
             </div>
           )}
           {newStyles.length > 0 && <StyleUnlock keys={newStyles} below={intro && !!special} />}
@@ -190,8 +190,8 @@ export function TodayScreen() {
             <button
               type="button"
               className={`today__speech-toggle${showSpeech ? '' : ' is-off'}`}
-              aria-label={showSpeech ? 'Ẩn lời cây nói' : 'Hiện lời cây nói'}
-              title={showSpeech ? 'Ẩn lời cây nói' : 'Hiện lời cây nói'}
+              aria-label={showSpeech ? t.today.hideSpeech : t.today.showSpeech}
+              title={showSpeech ? t.today.hideSpeech : t.today.showSpeech}
               onClick={toggleSpeech}
             >
               <SpeechIcon size={22} off={!showSpeech} />
@@ -211,15 +211,15 @@ export function TodayScreen() {
             {!day.isRestDay && <WateringCan playKey={waterKey} />}
             <StageBurst playKey={burstKey} />
           </PlantScene>
-          <button type="button" className="today__plant-tap" aria-label="Chạm vào cây" onClick={handleTapPlant} />
-          {special && <span className="today__badge">✨ Cây đặc biệt: {tr(special.name)}</span>}
+          <button type="button" className="today__plant-tap" aria-label={t.today.tapPlant} onClick={handleTapPlant} />
+          {special && <span className="today__badge">{t.today.specialBadge(tr(special.name))}</span>}
         </div>
         <div className="today__actions">
-          <IconButton label="Đổi cây" icon={<PlantSwapIcon size={30} />} onClick={() => setSheet('plant')} disabled={day.isRestDay} />
-          <IconButton label="Đổi chậu" icon={<PotIcon size={30} />} onClick={() => setSheet('pot')} />
-          <IconButton label="Ghi chú" icon={<NoteIcon size={30} />} onClick={() => setSheet('note')} badge={day.note.length > 0} />
+          <IconButton label={t.today.changePlant} icon={<PlantSwapIcon size={30} />} onClick={() => setSheet('plant')} disabled={day.isRestDay} />
+          <IconButton label={t.today.changePot} icon={<PotIcon size={30} />} onClick={() => setSheet('pot')} />
+          <IconButton label={t.today.note} icon={<NoteIcon size={30} />} onClick={() => setSheet('note')} badge={day.note.length > 0} />
           <IconButton
-            label={day.isRestDay ? 'Thức dậy' : 'Ngày tiết kiệm năng lượng'}
+            label={day.isRestDay ? t.today.wakeUp : t.today.restDay}
             icon={day.isRestDay ? <SunIcon size={34} /> : <SleepSeedIcon size={38} />}
             pressed={day.isRestDay}
             onClick={() => run(setRestDay(deps, day.date, !day.isRestDay))}
@@ -230,25 +230,25 @@ export function TodayScreen() {
       <div className="today__list card">
         {showReminder && (
           <button type="button" className="reminder" onClick={() => nav('settings')}>
-            🌱 Lâu rồi bạn chưa sao lưu dữ liệu — chạm để sao lưu nhé!
+            {t.today.backupReminder}
           </button>
         )}
         {error && <p role="alert" className="error" onClick={() => setError(null)}>{error}</p>}
         {day.isRestDay ? (
           <div className="rest" data-testid="rest-message">
-            <p className="rest__title">💤 Hôm nay là ngày tiết kiệm năng lượng</p>
-            <p className="muted">Nghỉ ngơi thật ngon nhé, việc để mai tính!</p>
+            <p className="rest__title">{t.today.restTitle}</p>
+            <p className="muted">{t.today.restText}</p>
           </div>
         ) : (
           <>
             <header className="today__head">
-              <h1 className="screen__title">Hôm nay</h1>
-              <span className="pill">{doneCount}/{day.todos.length} việc</span>
+              <h1 className="screen__title">{t.today.title}</h1>
+              <span className="pill">{t.today.taskCount(doneCount, day.todos.length)}</span>
             </header>
             <GoalInput
               value={day.title ?? ''}
-              label="Mục tiêu hôm nay"
-              placeholder="Đặt mục tiêu cho hôm nay…"
+              label={t.today.goalLabel}
+              placeholder={t.today.goalPlaceholder}
               onSave={(goal) => run(setTitle(deps, day.date, goal))}
             />
             <TodoList
@@ -290,14 +290,14 @@ export function TodayScreen() {
 
 /** Khung mừng dáng mới mở khoá (~5 giây); mở nhiều dáng cùng lúc thì hiện dáng đầu kèm +N. */
 function StyleUnlock({ keys, below }: { keys: string[]; below: boolean }) {
-  const { tr } = useI18n();
+  const { t, tr } = useI18n();
   const [plantId, styleId] = keys[0].split('|');
   const species = getSpecies(plantId);
   return (
     <div className={`special-intro style-unlock${below ? ' style-unlock--below' : ''}`} data-testid="style-unlock" role="status">
       <span className="special-intro__sparkles" aria-hidden="true">🔓 ✨ 🔓</span>
-      Mở khoá dáng mới: {tr(species.name)} · {tr(getStyle(species, styleId)!.name)}!{keys.length > 1 ? ` +${keys.length - 1}` : ''}
-      <span className="style-unlock__hint">Vào Đổi cây để thử nha</span>
+      {t.today.styleUnlocked(tr(species.name), tr(getStyle(species, styleId)!.name))}{keys.length > 1 ? ` +${keys.length - 1}` : ''}
+      <span className="style-unlock__hint">{t.today.styleUnlockedHint}</span>
     </div>
   );
 }

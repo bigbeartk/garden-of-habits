@@ -298,3 +298,11 @@ describe('CalendarScreen chấm đỏ ngày có ghi chú', () => {
     await waitFor(() => expect(within(cell).queryByTestId('note-dot')).not.toBeInTheDocument());
   });
 });
+
+it('Lịch bằng English', async () => {
+  const { deps } = makeDeps();
+  renderWithDeps(<CalendarScreen />, deps, undefined, 'en');
+  expect(await screen.findByRole('heading', { name: 'October 2026' })).toBeInTheDocument();
+  expect(screen.getByText('Mon')).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'Previous month' })).toBeInTheDocument();
+});
