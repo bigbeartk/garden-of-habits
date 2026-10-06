@@ -1,6 +1,8 @@
 import type { ReactElement } from 'react';
 import { render } from '@testing-library/react';
 import { DepsProvider } from '../../src/app/deps';
+import { I18nProvider } from '../../src/i18n/I18nProvider';
+import type { Lang } from '../../src/i18n/lang';
 import { NavContext, type Tab } from '../../src/app/nav';
 import { PlantDB } from '../../src/db/db';
 import { mulberry32 } from '../../src/domain/random';
@@ -47,10 +49,13 @@ export function makeDeps(start = new Date(2026, 9, 2, 10, 0), catalog: Catalog =
   return { deps, clock };
 }
 
-export function renderWithDeps(ui: ReactElement, deps: DayDeps, nav: (tab: Tab) => void = () => {}) {
+/** Render trong deps + i18n; mặc định tiếng Việt (jsdom báo máy en-US), truyền `'en'` để thử tiếng Anh. */
+export function renderWithDeps(ui: ReactElement, deps: DayDeps, nav: (tab: Tab) => void = () => {}, lang: Lang = 'vi') {
   return render(
     <DepsProvider value={deps}>
-      <NavContext.Provider value={nav}>{ui}</NavContext.Provider>
+      <I18nProvider lang={lang}>
+        <NavContext.Provider value={nav}>{ui}</NavContext.Provider>
+      </I18nProvider>
     </DepsProvider>,
   );
 }

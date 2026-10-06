@@ -9,6 +9,7 @@ import '@fontsource/quicksand/600.css';
 import '@fontsource/quicksand/700.css';
 import './app/theme.css';
 import { App } from './app/App';
+import { I18nProvider } from './i18n/I18nProvider';
 import { isNative, setupNativeShell } from './platform';
 
 if (isNative()) {
@@ -34,7 +35,9 @@ if (isNative()) {
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <MotionConfig reducedMotion="user">
-      <App />
+      <I18nProvider>
+        <App />
+      </I18nProvider>
     </MotionConfig>
   </StrictMode>,
 );

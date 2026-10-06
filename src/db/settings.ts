@@ -1,5 +1,6 @@
 import type { PlantDB } from './db';
 import type { CalendarBg, CalendarTheme } from '../domain/types';
+import type { Lang } from '../i18n/lang';
 
 export interface SettingsShape {
   calendarBg: CalendarBg;
@@ -21,6 +22,8 @@ export interface SettingsShape {
   unlockedStyles: string[];
   /** ngày ('YYYY-MM-DD') đã góp vào mở dáng; mỗi ngày chỉ góp một lần dù bỏ tick, đổi loài rồi tick lại */
   styleBloomCredit: string;
+  /** ngôn ngữ giao diện; không có = chưa giải lần nào (resolveLang ghi ở lần mở đầu) */
+  language: Lang;
 }
 
 export async function getSetting<K extends keyof SettingsShape>(db: PlantDB, key: K): Promise<SettingsShape[K] | undefined> {

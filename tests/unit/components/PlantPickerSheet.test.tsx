@@ -7,6 +7,7 @@ import { handleBack } from '../../../src/app/back';
 import { setSetting } from '../../../src/db/settings';
 import { DepsProvider } from '../../../src/app/deps';
 import { NavContext } from '../../../src/app/nav';
+import { I18nProvider } from '../../../src/i18n/I18nProvider';
 import { makeDay, makeDeps, renderWithDeps } from '../helpers';
 
 /** chờ useLiveQuery đọc xong số ngày ra hoa: chạy cả bộ (hoặc trên CI) có thể lâu hơn 1 giây mặc định */
@@ -46,9 +47,11 @@ describe('PlantPickerSheet: dáng cây', () => {
     await new Promise((r) => setTimeout(r, 500));
     rerender(
       <DepsProvider value={deps}>
-        <NavContext.Provider value={() => {}}>
-          <PlantPickerSheet open {...props} />
-        </NavContext.Provider>
+        <I18nProvider lang="vi">
+          <NavContext.Provider value={() => {}}>
+            <PlantPickerSheet open {...props} />
+          </NavContext.Provider>
+        </I18nProvider>
       </DepsProvider>,
     );
     expect(screen.getByRole('button', { name: /^Dáng cây: Hướng dương/ })).toHaveAccessibleName('Dáng cây: Hướng dương (2/3)');
