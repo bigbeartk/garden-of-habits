@@ -1,4 +1,5 @@
 import type { CalendarBg } from '../domain/types';
+import { AppError } from '../domain/errors';
 
 export function fitWithin(width: number, height: number, max: number): { width: number; height: number } {
   const scale = Math.min(1, max / Math.max(width, height));
@@ -44,7 +45,7 @@ export async function prepareBackground(file: File): Promise<CalendarBg> {
   const mime = await mimeOf(file);
   if (mime === 'image/gif' || isVideoMime(mime)) {
     if (file.size > MAX_ANIMATED_BG_BYTES) {
-      throw new Error(`${isVideoMime(mime) ? 'Video' : 'Ảnh động'} quá lớn, tối đa 25 MB. Thử cắt ngắn hoặc chọn tệp khác nhé.`);
+      throw new AppError(isVideoMime(mime) ? 'videoTooLarge' : 'gifTooLarge');
     }
     return { mime, data: await file.arrayBuffer() };
   }

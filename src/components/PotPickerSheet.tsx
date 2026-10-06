@@ -5,9 +5,9 @@ import type { DayRecord } from '../domain/types';
 import { useI18n } from '../i18n/I18nProvider';
 
 export function PotPickerSheet({ open, day, onClose, onPick }: { open: boolean; day: DayRecord; onClose: () => void; onPick: (id: string) => void }) {
-  const { tr } = useI18n();
+  const { t, tr } = useI18n();
   return (
-    <BottomSheet open={open} title="Chọn chậu" onClose={onClose}>
+    <BottomSheet open={open} title={t.picker.choosePot} onClose={onClose}>
       <div className="picker">
         {POTS.map((pot) => (
           <button

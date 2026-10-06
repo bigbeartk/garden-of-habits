@@ -8,15 +8,10 @@ import { useCalendarTheme } from '../hooks/useCalendarBg';
 import { prepareBackground } from '../utils/image';
 import { useI18n } from '../i18n/I18nProvider';
 import { errorText } from '../i18n/errors';
+import { AppError } from '../domain/errors';
 
-const OPTIONS: { id: CalendarTheme; label: string }[] = [
-  { id: 'default', label: 'Mặc định' },
-  { id: 'cat', label: 'Mèo vươn vai' },
-  { id: 'grass', label: 'Cỏ nở' },
-  { id: 'rain', label: 'Mưa chill' },
-  { id: 'gamer', label: 'Gaming pixel' },
-  { id: 'photo', label: 'Ảnh của bạn' },
-];
+/** Nhãn ở `t.background.options[id]`. */
+const OPTIONS: CalendarTheme[] = ['default', 'cat', 'grass', 'rain', 'gamer', 'photo'];
 
 /** Hình xem trước nhỏ cho từng kiểu nền */
 function Swatch({ id }: { id: CalendarTheme }) {
@@ -97,8 +92,8 @@ export function BackgroundPicker() {
       await setSetting(deps.db, 'calendarTheme', 'photo');
       setOpen(false);
     } catch (err) {
-      const msg = (err as Error).message;
-      setError(msg.includes('quá lớn') ? msg : 'Không đọc được tệp này, thử ảnh hoặc video khác nhé.');
+      // quá lớn: báo rõ giới hạn; lỗi khác (tệp hỏng, không đọc được): câu chung
+      setError(err instanceof AppError ? errorText(err, t) : t.background.readFailed);
     } finally {
       setBusy(false);
     }
@@ -116,7 +111,7 @@ export function BackgroundPicker() {
       .catch((e: Error) => setError(errorText(e, t)));
   }
 
-  const current = OPTIONS.find((o) => o.id === theme) ?? OPTIONS[0];
+  const current = OPTIONS.includes(theme) ? theme : 'default';
 
   return (
     <div className="bg-picker">
@@ -124,34 +119,34 @@ export function BackgroundPicker() {
       <button
         type="button"
         className="bg-picker__toggle"
-        aria-label={`Đổi hình nền lịch (đang dùng: ${current.label})`}
+        aria-label={t.background.toggle(t.background.options[current])}
         onClick={() => setOpen(true)}
       >
-        <span className={`bg-picker__mini bg-swatch--${current.id}`}><span className="bg-swatch__preview"><Swatch id={current.id} /></span></span>
+        <span className={`bg-picker__mini bg-swatch--${current}`}><span className="bg-swatch__preview"><Swatch id={current} /></span></span>
       </button>
-      <BottomSheet open={open} title="Hình nền lịch" onClose={() => setOpen(false)}>
-        <div className="bg-picker__options" role="radiogroup" aria-label="Hình nền lịch">
+      <BottomSheet open={open} title={t.background.title} onClose={() => setOpen(false)}>
+        <div className="bg-picker__options" role="radiogroup" aria-label={t.background.title}>
           {OPTIONS.map((o) => (
             <button
-              key={o.id}
+              key={o}
               type="button"
               role="radio"
-              aria-checked={theme === o.id}
-              className={`bg-swatch bg-swatch--${o.id}${theme === o.id ? ' is-selected' : ''}`}
-              onClick={() => choose(o.id)}
+              aria-checked={theme === o}
+              className={`bg-swatch bg-swatch--${o}${theme === o ? ' is-selected' : ''}`}
+              onClick={() => choose(o)}
               disabled={busy}
             >
-              <span className="bg-swatch__preview"><Swatch id={o.id} /></span>
-              <span className="bg-swatch__label">{o.label}</span>
+              <span className="bg-swatch__preview"><Swatch id={o} /></span>
+              <span className="bg-swatch__label">{t.background.options[o]}</span>
             </button>
           ))}
         </div>
         {theme === 'photo' && (
           <button type="button" className="btn btn--ghost" onClick={() => inputRef.current?.click()} disabled={busy}>
-            {busy ? 'Đang xử lý…' : 'Chọn ảnh khác'}
+            {busy ? t.common.processing : t.background.chooseOther}
           </button>
         )}
-        {busy && theme !== 'photo' && <p className="muted">Đang xử lý ảnh…</p>}
+        {busy && theme !== 'photo' && <p className="muted">{t.background.processingImage}</p>}
         {error && <p role="alert" className="error">{error}</p>}
       </BottomSheet>
     </div>

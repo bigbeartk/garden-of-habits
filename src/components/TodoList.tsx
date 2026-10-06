@@ -132,7 +132,7 @@ export function TodoList({ todos, currentPeriod, onToggle, onEdit, onDelete, onM
 
   return (
     <div className={`todo${drag ? ' is-dragging' : ''}`} ref={rootRef}>
-      {items.length === 0 && <p className="todo__hint muted">Bấm ＋ để thêm việc và tưới cây nhé 💧</p>}
+      {items.length === 0 && <p className="todo__hint muted">{t.todo.emptyHint}</p>}
       {PERIODS.map((p) => {
         const group = items.filter((t) => t.period === p);
         const done = group.filter((t) => t.done).length;
@@ -152,7 +152,7 @@ export function TodoList({ todos, currentPeriod, onToggle, onEdit, onDelete, onM
               <SectionAddButton period={p} onClick={() => setDraft(p)} />
             </header>
             {group.length === 0 && draft !== p ? (
-              <p className="todo__empty muted">Chưa có việc</p>
+              <p className="todo__empty muted">{t.common.noTasks}</p>
             ) : (
               <ul className="todo__list">
                 {group.map((t) => (
@@ -194,6 +194,7 @@ function TodoRow({
   onHandleUp: () => void;
   onHandleCancel: () => void;
 }) {
+  const { t } = useI18n();
   const [editing, setEditing] = useState(false);
   const [text, setText] = useState(todo.text);
   const commit = () => {
@@ -212,18 +213,18 @@ function TodoRow({
         className="todo__check"
         role="checkbox"
         aria-checked={todo.done}
-        aria-label={todo.done ? `Bỏ hoàn thành: ${todo.text}` : `Hoàn thành: ${todo.text}`}
+        aria-label={todo.done ? t.todo.uncomplete(todo.text) : t.todo.complete(todo.text)}
         onClick={() => onToggle(todo.id)}
       >
         {todo.done ? '✓' : ''}
       </button>
       {editing ? (
         <form className="todo__edit" onSubmit={(e) => { e.preventDefault(); commit(); }}>
-          <input className="input" autoFocus value={text} onChange={(e) => setText(e.target.value)} onBlur={commit} aria-label="Sửa việc" maxLength={200} />
+          <input className="input" autoFocus value={text} onChange={(e) => setText(e.target.value)} onBlur={commit} aria-label={t.common.editTask} maxLength={200} />
         </form>
       ) : (
         <span className="todo__text" onClick={() => { setText(todo.text); setEditing(true); }}>
-          {todo.reminderId && <span className="todo__bell" title="Từ Nhắc việc"><BellIcon size={16} /></span>}
+          {todo.reminderId && <span className="todo__bell" title={t.todo.fromReminder}><BellIcon size={16} /></span>}
           {todo.text}
         </span>
       )}

@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { useBackHandler } from './back';
 import { TABS, type Tab } from './nav';
 import { CloseIcon, MenuIcon } from '../components/icons';
+import { useI18n } from '../i18n/I18nProvider';
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 const HIDDEN = { clipPath: 'inset(0 0 0 100% round 999px)', opacity: 0.4 };
@@ -13,6 +14,7 @@ const SHOWN = { clipPath: 'inset(0 0 0 0% round 999px)', opacity: 1 };
  * từ nút ra bên trái, bấm lần nữa hoặc chạm ra ngoài thì trượt ngược về. Chọn tab không đóng dải.
  */
 export function TabBar({ current, onChange }: { current: Tab; onChange: (tab: Tab) => void }) {
+  const { t: m } = useI18n();
   const [open, setOpen] = useState(false);
   const navRef = useRef<HTMLElement>(null);
   useBackHandler(open, () => setOpen(false), 'sheet');
@@ -28,7 +30,7 @@ export function TabBar({ current, onChange }: { current: Tab; onChange: (tab: Ta
   }, [open]);
 
   return (
-    <nav className="fnav" aria-label="Điều hướng" ref={navRef}>
+    <nav className="fnav" aria-label={m.nav.label} ref={navRef}>
       <AnimatePresence>
         {open && (
           <motion.div
@@ -54,7 +56,7 @@ export function TabBar({ current, onChange }: { current: Tab; onChange: (tab: Ta
                   exit={{ x: 28, opacity: 0, transition: { duration: 0.18 } }}
                 >
                   <t.Icon size={26} />
-                  <span className="fnav__label">{t.label}</span>
+                  <span className="fnav__label">{m.nav.tabs[t.id]}</span>
                 </motion.button>
               );
             })}
@@ -64,7 +66,7 @@ export function TabBar({ current, onChange }: { current: Tab; onChange: (tab: Ta
       <motion.button
         type="button"
         className={`fnav__toggle${open ? ' is-open' : ''}`}
-        aria-label={open ? 'Đóng menu' : 'Mở menu'}
+        aria-label={open ? m.nav.closeMenu : m.nav.openMenu}
         aria-expanded={open}
         aria-controls="fnav-tabs"
         onClick={() => setOpen((o) => !o)}

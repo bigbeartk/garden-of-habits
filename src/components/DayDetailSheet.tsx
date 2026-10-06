@@ -26,27 +26,27 @@ export function DayDetailSheet({ dateKey, status, record, onClose }: {
           {status === 'plant' && record && (
             <p className="detail__line">{tr(getSpecies(record.plantId).name)} · {t.stage[record.finalStage]}</p>
           )}
-          {special && <p className="detail__line">✨ Cây đặc biệt: {tr(special.name)}</p>}
-          {status === 'rest' && <p className="detail__line">💤 Ngày tiết kiệm năng lượng</p>}
-          {status === 'missed' && <p className="detail__line muted">Hôm đó cây chưa được chăm sóc 🥀</p>}
+          {special && <p className="detail__line">{t.detail.special(tr(special.name))}</p>}
+          {status === 'rest' && <p className="detail__line">{t.detail.rest}</p>}
+          {status === 'missed' && <p className="detail__line muted">{t.detail.missed}</p>}
           {record && !record.isRestDay && record.todos.length > 0 && (
             <div className="detail__periods">
               {PERIODS.map((p) => {
-                const group = record.todos.filter((t) => t.period === p);
+                const group = record.todos.filter((td) => td.period === p);
                 return (
                   <section key={p} className={`detail__period todo__section--${p}`} data-testid={`detail-section-${p}`}>
                     <h4 className="detail__period-title">
                       <PeriodIcon period={p} /> {t.period[p]}
-                      {group.length > 0 && <span className="detail__period-count">{group.filter((t) => t.done).length}/{group.length}</span>}
+                      {group.length > 0 && <span className="detail__period-count">{group.filter((td) => td.done).length}/{group.length}</span>}
                     </h4>
                     {group.length === 0 ? (
-                      <p className="muted detail__period-empty">Chưa có việc</p>
+                      <p className="muted detail__period-empty">{t.common.noTasks}</p>
                     ) : (
                       <ul className="detail__todos">
-                        {group.map((t) => (
-                          <li key={t.id} className={t.done ? 'is-done' : ''}>
-                            <span className={`detail__check${t.done ? ' is-done' : ''}`} aria-label={t.done ? 'Đã xong' : 'Chưa xong'} role="img">{t.done && <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 8.5 l2.6 2.6 L12 5.6" fill="none" stroke="#fff" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" /></svg>}</span>
-                            {t.text}
+                        {group.map((td) => (
+                          <li key={td.id} className={td.done ? 'is-done' : ''}>
+                            <span className={`detail__check${td.done ? ' is-done' : ''}`} aria-label={td.done ? t.detail.done : t.detail.notDone} role="img">{td.done && <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 8.5 l2.6 2.6 L12 5.6" fill="none" stroke="#fff" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" /></svg>}</span>
+                            {td.text}
                           </li>
                         ))}
                       </ul>
@@ -58,7 +58,7 @@ export function DayDetailSheet({ dateKey, status, record, onClose }: {
           )}
           {record?.note && (
             <div className="detail__note-box">
-              <h4 className="detail__label">Ghi chú</h4>
+              <h4 className="detail__label">{t.detail.note}</h4>
               <p className="detail__note" data-testid="detail-note">{record.note}</p>
             </div>
           )}

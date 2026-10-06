@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 import { AnimatePresence, motion } from 'motion/react';
+import { useI18n } from '../i18n/I18nProvider';
 
 export type SpeechKind = 'praise' | 'tap' | 'daily';
 
@@ -16,6 +17,7 @@ interface EditProps {
  * (Enter/rời ô: lưu, Escape: huỷ). Các câu tạm (khen, chạm) chỉ để xem, chạm xuyên qua tới cây.
  */
 export function SpeechBubble({ text, kind, edit }: { text: string | null; kind?: SpeechKind; edit?: EditProps }) {
+  const { t } = useI18n();
   const [draft, setDraft] = useState<string | null>(null);
   const input = useRef<HTMLTextAreaElement>(null);
   /** đang mở ô sửa; chặn lưu hai lần (Enter rồi blur khi ô bị gỡ) */
@@ -60,11 +62,11 @@ export function SpeechBubble({ text, kind, edit }: { text: string | null; kind?:
             <textarea
               ref={input}
               className="bubble__input"
-              aria-label="Lời cây nói"
+              aria-label={t.speech.label}
               rows={3}
               maxLength={edit!.maxLength}
               value={draft}
-              placeholder="Cây sẽ nói gì hôm nay?"
+              placeholder={t.speech.placeholder}
               onChange={(e) => setDraft(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
@@ -77,8 +79,8 @@ export function SpeechBubble({ text, kind, edit }: { text: string | null; kind?:
               onBlur={() => close(true)}
             />
           ) : editable ? (
-            <button type="button" className="bubble__edit" aria-label="Sửa lời cây nói" onClick={open}>
-              <span className="bubble__text">{empty ? 'Chạm để viết lời cây nói ✎' : text}</span>
+            <button type="button" className="bubble__edit" aria-label={t.speech.edit} onClick={open}>
+              <span className="bubble__text">{empty ? t.speech.empty : text}</span>
             </button>
           ) : (
             <span className="bubble__text">{text}</span>

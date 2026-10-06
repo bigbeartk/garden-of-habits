@@ -1,13 +1,7 @@
 import type { ReactNode } from 'react';
 import type { TimeOfDay } from '../domain/timeOfDay';
+import { useI18n } from '../i18n/I18nProvider';
 import './scene.css';
-
-const SKY_LABEL: Record<TimeOfDay, string> = {
-  morning: 'Buổi sáng',
-  noon: 'Buổi trưa',
-  afternoon: 'Buổi chiều',
-  evening: 'Buổi tối',
-};
 
 function Cloud({ x, y, s = 1 }: { x: number; y: number; s?: number }) {
   return (
@@ -57,8 +51,9 @@ function SkyDecor({ time }: { time: TimeOfDay }) {
 }
 
 export function SkyBackground({ time, children }: { time: TimeOfDay; children?: ReactNode }) {
+  const { t } = useI18n();
   return (
-    <div className={`sky sky--${time}`} data-testid="sky" data-time={time} aria-label={SKY_LABEL[time]}>
+    <div className={`sky sky--${time}`} data-testid="sky" data-time={time} aria-label={t.sky[time]}>
       <SkyDecor time={time} />
       <div className="sky__content">{children}</div>
     </div>

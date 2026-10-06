@@ -19,7 +19,7 @@ export function PlannedList({ items, onEdit, onDelete, onAdd }: {
   const [draft, setDraft] = useState<Period | null>(null);
   return (
     <div className="todo">
-      {items.length === 0 && <p className="todo__hint muted">Bấm ＋ để lên lịch việc cho ngày này 🌱</p>}
+      {items.length === 0 && <p className="todo__hint muted">{t.todo.plannedHint}</p>}
       {PERIODS.map((p) => {
         const group = items.filter((t) => t.period === p);
         return (
@@ -32,7 +32,7 @@ export function PlannedList({ items, onEdit, onDelete, onAdd }: {
               <SectionAddButton period={p} onClick={() => setDraft(p)} />
             </header>
             {group.length === 0 && draft !== p ? (
-              <p className="todo__empty muted">Chưa có việc</p>
+              <p className="todo__empty muted">{t.common.noTasks}</p>
             ) : (
               <ul className="todo__list">
                 {group.map((t) => <PlannedRow key={t.id} item={t} onEdit={onEdit} onDelete={onDelete} />)}
@@ -47,6 +47,7 @@ export function PlannedList({ items, onEdit, onDelete, onAdd }: {
 }
 
 function PlannedRow({ item, onEdit, onDelete }: { item: PlannedTodo; onEdit: (id: string, text: string) => void; onDelete: (id: string) => void }) {
+  const { t } = useI18n();
   const [editing, setEditing] = useState(false);
   const [text, setText] = useState(item.text);
   const commit = () => {
@@ -59,7 +60,7 @@ function PlannedRow({ item, onEdit, onDelete }: { item: PlannedTodo; onEdit: (id
       <span className="todo__bullet" aria-hidden="true" />
       {editing ? (
         <form className="todo__edit" onSubmit={(e) => { e.preventDefault(); commit(); }}>
-          <input className="input" autoFocus value={text} onChange={(e) => setText(e.target.value)} onBlur={commit} aria-label="Sửa việc" maxLength={200} />
+          <input className="input" autoFocus value={text} onChange={(e) => setText(e.target.value)} onBlur={commit} aria-label={t.common.editTask} maxLength={200} />
         </form>
       ) : (
         <span className="todo__text" onClick={() => { setText(item.text); setEditing(true); }}>{item.text}</span>

@@ -5,33 +5,13 @@ import { expect, it } from 'vitest';
 
 /** Chữ có dấu tiếng Việt (đủ để nhận ra câu Việt; chữ không dấu như "Mini" không tính). */
 const VI = /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/i;
-const ROOTS = ['src/app', 'src/components', 'src/screens', 'src/domain', 'src/db', 'src/hooks', 'src/platform', 'src/main.tsx'];
+const ROOTS = ['src/app', 'src/components', 'src/screens', 'src/domain', 'src/db', 'src/hooks', 'src/platform', 'src/utils', 'src/main.tsx'];
 
 /**
  * File còn chữ Việt viết cứng, chờ chuyển sang i18n. Chuyển xong file nào thì XOÁ khỏi đây;
  * cuối cùng danh sách phải rỗng. Không bao giờ THÊM file vào đây.
  */
 const NOT_YET_MIGRATED = new Set<string>([
-  'src/app/nav.tsx',
-  'src/app/TabBar.tsx',
-  'src/components/BackButton.tsx',
-  'src/components/BackgroundPicker.tsx',
-  'src/components/BottomSheet.tsx',
-  'src/components/ConfirmButton.tsx',
-  'src/components/DayCell.tsx',
-  'src/components/DayDetailSheet.tsx',
-  'src/components/DeleteWithConfirm.tsx',
-  'src/components/InlineAdd.tsx',
-  'src/components/MiniPlant.tsx',
-  'src/components/NoteSheet.tsx',
-  'src/components/PlannedList.tsx',
-  'src/components/PlantPickerSheet.tsx',
-  'src/components/PotPickerSheet.tsx',
-  'src/components/SkyBackground.tsx',
-  'src/components/SpeechBubble.tsx',
-  'src/components/SupportCard.tsx',
-  'src/components/TemplateForm.tsx',
-  'src/components/TodoList.tsx',
   'src/screens/FutureDayScreen.tsx',
   'src/screens/GardenScreen.tsx',
   'src/screens/RemindersScreen.tsx',
@@ -45,6 +25,8 @@ const ALLOWED = new Set<string>([
   'Đã huỷ chia sẻ', // platform: AbortError chỉ để nhận diện bằng name
   'pickUniform: danh sách rỗng', // lỗi lập trình, không tới người dùng
   'pickWeighted: danh sách rỗng',
+  'Không xử lý được ảnh', // utils/image: lỗi canvas, giao diện thay bằng câu chung background.readFailed
+  'Không nén được ảnh',
   'Tiếng Việt', // tên ngôn ngữ, luôn viết bằng chính nó (LanguagePicker)
 ]);
 

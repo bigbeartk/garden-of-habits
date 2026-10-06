@@ -4,22 +4,13 @@ import type { DayRecord } from '../domain/types';
 import { useI18n } from '../i18n/I18nProvider';
 import { longDate } from '../i18n/fmt';
 
-const STATUS_LABEL: Record<CellStatus, string> = {
-  plant: '',
-  rest: 'ngày tiết kiệm năng lượng',
-  missed: 'cây héo',
-  'today-pending': 'hôm nay',
-  future: 'chưa tới',
-  'before-start': '',
-};
-
 export function DayCell({ dateKey, day, status, record, plannedCount = 0, isToday, showNoteDot = true, onSelect }: {
   dateKey: string; day: number; status: CellStatus; record?: DayRecord; plannedCount?: number; isToday: boolean; showNoteDot?: boolean; onSelect: () => void;
 }) {
-  const { lang } = useI18n();
+  const { t, lang } = useI18n();
   // ngày tương lai bấm được để lên lịch việc
   const disabled = status === 'before-start';
-  const parts = [longDate(lang, dateKey), STATUS_LABEL[status], plannedCount > 0 ? `${plannedCount} việc đã lên lịch` : ''];
+  const parts = [longDate(lang, dateKey), t.dayCell.status[status], plannedCount > 0 ? t.dayCell.planned(plannedCount) : ''];
   return (
     <button
       type="button"

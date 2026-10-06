@@ -38,26 +38,26 @@ export function TemplateForm({ initialName = '', initialItems = [], onSave, onCa
         }
       }}
     >
-      <label htmlFor={`${id}-name`} className="tpl-form__label">Tên mẫu</label>
-      <input id={`${id}-name`} className="input" value={name} onChange={(e) => setName(e.target.value)} maxLength={60} placeholder="Ví dụ: Ngày đi làm" />
+      <label htmlFor={`${id}-name`} className="tpl-form__label">{t.templateForm.name}</label>
+      <input id={`${id}-name`} className="input" value={name} onChange={(e) => setName(e.target.value)} maxLength={60} placeholder={t.templateForm.namePlaceholder} />
       {PERIODS.map((p) => (
         <div key={p} className={`tpl-form__period todo__section--${p}`}>
           <label htmlFor={`${id}-${p}`} className="tpl-form__period-label">
-            <PeriodIcon period={p} size={24} /> <span>Việc buổi {t.period[p]}</span> <small>(mỗi dòng một việc)</small>
+            <PeriodIcon period={p} size={24} /> <span>{t.templateForm.periodTasks(p)}</span> <small>{t.templateForm.onePerLine}</small>
           </label>
           <textarea
             id={`${id}-${p}`}
             className="textarea tpl-form__textarea"
-            placeholder="Mỗi dòng một việc…"
+            placeholder={t.templateForm.itemsPlaceholder}
             value={texts[p]}
-            onChange={(e) => setTexts((t) => ({ ...t, [p]: e.target.value }))}
+            onChange={(e) => setTexts((prev) => ({ ...prev, [p]: e.target.value }))}
           />
         </div>
       ))}
       {error && <p role="alert" className="error">{error}</p>}
       <div className="tpl-form__actions">
-        <button type="button" className="btn btn--ghost" onClick={onCancel}>Huỷ</button>
-        <button type="submit" className="btn btn--primary">Lưu mẫu</button>
+        <button type="button" className="btn btn--ghost" onClick={onCancel}>{t.common.cancelForm}</button>
+        <button type="submit" className="btn btn--primary">{t.templateForm.save}</button>
       </div>
     </form>
   );

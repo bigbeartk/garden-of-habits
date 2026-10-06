@@ -3,11 +3,12 @@ import { CalendarIcon, GardenIcon, GearIcon, SproutIcon } from '../components/ic
 
 export type Tab = 'calendar' | 'today' | 'garden' | 'settings';
 
-export const TABS: { id: Tab; label: string; Icon: FC<{ size?: number }> }[] = [
-  { id: 'calendar', label: 'Lịch', Icon: CalendarIcon },
-  { id: 'today', label: 'Hôm nay', Icon: SproutIcon },
-  { id: 'garden', label: 'Khu vườn', Icon: GardenIcon },
-  { id: 'settings', label: 'Cài đặt', Icon: GearIcon },
+/** Nhãn tab ở `t.nav.tabs[id]`. */
+export const TABS: { id: Tab; Icon: FC<{ size?: number }> }[] = [
+  { id: 'calendar', Icon: CalendarIcon },
+  { id: 'today', Icon: SproutIcon },
+  { id: 'garden', Icon: GardenIcon },
+  { id: 'settings', Icon: GearIcon },
 ];
 
 export const NavContext = createContext<(tab: Tab) => void>(() => {});

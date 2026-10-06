@@ -1,5 +1,8 @@
 import type { Messages } from './vi';
 
+const PERIOD_EN = { morning: 'Morning', afternoon: 'Afternoon', evening: 'Evening' } as const;
+const PERIOD_LOWER = { morning: 'morning', afternoon: 'afternoon', evening: 'evening' } as const;
+
 export const en: Messages = {
   nav: {
     tabs: { calendar: 'Calendar', today: 'Today', garden: 'Garden', settings: 'Settings' },
@@ -7,9 +10,10 @@ export const en: Messages = {
     closeMenu: 'Close menu',
     backToCalendar: 'Back to Calendar',
     backToSettings: 'Back to Settings',
+    label: 'Navigation',
   },
   language: { title: 'Ngôn ngữ · Language' },
-  period: { morning: 'Morning', afternoon: 'Afternoon', evening: 'Evening' },
+  period: { ...PERIOD_EN },
   stage: { seed: 'Seed', sprout: 'Sprout', bud: 'Bud', bloom: 'Bloom' },
   calendar: {
     weekdaysShort: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
@@ -31,6 +35,8 @@ export const en: Messages = {
     unknownPlant: (p) => `Unknown plant "${p.id}"`,
     unknownPot: (p) => `Unknown pot "${p.id}"`,
     unknownStyle: (p) => `Unknown style "${p.id}"`,
+    videoTooLarge: () => 'This video is too big (max 25 MB). Try trimming it or pick another file.',
+    gifTooLarge: () => 'This GIF is too big (max 25 MB). Try trimming it or pick another file.',
   },
   backup: {
     errors: {
@@ -39,5 +45,93 @@ export const en: Messages = {
       tooNew: () => 'This backup was made by a newer version of the app. Please update the app and try again.',
       corrupt: (path) => `The backup file is damaged or missing data (at "${path ?? ''}").`,
     },
+  },
+  common: {
+    close: 'Close',
+    cancel: 'Cancel',
+    cancelForm: 'Cancel',
+    deleteShort: 'Delete',
+    delete: (text) => `Delete: ${text}`,
+    confirmDelete: (text) => `Confirm delete: ${text}`,
+    editTask: 'Edit task',
+    noTasks: 'No tasks yet',
+    processing: 'Working…',
+  },
+  todo: {
+    addTask: (p) => `Add ${PERIOD_LOWER[p]} task`,
+    newTask: (p) => `New ${PERIOD_LOWER[p]} task`,
+    draftPlaceholder: 'New task…',
+    complete: (text) => `Complete: ${text}`,
+    uncomplete: (text) => `Mark not done: ${text}`,
+    fromReminder: 'From Reminders',
+    emptyHint: 'Tap ＋ to add a task and water your plant 💧',
+    plannedHint: 'Tap ＋ to plan tasks for this day 🌱',
+  },
+  dayCell: {
+    status: { plant: '', rest: 'rest day', missed: 'wilted plant', 'today-pending': 'today', future: 'not yet', 'before-start': '' },
+    planned: (n) => (n === 1 ? '1 planned task' : `${n} planned tasks`),
+  },
+  detail: {
+    special: (name) => `✨ Special plant: ${name}`,
+    rest: '💤 Rest day',
+    missed: 'Nobody tended the plant that day 🥀',
+    done: 'Done',
+    notDone: 'Not done',
+    note: 'Note',
+  },
+  mini: { sleeping: 'Sleeping', wilted: 'Wilted' },
+  note: {
+    title: "Today's note",
+    label: 'Note text',
+    placeholder: 'How was today?',
+    hint: 'Notes are saved automatically',
+  },
+  picker: {
+    choosePlant: "Choose today's plant",
+    choosePot: 'Choose a pot',
+    stylesOf: (name) => `${name} styles`,
+    styleButton: (name, n) => `Plant styles: ${name} (${n}/3)`,
+    specialsHeading: '✨ Special plants found',
+    specialsHint: 'Each day has a 10% chance of a special plant — once found, you can pick it again here.',
+    backToPlants: 'Back to plants',
+    bloomedDays: (n) => `Bloomed ${n} ${n === 1 ? 'day' : 'days'}`,
+    progressLabel: 'Style unlock progress',
+    allUnlocked: 'All styles unlocked!',
+    base: 'Original',
+    mystery: 'Mystery style',
+    mysteryLabel: (n) => `Mystery style, bloom ${n} days to unlock`,
+    unlockAt: (n) => `Bloom ${n} days to unlock`,
+  },
+  sky: { morning: 'Morning', noon: 'Noon', afternoon: 'Afternoon', evening: 'Evening' },
+  speech: {
+    label: "Plant's words",
+    placeholder: 'What will your plant say today?',
+    edit: "Edit plant's words",
+    empty: "Tap to write the plant's words ✎",
+  },
+  templateForm: {
+    name: 'Template name',
+    namePlaceholder: 'e.g. Workday',
+    periodTasks: (p) => `${PERIOD_EN[p]} tasks`,
+    onePerLine: '(one per line)',
+    itemsPlaceholder: 'One task per line…',
+    save: 'Save template',
+  },
+  background: {
+    options: { default: 'Default', cat: 'Stretching cat', grass: 'Blooming grass', rain: 'Chill rain', gamer: 'Pixel gaming', photo: 'Your photo' },
+    toggle: (name) => `Change calendar background (current: ${name})`,
+    title: 'Calendar background',
+    readFailed: "Couldn't read this file — try another photo or video.",
+    chooseOther: 'Choose another',
+    processingImage: 'Processing image…',
+  },
+  support: {
+    title: 'Support me',
+    text: 'If you enjoy this little garden, you can buy me a coffee ☕🌱',
+    qrAlt: 'TPBank transfer QR code',
+    hint: 'Save the QR code, then open it in your banking app to scan.',
+    saveQr: 'Save QR code',
+    paypal: 'Support via PayPal',
+    saveFailed: "Couldn't save the QR code — try a screenshot instead.",
   },
 };

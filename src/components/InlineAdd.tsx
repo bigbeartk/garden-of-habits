@@ -16,7 +16,7 @@ export function SectionAddButton({ period, onClick }: { period: Period; onClick:
     <button
       type="button"
       className="todo__section-add"
-      aria-label={`Thêm việc buổi ${t.period[period]}`}
+      aria-label={t.todo.addTask(period)}
       onMouseDown={(e) => e.preventDefault()}
       onClick={() => flushSync(onClick)}
     >
@@ -62,8 +62,8 @@ export function DraftRow({ period, onAdd, onDone }: { period: Period; onAdd: (te
           onChange={(e) => change(e.target.value)}
           onBlur={() => { save(); onDone(); }}
           onKeyDown={(e) => { if (e.key === 'Escape') { latest.current.cancelled = true; e.currentTarget.blur(); } }}
-          placeholder="Việc cần làm…"
-          aria-label={`Việc mới buổi ${t.period[period]}`}
+          placeholder={t.todo.draftPlaceholder}
+          aria-label={t.todo.newTask(period)}
           maxLength={200}
           enterKeyHint="next"
         />

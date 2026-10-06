@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'motion/react';
 import { useBackHandler } from '../app/back';
 import { CloseIcon } from './icons';
+import { useI18n } from '../i18n/I18nProvider';
 import './sheet.css';
 
 /**
@@ -11,6 +12,7 @@ import './sheet.css';
  * (màn Lịch đặt `position: relative` cho mọi con trực tiếp để nằm trên nền động).
  */
 export function BottomSheet({ open, title, onClose, children, tall }: { open: boolean; title: string; onClose: () => void; children: ReactNode; tall?: boolean }) {
+  const { t } = useI18n();
   useBackHandler(open, onClose, 'sheet');
   return createPortal(
     <AnimatePresence>
@@ -30,7 +32,7 @@ export function BottomSheet({ open, title, onClose, children, tall }: { open: bo
             <div className="sheet__grip" aria-hidden="true" />
             <div className="sheet__head">
               <h2 className="sheet__title">{title}</h2>
-              <button type="button" className="sheet__close" aria-label="Đóng" onClick={onClose}>
+              <button type="button" className="sheet__close" aria-label={t.common.close} onClick={onClose}>
                 <CloseIcon size={26} />
               </button>
             </div>

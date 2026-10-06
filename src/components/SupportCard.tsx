@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { SUPPORT } from '../content/support';
 import { shareOrDownload } from '../db/share';
 import { isNative, openExternal } from '../platform';
+import { useI18n } from '../i18n/I18nProvider';
 
 /**
  * Mục "Ủng hộ tôi" trong Cài đặt: mã QR chuyển khoản + nút lưu mã QR + nút PayPal.
@@ -9,6 +10,7 @@ import { isNative, openExternal } from '../platform';
  * lưu ảnh vào máy rồi mở trong app ngân hàng.
  */
 export function SupportCard() {
+  const { t } = useI18n();
   const [error, setError] = useState<string | null>(null);
 
   async function saveQr() {
@@ -18,7 +20,7 @@ export function SupportCard() {
       const blob = await res.blob();
       await shareOrDownload(new File([blob], SUPPORT.qrFileName, { type: 'image/jpeg' }));
     } catch (e) {
-      if ((e as Error).name !== 'AbortError') setError('Không lưu được mã QR, thử chụp màn hình nhé.');
+      if ((e as Error).name !== 'AbortError') setError(t.support.saveFailed);
     }
   }
 
@@ -31,15 +33,15 @@ export function SupportCard() {
 
   return (
     <section className="card settings__section support">
-      <h2>Ủng hộ tôi</h2>
-      <p className="muted support__text">Nếu bạn thích khu vườn nhỏ này, có thể mời mình một ly cà phê nha ☕🌱</p>
-      <img className="support__qr" src={SUPPORT.qrImage} alt={SUPPORT.qrAlt} width={890} height={1135} loading="lazy" />
-      <p className="muted support__hint">Lưu mã QR rồi mở trong app ngân hàng để quét.</p>
+      <h2>{t.support.title}</h2>
+      <p className="muted support__text">{t.support.text}</p>
+      <img className="support__qr" src={SUPPORT.qrImage} alt={t.support.qrAlt} width={890} height={1135} loading="lazy" />
+      <p className="muted support__hint">{t.support.hint}</p>
       {error && <p role="alert" className="error">{error}</p>}
       <div className="support__actions">
-        <button type="button" className="btn" onClick={saveQr}>Lưu mã QR</button>
+        <button type="button" className="btn" onClick={saveQr}>{t.support.saveQr}</button>
         <a className="btn btn--primary support__paypal" href={SUPPORT.paypalUrl} target="_blank" rel="noopener noreferrer" onClick={onPaypal}>
-          Ủng hộ qua PayPal
+          {t.support.paypal}
         </a>
       </div>
     </section>
