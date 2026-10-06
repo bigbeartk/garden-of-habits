@@ -5,6 +5,8 @@ const at = (iso: string) => new Date(`${iso}+07:00`);
 /** Chuyển tab qua menu nổi (giao diện tiếng Anh). */
 async function goTabEn(page: Page, name: 'Calendar' | 'Today' | 'Garden' | 'Settings') {
   const open = page.getByRole('button', { name: 'Open menu' });
+  // lần mở đầu app chờ giải ngôn ngữ mới render: đợi nút menu (đóng hoặc mở) hiện ra đã
+  await expect(open.or(page.getByRole('button', { name: 'Close menu' }))).toBeVisible();
   if (await open.isVisible()) await open.click();
   await page.getByRole('button', { name, exact: true }).click();
 }
@@ -90,10 +92,10 @@ test.describe('máy tiếng Anh', () => {
     const tabs = page.locator('#fnav-tabs');
     expect(await tabs.evaluate((el) => el.getBoundingClientRect().left >= 0)).toBe(true);
     const summary = page.getByTestId('garden-summary');
-    await expect(summary).toHaveText('1 day · 0 bloom · 0 tasks · ✨ 0 special');
+    await expect(summary).toHaveText('1 day · 0 blooms · 0 tasks · ✨ 0 special');
     // cùng mức số lớn nhất như test tiếng Việt (một năm): 365 ngày, 2000 việc, 99 đặc biệt
     await summary.evaluate((el) => {
-      el.innerHTML = '<b>365</b> days · <b>365</b> bloom · <b>2000</b> tasks · ✨ <b>99</b> special';
+      el.innerHTML = '<b>365</b> days · <b>365</b> blooms · <b>2000</b> tasks · ✨ <b>99</b> special';
     });
     const box = (await summary.boundingBox())!;
     expect(box.x + box.width).toBeLessThanOrEqual(page.viewportSize()!.width);

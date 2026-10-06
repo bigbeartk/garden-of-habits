@@ -26,7 +26,7 @@ import { errorText } from '../i18n/errors';
 import './settings.css';
 
 export function SettingsScreen() {
-  const { t, lang } = useI18n();
+  const { t, lang, setLang } = useI18n();
   const deps = useDeps();
   const nav = useNav();
   const lastBackupAt = useLiveQuery(() => getSetting(deps.db, 'lastBackupAt'), [deps.db]);
@@ -86,6 +86,9 @@ export function SettingsScreen() {
     try {
       const res = await restoreBackup(deps.db, pending, mode);
       setPending(null);
+      // file mang ngôn ngữ khác: giao diện đổi theo ngay (không đợi lần mở app sau)
+      const restored = await getSetting(deps.db, 'language');
+      if (restored && restored !== lang) setLang(restored);
       setStatus(t.settings.restored(res.days, res.templates));
     } catch (e) {
       setError(t.settings.restoreFailed(errorText(e, t)));

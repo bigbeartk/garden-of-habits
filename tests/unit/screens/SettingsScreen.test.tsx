@@ -284,3 +284,14 @@ it('Cài đặt bằng English', async () => {
   }
   expect(screen.getByText("You haven't backed up yet.")).toBeInTheDocument();
 });
+
+it('khôi phục file có ngôn ngữ khác thì giao diện đổi theo ngay', async () => {
+  const { deps } = makeDeps();
+  const user = userEvent.setup();
+  const file = { ...(await createBackup(makeDb(), 1)), language: 'vi' as const };
+  renderWithDeps(<SettingsScreen />, deps, undefined, 'en');
+  await user.upload(screen.getByTestId('restore-input'), jsonFile(serializeBackup(file)));
+  await user.click(await screen.findByRole('button', { name: 'Replace everything' }));
+  await user.click(screen.getByRole('button', { name: 'Yes, replace' }));
+  expect(await screen.findByRole('heading', { name: 'Cài đặt', level: 1 })).toBeInTheDocument();
+});

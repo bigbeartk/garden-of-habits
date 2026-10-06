@@ -29,3 +29,9 @@ describe('fmt', () => {
     expect(en.stage.bloom).toBe('Bloom');
   });
 });
+
+it('số nhiều tiếng Anh ở tóm tắt Khu vườn', () => {
+  expect([en.garden.days(1), en.garden.days(2)]).toEqual(['day', 'days']);
+  expect([en.garden.blooms(1), en.garden.blooms(365)]).toEqual(['bloom', 'blooms']);
+  expect([en.garden.tasks(1), en.garden.tasks(0)]).toEqual(['task', 'tasks']);
+});

@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { DepsProvider } from '../../../src/app/deps';
 import { I18nProvider, useI18n } from '../../../src/i18n/I18nProvider';
 import { getSetting } from '../../../src/db/settings';
-import { makeDeps } from '../helpers';
+import { makeDay, makeDeps } from '../helpers';
 
 function Probe() {
   const { lang, t, setLang } = useI18n();
@@ -36,5 +36,17 @@ describe('I18nProvider', () => {
     const { deps } = makeDeps();
     render(<DepsProvider value={deps}><I18nProvider><Probe /></I18nProvider></DepsProvider>);
     await waitFor(async () => expect(await getSetting(deps.db, 'language')).toBeDefined());
+  });
+});
+
+describe('I18nProvider: người dùng cũ, máy tiếng Anh, chưa có gợi ý', () => {
+  it('chưa giải xong ngôn ngữ thì chưa render (không nháy tiếng Anh, không chọn lời cây sai tiếng), rồi ra tiếng Việt', async () => {
+    localStorage.clear();
+    const { deps } = makeDeps(new Date(2026, 9, 6, 10, 0));
+    await deps.db.days.put(makeDay({ date: '2026-10-01' }));
+    Object.defineProperty(navigator, 'languages', { value: ['en-US'], configurable: true });
+    render(<DepsProvider value={deps}><I18nProvider><Probe /></I18nProvider></DepsProvider>);
+    expect(screen.queryByRole('button')).toBeNull();
+    await waitFor(() => expect(screen.getByRole('button')).toHaveTextContent('Hôm nay'));
   });
 });

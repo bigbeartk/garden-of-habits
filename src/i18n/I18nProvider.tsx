@@ -46,7 +46,13 @@ function writeHint(l: Lang) {
  */
 export function I18nProvider({ children, lang: fixed }: { children: ReactNode; lang?: Lang }) {
   const { db, now } = useDeps();
-  const [lang, setLangState] = useState<Lang>(() => fixed ?? readHint() ?? detectLang(deviceLangs()));
+  const [hint] = useState(readHint);
+  const [lang, setLangState] = useState<Lang>(() => fixed ?? hint ?? detectLang(deviceLangs()));
+  /**
+   * Chưa có gợi ý (lần mở đầu sau khi cập nhật, hoặc máy mới): chờ giải xong rồi mới render, kẻo người dùng cũ
+   * trên iPhone tiếng Anh thấy tiếng Anh và lời cây của ngày bị chọn bằng tiếng Anh.
+   */
+  const [ready, setReady] = useState(fixed !== undefined || hint !== null);
   /** người dùng đã tự chọn trong lúc đang giải → đừng ghi đè */
   const chosen = useRef(false);
 
@@ -59,8 +65,12 @@ export function I18nProvider({ children, lang: fixed }: { children: ReactNode; l
           setLangState(l);
           writeHint(l);
         }
+        if (alive) setReady(true);
       })
-      .catch(console.error);
+      .catch((e) => {
+        console.error(e);
+        if (alive) setReady(true);
+      });
     return () => {
       alive = false;
     };
@@ -80,5 +90,5 @@ export function I18nProvider({ children, lang: fixed }: { children: ReactNode; l
   }, [db]);
 
   const value = useMemo(() => make(lang, setLang), [lang, setLang]);
-  return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
+  return <I18nContext.Provider value={value}>{ready ? children : null}</I18nContext.Provider>;
 }

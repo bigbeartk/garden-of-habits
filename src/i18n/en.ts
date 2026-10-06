@@ -175,7 +175,7 @@ export const en: Messages = {
     onlyPlanted: 'Only show planted',
     separateSpecial: 'Show special plants separately',
     days: (n) => (n === 1 ? 'day' : 'days'),
-    blooms: () => 'bloom',
+    blooms: (n) => (n === 1 ? 'bloom' : 'blooms'),
     tasks: (n) => (n === 1 ? 'task' : 'tasks'),
     specials: () => 'special',
     empty: 'No plants in this range yet',

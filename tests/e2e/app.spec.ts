@@ -5,6 +5,8 @@ const at = (iso: string) => new Date(`${iso}+07:00`);
 /** Chuyển tab qua menu nổi: mở menu nếu đang thu gọn rồi bấm tab. */
 async function goTab(page: Page, name: 'Lịch' | 'Hôm nay' | 'Khu vườn' | 'Cài đặt') {
   const open = page.getByRole('button', { name: 'Mở menu' });
+  // lần mở đầu app chờ giải ngôn ngữ mới render: đợi nút menu (đóng hoặc mở) hiện ra đã
+  await expect(open.or(page.getByRole('button', { name: 'Đóng menu' }))).toBeVisible();
   if (await open.isVisible()) await open.click();
   await page.getByRole('button', { name, exact: true }).click();
 }
