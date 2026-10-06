@@ -35,6 +35,12 @@ khoá khác, không cài đè được.
    | `ANDROID_KEY_ALIAS` | `garden` |
    | `ANDROID_KEY_PASSWORD` | mật khẩu khoá (thường trùng mật khẩu keystore) |
 
+## Ngôn ngữ
+
+App song ngữ Việt / Anh. Máy mới: theo ngôn ngữ của máy (tiếng Việt → Việt, còn lại → Anh); đổi được ở
+**Cài đặt → Ngôn ngữ · Language**. Soát tay khi đổi giao diện: máy để tiếng Anh, cài mới → app tiếng Anh;
+chọn Tiếng Việt, thoát hẳn rồi mở lại vẫn tiếng Việt; nút Back và menu Chia sẻ vẫn chạy.
+
 ## Chuyển dữ liệu giữa PWA và app
 
 Hai bên có kho dữ liệu riêng. Dùng **Cài đặt → Sao lưu dữ liệu** ở bên cũ, rồi **Khôi phục từ file**

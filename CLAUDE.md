@@ -3,7 +3,11 @@
 PWA todo cho iPhone, có phần "nuôi cây": mỗi việc làm xong là một lần tưới cây, cây lớn qua 4 giai đoạn, có lịch dễ thương lưu lại cây của từng ngày.
 - Chạy offline, không cần tài khoản, không lên App Store.
 - Người dùng chính là vợ của chủ repo, dùng **iPhone 13** (390×844, Safari / PWA cài ra màn hình chính).
-- Toàn bộ chữ trên giao diện là **tiếng Việt**.
+- Giao diện **song ngữ Việt / Anh** (`src/i18n/`, spec `docs/superpowers/specs/2026-10-06-bilingual-design.md`). Người dùng chính dùng tiếng Việt; tiếng Anh để chuẩn bị lên Google Play.
+  - **Mọi chữ mới phải thêm vào `src/i18n/vi.ts` VÀ `en.ts`** (kiểu `Messages = typeof vi`: thiếu khoá → `tsc` báo). Component lấy chữ bằng `const { t, lang, tr } = useI18n()`; chuỗi có tham số là hàm (`t.todo.complete(text)`), số nhiều tiếng Anh viết trong hàm. Ngày/tháng/thứ qua `src/i18n/fmt.ts`.
+  - Test `tests/unit/i18n/no-hardcoded-vi.test.ts` (dùng `@babel/parser`, vì TypeScript 7 không còn compiler API JS) **chặn chữ Việt có dấu viết cứng** trong `app/components/screens/domain/db/hooks/platform/utils`. Chữ Việt **không dấu** (vd. "Xem") nó không bắt được: tự để ý.
+  - **Nội dung** (tên cây/chậu/dáng/hiệu ứng, lời cây) nằm ngay trong `src/content` dạng `Localized<T> = { vi, en }`; hiển thị bằng `tr(x.name)`.
+  - Lỗi nghiệp vụ là `AppError(code, params)` (`src/domain/errors.ts`, `message` vẫn là câu Việt); giao diện hiện `errorText(e, t)`. `parseBackup` trả thêm `code`/`path`.
 - Tên hiển thị là **Garden of Habits** (`<title>`, manifest `name`/`short_name`, `apple-mobile-web-app-title`). **Giữ nguyên** tên DB `chau-cay-chibi` và mã định dạng sao lưu `chau-cay-chibi-backup` để không mất dữ liệu cũ.
 
 - Spec gốc: `docs/superpowers/specs/2026-10-02-chibi-plant-todo-design.md`
@@ -66,6 +70,7 @@ src/
   screens/    CalendarScreen (màn mở đầu; mở FutureDayScreen cho ngày tương lai), TodayScreen, GardenScreen (tab Khu vườn), SettingsScreen (mở RemindersScreen từ thẻ "Nhắc việc", TemplatesScreen từ thẻ "Mẫu việc")
   hooks/      useNow, useToday, useBackupReminder, useCalendarBg
   platform/   khác biệt PWA ⇄ Android (Capacitor): chia sẻ file, link ngoài, resume, nút Back
+  i18n/       vi.ts (nguồn chuẩn) + en.ts, lang (Lang, detectLang, resolveLang, Localized, tr), fmt (ngày giờ), I18nProvider (useI18n), errors (errorText)
   dev/        ArtGallery.tsx — xem trước mọi cây/chậu (render tạm từ main.tsx khi cần)
 ```
 
@@ -91,7 +96,7 @@ src/
 - **Chỉ hôm nay** mới được: thêm/sửa/xoá/tick/sắp xếp todo, đặt **mục tiêu ngày** (`setTitle`), đổi cây, đổi chậu, bật ngày tiết kiệm năng lượng.
 - **Mục tiêu ngày** (lưu ở trường `title`, giao diện gọi là "Mục tiêu"): ô ở đầu danh sách (`GoalInput`), lưu khi rời ô hoặc Enter, tối đa 60 ký tự. Ngày tương lai có mục tiêu đặt trước (bảng `plannedGoals`, `setPlannedGoal`/`getPlannedGoal`), đến 4:00 ngày đó `ensureToday` chuyển thành `title` rồi xoá. Ngày đã qua chỉ xem mục tiêu trong bảng chi tiết.
 - **Nút quay lại** (`BackButton`, class `back-btn`, icon `back`, nhãn mặc định `Quay lại Lịch`, đổi được qua `label`): có ở **Hôm nay, ngày tương lai, Khu vườn, Cài đặt** (về màn Lịch) và **Mẫu**, **Nhắc việc** (nhãn `Quay lại Cài đặt`, về Cài đặt); **chỉ mũi tên, không nền/viền**. Trên trời (Hôm nay/tương lai) nó nổi ở góc trái trên (trời tối thì mũi tên trắng); ở Khu vườn/Mẫu/Cài đặt nằm đầu hàng tiêu đề (`inline`).
-- **Màn Mẫu nằm trong Cài đặt** (không còn là tab): thẻ thứ hai của Cài đặt (sau "Nhắc việc") là **"Mẫu việc"**, ghi `⭐ Đang dùng: <tên>` (hoặc `Chưa có mẫu mặc định`) + nút `Quản lý mẫu`; bấm thì `SettingsScreen` hiện `TemplatesScreen` (prop `onBack`) thay chỗ trang Cài đặt. Thứ tự thẻ Cài đặt: Nhắc việc → Mẫu việc → Lịch → Sao lưu & khôi phục → Ủng hộ tôi. Hướng dẫn cài app không còn là thẻ: nút tròn `Hướng dẫn cài app` (icon `help`) ở cuối hàng tiêu đề mở BottomSheet `Cài app lên màn hình chính` (các bước + trạng thái lưu bền vững); dữ liệu chưa lưu bền vững thì nút có chấm hồng.
+- **Màn Mẫu nằm trong Cài đặt** (không còn là tab): thẻ thứ hai của Cài đặt (sau "Nhắc việc") là **"Mẫu việc"**, ghi `⭐ Đang dùng: <tên>` (hoặc `Chưa có mẫu mặc định`) + nút `Quản lý mẫu`; bấm thì `SettingsScreen` hiện `TemplatesScreen` (prop `onBack`) thay chỗ trang Cài đặt. Thứ tự thẻ Cài đặt: Nhắc việc → Mẫu việc → Lịch → Ngôn ngữ → Sao lưu & khôi phục → Ủng hộ tôi. Hướng dẫn cài app không còn là thẻ: nút tròn `Hướng dẫn cài app` (icon `help`) ở cuối hàng tiêu đề mở BottomSheet `Cài app lên màn hình chính` (các bước + trạng thái lưu bền vững); dữ liệu chưa lưu bền vững thì nút có chấm hồng.
 - **Màn Mẫu:** nút `＋ Mẫu mới` rộng nét đứt; thẻ mẫu có tên + nút ngôi sao SVG (`star`, chữ "Mặc định"/"Đặt mặc định", thẻ mặc định viền vàng), 3 khối màu theo buổi (icon + tên + số việc), hàng nút [Thêm vào hôm nay][Sửa][Xoá]; form có 3 khối màu kèm icon. Mẫu/Cài đặt chừa `padding-bottom` cho nút menu nổi.
 - **Buổi Sáng / Chiều / Tối** (`domain/period.ts`): mỗi todo và mỗi việc trong mẫu có `period`. Màn Hôm nay luôn hiện đủ 3 mục (mục trống ghi "Chưa có việc"); mỗi mục có số việc xong/tổng riêng; mục của buổi hiện tại (`periodOf`: 4–11h sáng, 11–18h chiều, còn lại tối) có viền đậm. **Kéo thả** (nắm `⋮⋮`) chuyển được việc sang buổi khác, kể cả buổi trống, hoặc sắp xếp trong buổi: `TodoList` tự viết bằng pointer events (không dùng `Reorder` của motion vì nó không kéo qua danh sách khác), buổi đích viền hồng (`is-drop-target`), vạch `todo__drop-line` báo vị trí, kéo gần mép thì vùng danh sách tự cuộn; lưu bằng `moveTodo(deps, date, id, period, index)`. Test E2E kéo phải đóng menu nổi trước. Cây vẫn lớn theo tỉ lệ việc xong của **cả ngày**.
 - **Chạm vào cây** (màn Hôm nay): nút trong suốt `Chạm vào cây` (`.today__plant-tap`, phủ đúng khung 200×240 của cây, không lấn hàng 4 nút). Chạm thì cây cười (`data-mood="smile"`), nảy lên (`bounceKey`) và nói một câu ~3,5 giây (`data-kind="tap"`): `pickTap` lấy từ `COMMON_TAPS` (`content/taps.ts`) + `species.taps`, không lặp câu vừa nói. Ngày tiết kiệm năng lượng: cây vẫn ngủ, nói câu `SLEEPY_TAPS`. Câu tạm (khen/chạm) và khung ✨ giới thiệu có `pointer-events: none`, vì câu dài phủ xuống thân cây và từng nuốt mất cú chạm; riêng bong bóng lời của ngày bắt chạm (để sửa), nó chỉ 3 dòng và ẩn được.
@@ -124,6 +129,7 @@ src/
 - **Khu vườn (báo cáo)**: là **một tab** của menu nổi (icon `garden`, nhãn `Khu vườn`); màn Lịch không còn nút Khu vườn. `GardenScreen` (`data-testid="garden"`, nút `Quay lại Lịch` chuyển về tab Lịch). Chọn `Từ ngày` / `Đến ngày` (mặc định đầu tháng → hôm nay; ngược thì tự đổi chỗ) hoặc nút nhanh `Tháng này` / `30 ngày` / `Tất cả`. Vườn cỏ xanh, mỗi loài một luống (`garden-plant-<id>`, số ngày ở `.garden__count`), vẽ dạng ra hoa trong chậu mặc định; loài 0 ngày hiện mờ (`is-empty`). **Thứ tự luống** (`report.beds`): mọi luống > 0 ngày đứng trên mọi luống 0 ngày; trong mỗi nhóm: loài thường (nhiều ngày trước) → cây đặc biệt → Cây héo → Ngày nghỉ (cây thật luôn ở trên). Ngoài các loài còn có 2 luống riêng: `garden-wilted` **Cây héo** (ngày bỏ lỡ, cùng định nghĩa `missed` của ô lịch: không bản ghi, từ ngày dùng app đầu tiên tới hôm qua) và `garden-rest` **Ngày nghỉ**. Hai công tắc lọc **thu gọn mặc định** (để dành chỗ ngắm vườn): nút tròn `Tuỳ chọn hiển thị` (icon `options`, `aria-expanded`) ở cuối hàng tiêu đề xổ chúng ra ở cuối thẻ chọn ngày; mỗi lần mở màn đều thu gọn; đang lọc mà thu gọn thì nút có chấm hồng (`icon-btn__badge`). Công tắc `Chỉ hiện cây đã trồng` (`gardenOnlyPlanted`, nhớ lại, có trong sao lưu) ẩn mọi luống 0 ngày kể cả 2 luống riêng; không còn luống nào thì hiện "Chưa có cây nào trong khoảng này". Tóm tắt `garden-summary` **luôn một dòng** (`nowrap`; E2E thử số lớn nhất và đo chữ không tràn viền): `N ngày · N ra hoa · N việc · ✨ N đặc biệt`; công tắc `Tách riêng cây đặc biệt` (`gardenSeparateSpecial`) bỏ ngày đặc biệt khỏi loài thường và hiện luống `garden-special-<plant>-<special>` ("Ngô · Phát sáng", vẽ kèm hiệu ứng, viền vàng). Logic thuần ở `domain/garden.ts` (`gardenReport(records, ids, from, to, { todayKey, firstKey, separateSpecial })`): ngày tiết kiệm năng lượng **không** tính cho loài cây (đếm riêng `restDays`); loài đã xoá khỏi nội dung không có luống.
 - **Nền theo giờ** (`timeOfDay`): sáng 4–11h, trưa 11–14h, chiều 14–18h, tối 18–4h.
 - **Nhắc sao lưu:** khi đã quá 7 ngày kể từ lần sao lưu cuối, hoặc kể từ dữ liệu cũ nhất nếu chưa sao lưu lần nào.
+- **Ngôn ngữ** (setting `language: 'vi' | 'en'`): `resolveLang(db, todayKey)` lúc mở app: có setting → dùng; chưa có mà có ngày **trước hôm nay** (người dùng từ trước khi có song ngữ) → `vi`; không thì theo máy (`navigator.languages`: `vi*` → vi, còn lại en). Kết quả **ghi luôn** vào setting ở lần đầu (nếu không, máy mới tiếng Anh sang hôm sau sẽ có "ngày cũ" và bị đổi sang Việt), nên đổi ngôn ngữ máy sau đó không tự đổi app. `I18nProvider` (bọc `App` trong `main.tsx`) render ngay bằng gợi ý `localStorage` `goh-lang` cho khỏi nháy. Thẻ Cài đặt **`Ngôn ngữ · Language`** (radio `Tiếng Việt` / `English`, nhãn luôn hai thứ tiếng) đổi ngay, ghi setting, cập nhật `<html lang>`. Không dịch dữ liệu người dùng gõ; **lời cây nói đã lưu của ngày giữ nguyên** ngôn ngữ lúc chọn. Sao lưu có `language` (tuỳ chọn): `replace` chỉ ghi khi file có (file cũ không xoá ngôn ngữ hiện tại), `merge` chỉ lấy khi máy chưa có; khôi phục xong thì lần mở app sau mới theo ngôn ngữ mới.
 
 ## Format nội dung: cây, chậu, hiệu ứng
 
@@ -145,18 +151,18 @@ interface FaceAnchor { x: number; y: number; scale: number }
 ```ts
 interface PlantSpecies {
   id: string;                                        // 'sunflower'
-  name: string;                                      // 'Hướng dương'
+  name: Localized<string>;                           // { vi: 'Hướng dương', en: 'Sunflower' }
   defaultPotId: string;                              // phải có trong POTS
   stages: Record<'seed'|'sprout'|'bud'|'bloom', Art>;
   faceAnchor: Record<'seed'|'sprout'|'bud'|'bloom', FaceAnchor>;
-  sayings?: string[];                                // lời của ngày riêng của loài
-  praises?: string[];                                // câu khen riêng khi xong việc
-  taps?: string[];                                   // câu riêng khi bị chạm vào
+  sayings?: Localized<string[]>;                     // lời của ngày riêng của loài (≤ 100 ký tự)
+  praises?: Localized<string[]>;                     // câu khen riêng khi xong việc
+  taps?: Localized<string[]>;                        // câu riêng khi bị chạm vào
   faceStyle?: 'cute' | 'cool' | 'lady';              // 'cool': kính râm + nhếch mép, không má hồng; 'lady': mi cong + môi son (ngủ/buồn vẫn mặt thường)
   styles?: PlantStyle[];                             // 2 dáng mở khoá (unlockAt 10, 20)
 }
 interface PlantStyle {                               // chỉ vẽ lại bud/bloom; seed/sprout dùng Gốc
-  id: string; name: string; unlockAt: number;
+  id: string; name: Localized<string>; unlockAt: number;
   stages: Record<'bud'|'bloom', Art>;
   faceAnchor: Record<'bud'|'bloom', FaceAnchor>;
   faceStyle?: FaceStyle;                             // không có = theo loài
@@ -170,7 +176,7 @@ interface PlantStyle {                               // chỉ vẽ lại bud/blo
 2. Thêm loài vào mảng `PLANTS` trong `src/content/plants/registry.ts`.
 3. Chạy `npm test`. `tests/unit/content/plants.test.tsx` kiểm tra đủ 4 giai đoạn, chậu mặc định có tồn tại, và mỗi loài có chậu mặc định khác nhau.
 
-Lưu ý: test này cũng cố định danh sách loài theo thứ tự, nên thêm loài thì phải cập nhật danh sách trong test (và `tests/unit/content/praises.test.ts`, `taps.test.ts`: mỗi loài cần ≥ 1 câu khen và ≥ 2 câu khi bị chạm; `sayings.test.ts`: ≥ 2 câu lời của ngày).
+Lưu ý: test này cũng cố định danh sách loài theo thứ tự, nên thêm loài thì phải cập nhật danh sách trong test (và `tests/unit/content/praises.test.ts`, `taps.test.ts`: mỗi loài cần ≥ 1 câu khen và ≥ 2 câu khi bị chạm; `sayings.test.ts`: ≥ 2 câu lời của ngày), **ở mỗi ngôn ngữ**. Tên và câu tiếng Anh viết lại theo giọng chibi + tính cách loài (xương rồng ngầu, hoa hồng quý cô), không dịch từng chữ.
 
 Các loài hiện có:
 
@@ -293,6 +299,7 @@ calendarTheme: 'default' | 'cat' | 'grass' | 'rain' | 'gamer' | 'photo'
 showCalendarBgButton: boolean                        // không có = bật
 showNoteDot:  boolean                                // chấm đỏ ở ô lịch ngày có ghi chú; không có = bật
 showPlantSpeech: boolean                             // hiện bong bóng lời cây nói của ngày; không có = BẬT
+language: 'vi' | 'en'                               // ngôn ngữ giao diện; không có = chưa giải lần nào (resolveLang ghi ở lần mở đầu); có trong sao lưu
 gardenOnlyPlanted: boolean                           // Khu vườn chỉ hiện luống > 0 ngày; không có = TẮT
 gardenSeparateSpecial: boolean                       // Khu vườn tách ngày cây đặc biệt thành luống riêng; không có = TẮT
 unlockedSpecials: string[]                           // cây đặc biệt đã tung trúng, 'plantId|specialId'; có trong sao lưu (gộp = hợp hai danh sách)
@@ -321,7 +328,8 @@ Tên file: `chau-cay-backup-YYYY-MM-DD.json`. Khi lưu, app mở menu Chia sẻ 
   "reminders": [Reminder, ...],                 // file 1–4 không có → []
   "calendarBg": { "mime": "image/jpeg", "base64": "..." } | null,
   "unlockedSpecials": ["corn|glow", ...],         // tuỳ chọn; file cũ không có
-  "unlockedStyles": ["sunflower|mini", ...]       // tuỳ chọn; file cũ không có (ngày có thể có "styleId")
+  "unlockedStyles": ["sunflower|mini", ...],      // tuỳ chọn; file cũ không có (ngày có thể có "styleId")
+  "language": "vi"                                // tuỳ chọn; file cũ không có
 }
 ```
 
@@ -370,7 +378,7 @@ File thiếu `planned` (phiên bản 1–2), `plannedGoals` (phiên bản 1–3)
   - `photo` = ảnh **hoặc nền động** của người dùng (`calendarBg`, ô chọn `accept="image/*,video/*"`, `prepareBackground` trong `utils/image.ts`). Ảnh tĩnh nén JPEG; GIF và video (mp4, mov) lưu nguyên tệp vì nén qua canvas làm mất chuyển động, tối đa `MAX_ANIMATED_BG_BYTES` 25 MB (quá thì báo lỗi). GIF làm `background-image`; video phát bằng `<video data-testid="calendar-video">` trong lớp `bg-scene` (autoplay + muted + loop + playsInline, bắt buộc để Safari iOS tự phát; giảm chuyển động thì không tự phát). Bản cũ chưa có `calendarTheme`: có ảnh → `photo`, không → `default` (`useCalendarTheme`). Đổi sang kiểu khác **không xoá ảnh**. `calendarTheme` có trong file sao lưu (tuỳ chọn).
 - **Màn Lịch:** căn giữa theo chiều dọc. Khi hình nền khác `default`, thẻ tháng và lưới ngày nhận class `is-glass` (kính mờ trong suốt, `backdrop-filter`), chữ có viền sáng để dễ đọc.
 - **Tôn trọng** `prefers-reduced-motion`, safe-area (`env(safe-area-inset-*)`) và chiều cao `100dvh`.
-- **Các label và `data-testid` mà test dựa vào, không đổi tuỳ tiện:**
+- **Các label và `data-testid` mà test dựa vào, không đổi tuỳ tiện** (đây là bản tiếng Việt; unit test render tiếng Việt mặc định qua `renderWithDeps(ui, deps, nav, lang = 'vi')` và E2E dùng `locale: 'vi-VN'`. Bản tiếng Anh tương ứng ở `src/i18n/en.ts`, E2E tiếng Anh ở `tests/e2e/i18n.spec.ts` với `test.use({ locale: 'en-US' })`, vd. `Open menu`, `Add morning task`, `Complete: <task>`, `Tap the plant`):
   - `Mục tiêu hôm nay` / `Mục tiêu ngày này` (placeholder `Đặt mục tiêu cho hôm nay…` / `…cho ngày này…`), `Quay lại Lịch`, `Thêm việc buổi Sáng|Chiều|Tối` (nút ＋ mỗi buổi), ô `Việc mới buổi Sáng|Chiều|Tối` (dòng trống), `Hoàn thành: <việc>`, `todo-section-morning|afternoon|evening`
   - Form mẫu: `Việc buổi Sáng|Chiều|Tối (mỗi dòng một việc)`
   - Menu nổi: nút `Mở menu` / `Đóng menu` (`aria-expanded`), dải `#fnav-tabs` với 4 nút tab (`aria-current="page"` cho tab hiện tại). Test E2E chuyển tab bằng helper `goTab(page, 'Lịch')`; mở màn Mẫu bằng `openTemplates(page)` (Cài đặt → `Quản lý mẫu`), màn Nhắc việc bằng `openReminders(page)` (Cài đặt → `Mở nhắc việc`).
