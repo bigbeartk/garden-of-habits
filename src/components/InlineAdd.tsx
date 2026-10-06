@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
-import { PERIOD_LABEL, type Period } from '../domain/period';
+import type { Period } from '../domain/period';
 import { PlusIcon } from './icons';
+import { useI18n } from '../i18n/I18nProvider';
 
 /**
  * Nút ＋ ở cuối hàng tiêu đề của một buổi: mở dòng việc trống trong buổi đó.
@@ -10,11 +11,12 @@ import { PlusIcon } from './icons';
  *   danh sách dịch lên và cú chạm trượt khỏi nút.
  */
 export function SectionAddButton({ period, onClick }: { period: Period; onClick: () => void }) {
+  const { t } = useI18n();
   return (
     <button
       type="button"
       className="todo__section-add"
-      aria-label={`Thêm việc buổi ${PERIOD_LABEL[period]}`}
+      aria-label={`Thêm việc buổi ${t.period[period]}`}
       onMouseDown={(e) => e.preventDefault()}
       onClick={() => flushSync(onClick)}
     >
@@ -30,6 +32,7 @@ export function SectionAddButton({ period, onClick }: { period: Period; onClick:
  * dòng đang mở vẫn là của buổi này (Safari gọi blur dòng cũ sau khi dòng mới đã mở).
  */
 export function DraftRow({ period, onAdd, onDone }: { period: Period; onAdd: (text: string) => void; onDone: () => void }) {
+  const { t } = useI18n();
   const [text, setText] = useState('');
   const latest = useRef({ text: '', onAdd, cancelled: false });
   latest.current.onAdd = onAdd;
@@ -60,7 +63,7 @@ export function DraftRow({ period, onAdd, onDone }: { period: Period; onAdd: (te
           onBlur={() => { save(); onDone(); }}
           onKeyDown={(e) => { if (e.key === 'Escape') { latest.current.cancelled = true; e.currentTarget.blur(); } }}
           placeholder="Việc cần làm…"
-          aria-label={`Việc mới buổi ${PERIOD_LABEL[period]}`}
+          aria-label={`Việc mới buổi ${t.period[period]}`}
           maxLength={200}
           enterKeyHint="next"
         />

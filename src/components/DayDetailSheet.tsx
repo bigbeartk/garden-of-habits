@@ -2,27 +2,29 @@ import { BottomSheet } from './BottomSheet';
 import { MiniPlant } from './MiniPlant';
 import { getSpecies } from '../content/plants/registry';
 import { getSpecial } from '../content/specials/registry';
-import { longDateLabel, type CellStatus } from '../domain/calendar';
-import { STAGE_LABEL } from '../domain/growth';
-import { PERIODS, PERIOD_LABEL } from '../domain/period';
+import type { CellStatus } from '../domain/calendar';
+import { PERIODS } from '../domain/period';
 import { PeriodIcon } from './icons';
 import type { DayRecord } from '../domain/types';
+import { useI18n } from '../i18n/I18nProvider';
+import { longDate } from '../i18n/fmt';
 
 /** Chi tiết một ngày đã qua: chỉ để xem (việc theo buổi, ghi chú), không sửa được gì. */
 export function DayDetailSheet({ dateKey, status, record, onClose }: {
   dateKey: string | null; status: CellStatus | null; record?: DayRecord; onClose: () => void;
 }) {
+  const { t, lang } = useI18n();
   const open = dateKey !== null && status !== null;
   const special = record && !record.isRestDay ? getSpecial(record.specialId) : null;
 
   return (
-    <BottomSheet open={open} title={dateKey ? longDateLabel(dateKey) : ''} onClose={onClose} tall>
+    <BottomSheet open={open} title={dateKey ? longDate(lang, dateKey) : ''} onClose={onClose} tall>
       {open && (
         <div className="detail">
           {record?.title && <h3 className="detail__title">{record.title}</h3>}
           <div className="detail__scene"><MiniPlant status={status!} record={record} /></div>
           {status === 'plant' && record && (
-            <p className="detail__line">{getSpecies(record.plantId).name} · {STAGE_LABEL[record.finalStage]}</p>
+            <p className="detail__line">{getSpecies(record.plantId).name} · {t.stage[record.finalStage]}</p>
           )}
           {special && <p className="detail__line">✨ Cây đặc biệt: {special.name}</p>}
           {status === 'rest' && <p className="detail__line">💤 Ngày tiết kiệm năng lượng</p>}
@@ -34,7 +36,7 @@ export function DayDetailSheet({ dateKey, status, record, onClose }: {
                 return (
                   <section key={p} className={`detail__period todo__section--${p}`} data-testid={`detail-section-${p}`}>
                     <h4 className="detail__period-title">
-                      <PeriodIcon period={p} /> {PERIOD_LABEL[p]}
+                      <PeriodIcon period={p} /> {t.period[p]}
                       {group.length > 0 && <span className="detail__period-count">{group.filter((t) => t.done).length}/{group.length}</span>}
                     </h4>
                     {group.length === 0 ? (

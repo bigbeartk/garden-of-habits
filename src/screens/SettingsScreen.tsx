@@ -20,12 +20,12 @@ import { listTemplates } from '../domain/templateService';
 import { isNative } from '../platform';
 import { RemindersScreen } from './RemindersScreen';
 import { TemplatesScreen } from './TemplatesScreen';
+import { useI18n } from '../i18n/I18nProvider';
+import { dateTime, shortDateTime } from '../i18n/fmt';
 import './settings.css';
 
-const formatDateTime = (ms: number) =>
-  new Date(ms).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-
 export function SettingsScreen() {
+  const { lang } = useI18n();
   const deps = useDeps();
   const nav = useNav();
   const lastBackupAt = useLiveQuery(() => getSetting(deps.db, 'lastBackupAt'), [deps.db]);
@@ -147,7 +147,7 @@ export function SettingsScreen() {
       <div className="card settings__section">
         <h2>Sao lưu & khôi phục</h2>
         <p className="muted">
-          {lastBackupAt ? `Lần sao lưu gần nhất: ${formatDateTime(lastBackupAt)}` : 'Bạn chưa sao lưu lần nào.'}
+          {lastBackupAt ? `Lần sao lưu gần nhất: ${dateTime(lang, lastBackupAt)}` : 'Bạn chưa sao lưu lần nào.'}
         </p>
         <button type="button" className="btn btn--primary" onClick={doBackup}>💾 Sao lưu dữ liệu</button>
         <label className="btn">
@@ -157,7 +157,7 @@ export function SettingsScreen() {
         {pending && (
           <div className="settings__preview">
             <p>
-              File sao lưu ngày {formatDateTime(pending.exportedAt)}: {pending.days.length} ngày · {pending.templates.length} mẫu
+              File sao lưu ngày {dateTime(lang, pending.exportedAt)}: {pending.days.length} ngày · {pending.templates.length} mẫu
               {pending.calendarBg ? ' · có ảnh nền' : ''}
             </p>
             <div className="settings__row">
@@ -190,7 +190,7 @@ export function SettingsScreen() {
       </BottomSheet>
 
       <p className="muted settings__version" data-testid="app-version">
-        Phiên bản {__APP_VERSION__} · {new Date(__BUILD_TIME__).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+        Phiên bản {__APP_VERSION__} · {shortDateTime(lang, new Date(__BUILD_TIME__).getTime())}
         {native && ' · Android'}
       </p>
     </section>

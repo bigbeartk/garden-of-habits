@@ -1,4 +1,4 @@
-import { formatDate, parseDayKey } from './dayKey';
+import { formatDate } from './dayKey';
 import type { DayRecord } from './types';
 
 export interface MonthCell {
@@ -24,19 +24,6 @@ export function dayCellStatus(key: string, record: DayRecord | undefined, todayK
   if (key === todayKey) return 'today-pending';
   if (firstKey === null || key < firstKey) return 'before-start';
   return 'missed';
-}
-
-export const WEEKDAY_SHORT = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
-const WEEKDAY_LONG = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
-const pad = (n: number) => String(n).padStart(2, '0');
-
-export function monthLabel(year: number, month: number): string {
-  return `Tháng ${month + 1}, ${year}`;
-}
-
-export function longDateLabel(key: string): string {
-  const d = parseDayKey(key);
-  return `${WEEKDAY_LONG[d.getDay()]}, ${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
 }
 
 export function shiftMonth(year: number, month: number, delta: number): { year: number; month: number } {

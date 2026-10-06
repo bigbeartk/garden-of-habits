@@ -13,7 +13,7 @@ import { FutureDayScreen } from './FutureDayScreen';
 import { useBackHandler } from '../app/back';
 
 const MAX_MONTHS_AHEAD = 12;
-import { WEEKDAY_SHORT, buildMonthGrid, dayCellStatus, monthLabel, shiftMonth } from '../domain/calendar';
+import { buildMonthGrid, dayCellStatus, shiftMonth } from '../domain/calendar';
 import { dayKey, formatDate, parseDayKey } from '../domain/dayKey';
 import { useCalendarBg, useCalendarTheme } from '../hooks/useCalendarBg';
 import { isVideoMime } from '../utils/image';
@@ -22,9 +22,12 @@ import { GrassBloomScene } from '../components/backgrounds/GrassBloomScene';
 import { PixelGamingRoomScene } from '../components/backgrounds/PixelGamingRoomScene';
 import { RainChillScene } from '../components/backgrounds/RainChillScene';
 import { useNow } from '../hooks/useNow';
+import { useI18n } from '../i18n/I18nProvider';
+import { monthLabel } from '../i18n/fmt';
 import './calendar.css';
 
 export function CalendarScreen() {
+  const { t, lang } = useI18n();
   const deps = useDeps();
   const nav = useNav();
   const now = useNow();
@@ -100,9 +103,9 @@ export function CalendarScreen() {
         </div>
       )}
       <header className={`cal__head card${glass}`} data-testid="calendar-head">
-        <button type="button" className="btn btn--round" aria-label="Tháng trước" onClick={() => go(-1)}>‹</button>
-        <h1 className="screen__title" aria-live="polite">{monthLabel(view.year, view.month)}</h1>
-        <button type="button" className="btn btn--round" aria-label="Tháng sau" onClick={() => go(1)} disabled={atLastMonth}>›</button>
+        <button type="button" className="btn btn--round" aria-label={t.calendar.prevMonth} onClick={() => go(-1)}>‹</button>
+        <h1 className="screen__title" aria-live="polite">{monthLabel(lang, view.year, view.month)}</h1>
+        <button type="button" className="btn btn--round" aria-label={t.calendar.nextMonth} onClick={() => go(1)} disabled={atLastMonth}>›</button>
       </header>
 
       <motion.div
@@ -117,7 +120,7 @@ export function CalendarScreen() {
         }}
       >
         <div className="cal__weekdays" aria-hidden="true">
-          {WEEKDAY_SHORT.map((w) => <span key={w}>{w}</span>)}
+          {t.calendar.weekdaysShort.map((w) => <span key={w}>{w}</span>)}
         </div>
         <div className="cal__grid">
           {cells.map((c, i) => {

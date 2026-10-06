@@ -8,13 +8,15 @@ import { ConfirmButton } from '../components/ConfirmButton';
 import { TemplateForm } from '../components/TemplateForm';
 import { addTodos, ensureToday } from '../domain/dayService';
 import { createTemplate, deleteTemplate, listTemplates, setDefaultTemplate, updateTemplate } from '../domain/templateService';
-import { PERIODS, PERIOD_LABEL } from '../domain/period';
+import { PERIODS } from '../domain/period';
 import { PeriodIcon, StarIcon } from '../components/icons';
 import type { Template } from '../domain/types';
+import { useI18n } from '../i18n/I18nProvider';
 import './templates.css';
 
 /** Màn Mẫu, mở từ thẻ "Mẫu việc" trong Cài đặt; `onBack` quay về Cài đặt. */
 export function TemplatesScreen({ onBack }: { onBack: () => void }) {
+  const i18n = useI18n();
   const deps = useDeps();
   const nav = useNav();
   const templates = useLiveQuery(() => listTemplates(deps.db), [deps.db]) ?? [];
@@ -99,7 +101,7 @@ export function TemplatesScreen({ onBack }: { onBack: () => void }) {
                       <div key={p} className={`tpl__period todo__section--${p}`}>
                         <h3 className="tpl__period-title">
                           <PeriodIcon period={p} size={24} />
-                          <span>{PERIOD_LABEL[p]}</span>
+                          <span>{i18n.t.period[p]}</span>
                           <span className="tpl__period-count">{items.length}</span>
                         </h3>
                         <ul className="tpl__items">

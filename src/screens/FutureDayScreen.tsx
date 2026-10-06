@@ -8,10 +8,11 @@ import { PlantScene } from '../components/PlantScene';
 import { SkyBackground } from '../components/SkyBackground';
 import { SpeechBubble } from '../components/SpeechBubble';
 import { DEFAULT_POT_ID } from '../content/pots/registry';
-import { longDateLabel } from '../domain/calendar';
 import { addPlanned, deletePlanned, editPlanned, getPlannedGoal, listPlanned, setPlannedGoal } from '../domain/plannedService';
 import { timeOfDay } from '../domain/timeOfDay';
 import { useNow } from '../hooks/useNow';
+import { useI18n } from '../i18n/I18nProvider';
+import { longDate, weekdayName } from '../i18n/fmt';
 import './today.css';
 
 /**
@@ -19,13 +20,14 @@ import './today.css';
  * hạt giống bí ẩn đang ngủ vì cây chỉ được random lúc 4:00 ngày đó; nút ＋ ở mỗi buổi để lên lịch việc.
  */
 export function FutureDayScreen({ date, onBack }: { date: string; onBack: () => void }) {
+  const { lang } = useI18n();
   const deps = useDeps();
   const now = useNow();
   const items = useLiveQuery(() => listPlanned(deps.db, date), [deps.db, date]) ?? [];
   const goal = useLiveQuery(() => getPlannedGoal(deps.db, date), [deps.db, date]) ?? '';
   const [error, setError] = useState<string | null>(null);
-  const label = longDateLabel(date);
-  const weekday = label.split(',')[0];
+  const label = longDate(lang, date);
+  const weekday = weekdayName(lang, date);
 
   const run = (p: Promise<unknown>) => {
     p.then(() => setError(null)).catch((e: Error) => setError(e.message));

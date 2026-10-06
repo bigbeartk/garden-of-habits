@@ -1,11 +1,10 @@
-import { PERIODS, PERIOD_LABEL, periodOf } from '../../../src/domain/period';
+import { PERIODS, periodOf } from '../../../src/domain/period';
 
 const at = (h: number, m = 0) => new Date(2026, 9, 2, h, m);
 
 describe('period', () => {
   it('có 3 buổi theo thứ tự Sáng, Chiều, Tối', () => {
     expect(PERIODS).toEqual(['morning', 'afternoon', 'evening']);
-    expect(PERIODS.map((p) => PERIOD_LABEL[p])).toEqual(['Sáng', 'Chiều', 'Tối']);
   });
 
   it.each([

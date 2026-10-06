@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { DeleteWithConfirm } from './DeleteWithConfirm';
 import { DraftRow, SectionAddButton } from './InlineAdd';
-import { PERIODS, PERIOD_LABEL, type Period } from '../domain/period';
+import { PERIODS, type Period } from '../domain/period';
 import { PeriodIcon } from './icons';
 import type { PlannedTodo } from '../domain/types';
+import { useI18n } from '../i18n/I18nProvider';
 import './todo.css';
 
 /** Danh sách việc đã lên lịch cho một ngày tương lai, chia 3 buổi; sửa/xoá được, không có ô tick. */
@@ -13,6 +14,7 @@ export function PlannedList({ items, onEdit, onDelete, onAdd }: {
   onDelete: (id: string) => void;
   onAdd: (text: string, period: Period) => void;
 }) {
+  const { t } = useI18n();
   /** buổi đang có dòng việc trống để gõ */
   const [draft, setDraft] = useState<Period | null>(null);
   return (
@@ -24,7 +26,7 @@ export function PlannedList({ items, onEdit, onDelete, onAdd }: {
           <section key={p} className={`todo__section todo__section--${p}`} data-testid={`todo-section-${p}`}>
             <header className="todo__section-head">
               <h2 className="todo__section-title">
-                <PeriodIcon period={p} /> {PERIOD_LABEL[p]}
+                <PeriodIcon period={p} /> {t.period[p]}
               </h2>
               {group.length > 0 && <span className="todo__section-count">{group.length}</span>}
               <SectionAddButton period={p} onClick={() => setDraft(p)} />

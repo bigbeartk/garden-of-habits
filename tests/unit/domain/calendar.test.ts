@@ -1,4 +1,4 @@
-import { buildMonthGrid, dayCellStatus, longDateLabel, monthLabel, shiftMonth } from '../../../src/domain/calendar';
+import { buildMonthGrid, dayCellStatus, shiftMonth } from '../../../src/domain/calendar';
 import { fitWithin } from '../../../src/utils/image';
 import { makeDay } from '../helpers';
 
@@ -27,12 +27,6 @@ describe('calendar', () => {
     expect(dayCellStatus('2026-09-20', undefined, today, null)).toBe('before-start');
     expect(dayCellStatus('2026-10-15', undefined, today, first)).toBe('today-pending');
     expect(dayCellStatus('2026-10-16', undefined, today, first)).toBe('future');
-  });
-
-  it('nhãn tiếng Việt', () => {
-    expect(monthLabel(2026, 9)).toBe('Tháng 10, 2026');
-    expect(longDateLabel('2026-10-01')).toBe('Thứ Năm, 01/10/2026');
-    expect(longDateLabel('2026-10-04')).toBe('Chủ Nhật, 04/10/2026');
   });
 
   it('shiftMonth qua năm', () => {

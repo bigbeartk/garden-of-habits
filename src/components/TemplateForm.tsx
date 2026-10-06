@@ -1,8 +1,9 @@
 import { useId, useState } from 'react';
-import { PERIODS, PERIOD_LABEL, type Period } from '../domain/period';
+import { PERIODS, type Period } from '../domain/period';
 import { PeriodIcon } from './icons';
 import { parseItems } from '../domain/templateService';
 import type { TemplateItem } from '../domain/types';
+import { useI18n } from '../i18n/I18nProvider';
 
 type Texts = Record<Period, string>;
 
@@ -18,6 +19,7 @@ export function TemplateForm({ initialName = '', initialItems = [], onSave, onCa
   onSave: (name: string, items: TemplateItem[]) => Promise<void>;
   onCancel: () => void;
 }) {
+  const { t } = useI18n();
   const id = useId();
   const [name, setName] = useState(initialName);
   const [texts, setTexts] = useState<Texts>(() => toTexts(initialItems));
@@ -40,7 +42,7 @@ export function TemplateForm({ initialName = '', initialItems = [], onSave, onCa
       {PERIODS.map((p) => (
         <div key={p} className={`tpl-form__period todo__section--${p}`}>
           <label htmlFor={`${id}-${p}`} className="tpl-form__period-label">
-            <PeriodIcon period={p} size={24} /> <span>Việc buổi {PERIOD_LABEL[p]}</span> <small>(mỗi dòng một việc)</small>
+            <PeriodIcon period={p} size={24} /> <span>Việc buổi {t.period[p]}</span> <small>(mỗi dòng một việc)</small>
           </label>
           <textarea
             id={`${id}-${p}`}

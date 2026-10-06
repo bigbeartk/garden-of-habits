@@ -9,4 +9,11 @@ export const en: Messages = {
     backToSettings: 'Back to Settings',
   },
   language: { title: 'Ngôn ngữ · Language' },
+  period: { morning: 'Morning', afternoon: 'Afternoon', evening: 'Evening' },
+  stage: { seed: 'Seed', sprout: 'Sprout', bud: 'Bud', bloom: 'Bloom' },
+  calendar: {
+    weekdaysShort: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+    prevMonth: 'Previous month',
+    nextMonth: 'Next month',
+  },
 };

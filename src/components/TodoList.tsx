@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { DeleteWithConfirm } from './DeleteWithConfirm';
 import { DraftRow, SectionAddButton } from './InlineAdd';
-import { PERIODS, PERIOD_LABEL, type Period } from '../domain/period';
+import { PERIODS, type Period } from '../domain/period';
 import { BellIcon, PeriodIcon } from './icons';
 import type { Todo } from '../domain/types';
+import { useI18n } from '../i18n/I18nProvider';
 import './todo.css';
 
 export interface TodoListProps {
@@ -44,6 +45,7 @@ function applyMove(todos: Todo[], id: string, period: Period, index: number): To
 }
 
 export function TodoList({ todos, currentPeriod, onToggle, onEdit, onDelete, onMove, onAdd }: TodoListProps) {
+  const { t } = useI18n();
   const [items, setItems] = useState(todos);
   /** buổi đang có dòng việc trống để gõ */
   const [draft, setDraft] = useState<Period | null>(null);
@@ -144,7 +146,7 @@ export function TodoList({ todos, currentPeriod, onToggle, onEdit, onDelete, onM
           >
             <header className="todo__section-head">
               <h2 className="todo__section-title">
-                <PeriodIcon period={p} /> {PERIOD_LABEL[p]}
+                <PeriodIcon period={p} /> {t.period[p]}
               </h2>
               {group.length > 0 && <span className="todo__section-count">{done}/{group.length}</span>}
               <SectionAddButton period={p} onClick={() => setDraft(p)} />
