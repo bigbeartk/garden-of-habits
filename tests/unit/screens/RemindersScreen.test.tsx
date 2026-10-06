@@ -68,7 +68,7 @@ describe('RemindersScreen', () => {
     await user.click(await screen.findByRole('button', { name: 'Xoá: Mua quà' }));
     await user.click(screen.getByRole('button', { name: 'Xác nhận xoá: Mua quà' }));
     await waitFor(async () => expect(await deps.db.reminders.count()).toBe(0));
-    await user.click(screen.getByRole('button', { name: 'Quay lại Cài đặt' }));
+    await user.click(screen.getByRole('button', { name: 'Quay lại Hôm nay' }));
     expect(onBack).toHaveBeenCalled();
   });
 
@@ -119,5 +119,5 @@ it('Nhắc việc bằng English', async () => {
   renderWithDeps(<RemindersScreen onBack={() => {}} />, deps, undefined, 'en');
   expect(await screen.findByRole('button', { name: '＋ New reminder' })).toBeInTheDocument();
   expect(screen.getByRole('heading', { name: 'Reminders', level: 1 })).toBeInTheDocument();
-  expect(screen.getByRole('button', { name: 'Back to Settings' })).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'Back to Today' })).toBeInTheDocument();
 });

@@ -42,7 +42,7 @@ export function RemindersScreen({ onBack }: { onBack: () => void }) {
   return (
     <section className="screen screen--reminders" data-testid="reminders">
       <header className="tpl-page__head">
-        <BackButton inline label={t.nav.backToSettings} onClick={onBack} />
+        <BackButton inline label={t.nav.backToToday} onClick={onBack} />
         <h1 className="screen__title">{t.reminders.title}</h1>
       </header>
 

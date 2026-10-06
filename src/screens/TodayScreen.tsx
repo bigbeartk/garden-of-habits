@@ -5,7 +5,7 @@ import { useNav } from '../app/nav';
 import { BackButton } from '../components/BackButton';
 import { GoalInput } from '../components/GoalInput';
 import { IconButton } from '../components/IconButton';
-import { NoteIcon, PlantSwapIcon, PotIcon, SleepSeedIcon, SpeechIcon, SunIcon } from '../components/icons';
+import { BellIcon, NoteIcon, PlantSwapIcon, PotIcon, SleepSeedIcon, SpeechIcon, SunIcon } from '../components/icons';
 import { NoteSheet } from '../components/NoteSheet';
 import { PlantPickerSheet } from '../components/PlantPickerSheet';
 import { PlantScene } from '../components/PlantScene';
@@ -35,6 +35,8 @@ import { useBackupReminder } from '../hooks/useBackupReminder';
 import { useToday } from '../hooks/useToday';
 import { useI18n } from '../i18n/I18nProvider';
 import { errorText } from '../i18n/errors';
+import { useBackHandler } from '../app/back';
+import { RemindersScreen } from './RemindersScreen';
 import './today.css';
 
 type Sheet = null | 'plant' | 'pot' | 'note';
@@ -57,6 +59,8 @@ export function TodayScreen() {
   const [waterKey, setWaterKey] = useState(0);
   const [burstKey, setBurstKey] = useState(0);
   const [sheet, setSheet] = useState<Sheet>(null);
+  /** đang mở màn Nhắc việc (nút chuông dưới chậu) */
+  const [showReminders, setShowReminders] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const greetedFor = useRef<string | null>(null);
   const pickedFor = useRef<string | null>(null);
@@ -123,6 +127,10 @@ export function TodayScreen() {
     return () => clearTimeout(t);
   }, [celebrating, waterKey]);
 
+  // màn Nhắc việc mở từ nút chuông dưới chậu, thay chỗ màn Hôm nay; Back Android về Hôm nay
+  useBackHandler(showReminders, () => setShowReminders(false), 'screen');
+
+  if (showReminders) return <RemindersScreen onBack={() => setShowReminders(false)} />;
   if (loadError) {
     return <section className="screen"><p role="alert" className="error">{t.today.loadFailed(loadError.message)}</p></section>;
   }
@@ -224,6 +232,7 @@ export function TodayScreen() {
             pressed={day.isRestDay}
             onClick={() => run(setRestDay(deps, day.date, !day.isRestDay))}
           />
+          <IconButton label={t.today.reminders} icon={<BellIcon size={30} />} onClick={() => setShowReminders(true)} />
         </div>
       </SkyBackground>
 

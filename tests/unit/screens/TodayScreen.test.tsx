@@ -2,6 +2,7 @@ import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { vi } from 'vitest';
 import { TodayScreen } from '../../../src/screens/TodayScreen';
+import { handleBack } from '../../../src/app/back';
 import { CATALOG } from '../../../src/content/catalog';
 import { BLOOM_PRAISES, COMMON_PRAISES } from '../../../src/content/praises';
 import { COMMON_SAYINGS } from '../../../src/content/sayings';
@@ -490,5 +491,31 @@ describe('TodayScreen: English', () => {
     for (const name of ['Change plant', 'Change pot', 'Note', 'Rest day', 'Add morning task', 'Back to Calendar']) {
       expect(screen.getByRole('button', { name })).toBeInTheDocument();
     }
+  });
+});
+
+describe('TodayScreen: lối vào Nhắc việc', () => {
+  it('nút chuông dưới chậu mở màn Nhắc việc; quay lại thì về Hôm nay', async () => {
+    const { user } = setup();
+    await user.click(await screen.findByRole('button', { name: 'Nhắc việc' }));
+    expect(await screen.findByRole('heading', { name: 'Nhắc việc', level: 1 })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Chạm vào cây' })).toBeNull();
+    await user.click(screen.getByRole('button', { name: 'Quay lại Hôm nay' }));
+    expect(await screen.findByRole('button', { name: 'Chạm vào cây' })).toBeInTheDocument();
+  });
+
+  it('nút Back của Android ở màn Nhắc việc về Hôm nay', async () => {
+    const { user } = setup();
+    await user.click(await screen.findByRole('button', { name: 'Nhắc việc' }));
+    await screen.findByRole('heading', { name: 'Nhắc việc', level: 1 });
+    expect(handleBack()).toBe(true);
+    expect(await screen.findByRole('button', { name: 'Chạm vào cây' })).toBeInTheDocument();
+  });
+
+  it('ngày tiết kiệm năng lượng vẫn mở được Nhắc việc', async () => {
+    const { user } = setup();
+    await user.click(await screen.findByRole('button', { name: 'Ngày tiết kiệm năng lượng' }));
+    await screen.findByTestId('rest-message');
+    expect(screen.getByRole('button', { name: 'Nhắc việc' })).toBeEnabled();
   });
 });

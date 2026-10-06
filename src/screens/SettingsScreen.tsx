@@ -18,7 +18,6 @@ import { getSetting, setSetting } from '../db/settings';
 import { shareOrDownload } from '../db/share';
 import { listTemplates } from '../domain/templateService';
 import { isNative } from '../platform';
-import { RemindersScreen } from './RemindersScreen';
 import { TemplatesScreen } from './TemplatesScreen';
 import { useI18n } from '../i18n/I18nProvider';
 import { dateTime, shortDateTime } from '../i18n/fmt';
@@ -38,9 +37,6 @@ export function SettingsScreen() {
   const [showInstall, setShowInstall] = useState(false);
   /** đang mở màn Mẫu (nằm trong tab Cài đặt) */
   const [showTemplates, setShowTemplates] = useState(false);
-  /** đang mở màn Nhắc việc (nằm trong tab Cài đặt) */
-  const [showReminders, setShowReminders] = useState(false);
-  const reminderCount = useLiveQuery(async () => (await deps.db.reminders.toArray()).filter((r) => r.doneAt === null).length, [deps.db]);
   /** app Android: đã là app cài sẵn, không cần hướng dẫn "Thêm vào MH chính" */
   const native = isNative();
   const defaultTemplate = useLiveQuery(async () => (await listTemplates(deps.db)).find((t) => t.isDefault) ?? null, [deps.db]);
@@ -96,10 +92,8 @@ export function SettingsScreen() {
   }
 
   useBackHandler(showTemplates, () => setShowTemplates(false), 'screen');
-  useBackHandler(showReminders, () => setShowReminders(false), 'screen');
 
   if (showTemplates) return <TemplatesScreen onBack={() => setShowTemplates(false)} />;
-  if (showReminders) return <RemindersScreen onBack={() => setShowReminders(false)} />;
 
   return (
     <section className="screen screen--settings">
@@ -122,14 +116,6 @@ export function SettingsScreen() {
       </header>
       {status && <p role="status" className="toast">{status}</p>}
       {error && <p role="alert" className="error">{error}</p>}
-
-      <div className="card settings__section">
-        <h2>{t.settings.remindersTitle}</h2>
-        {reminderCount !== undefined && (
-          <p className="muted">{reminderCount ? t.settings.remindersCount(reminderCount) : t.settings.remindersNone}</p>
-        )}
-        <button type="button" className="btn btn--primary" onClick={() => setShowReminders(true)}>{t.settings.openReminders}</button>
-      </div>
 
       <div className="card settings__section">
         <h2>{t.settings.templatesTitle}</h2>

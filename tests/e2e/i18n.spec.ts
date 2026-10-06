@@ -93,7 +93,8 @@ test.describe('máy tiếng Anh', () => {
     const tabs = page.locator('#fnav-tabs');
     expect(await tabs.evaluate((el) => el.getBoundingClientRect().left >= 0)).toBe(true);
     const summary = page.getByTestId('garden-summary');
-    await expect(summary).toHaveText('1 day · 0 blooms · 0 tasks · ✨ 0 special');
+    // hôm nay có 10% khả năng là cây đặc biệt (random thật trong app)
+    await expect(summary).toHaveText(/^1 day · 0 blooms · 0 tasks · ✨ [01] special$/);
     // cùng mức số lớn nhất như test tiếng Việt (một năm): 365 ngày, 2000 việc, 99 đặc biệt
     await summary.evaluate((el) => {
       el.innerHTML = '<b>365</b> days · <b>365</b> blooms · <b>2000</b> tasks · ✨ <b>99</b> special';

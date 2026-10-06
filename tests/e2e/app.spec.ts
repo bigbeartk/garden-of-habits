@@ -26,11 +26,11 @@ async function openTemplates(page: Page) {
   await expect(page.getByRole('heading', { name: 'Mẫu việc cần làm' })).toBeVisible();
 }
 
-/** Màn Nhắc việc nằm trong Cài đặt: thẻ "Nhắc việc" → Mở nhắc việc. */
+/** Màn Nhắc việc mở từ nút chuông dưới chậu ở màn Hôm nay. */
 async function openReminders(page: Page) {
-  await goTab(page, 'Cài đặt');
+  await goTab(page, 'Hôm nay');
   await closeMenu(page);
-  await page.getByRole('button', { name: 'Mở nhắc việc' }).click();
+  await page.getByRole('button', { name: 'Nhắc việc', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Nhắc việc', level: 1 })).toBeVisible();
 }
 
@@ -130,17 +130,22 @@ test('mở được khi không có mạng', async ({ page, context, browserName 
   await context.setOffline(false);
 });
 
-test('hàng nút đổi cây/đổi chậu/ghi chú/ngày nghỉ hiện đủ, không bị danh sách che', async ({ page }) => {
+test('hàng nút đổi cây/đổi chậu/ghi chú/ngày nghỉ/nhắc việc hiện đủ, cùng một hàng, không bị danh sách che', async ({ page }) => {
   await page.clock.setFixedTime(at('2026-10-02T10:00:00'));
   await page.goto('/');
   await openToday(page);
   const list = await page.locator('.today__list').boundingBox();
-  for (const name of ['Đổi cây', 'Đổi chậu', 'Ghi chú', 'Ngày tiết kiệm năng lượng']) {
+  const tops: number[] = [];
+  for (const name of ['Đổi cây', 'Đổi chậu', 'Ghi chú', 'Ngày tiết kiệm năng lượng', 'Nhắc việc']) {
     const btn = page.getByRole('button', { name, exact: true });
     await expect(btn).toBeInViewport();
     const box = await btn.boundingBox();
     expect(box!.y + box!.height, `${name} bị che`).toBeLessThanOrEqual(list!.y + 1);
+    expect(box!.x + box!.width, `${name} tràn ngang`).toBeLessThanOrEqual(page.viewportSize()!.width);
+    tops.push(Math.round(box!.y));
   }
+  expect(new Set(tops).size, '5 nút nằm cùng một hàng').toBe(1);
+  await page.screenshot({ path: 'test-results/today-five-buttons.png' });
 });
 
 test('lịch nằm giữa màn hình (theo chiều dọc, phía trên thanh tab)', async ({ page }) => {
@@ -849,8 +854,9 @@ test('Nhắc việc: bật Hôm nay thì việc vào buổi Sáng, chưa xong th
   }
   await page.screenshot({ path: 'test-results/reminders.png', fullPage: true });
 
-  await openToday(page);
-  await closeMenu(page);
+  // màn Nhắc việc nằm trong tab Hôm nay: về bằng nút quay lại
+  await page.getByRole('button', { name: 'Quay lại Hôm nay' }).click();
+  await expect(page.getByTestId('plant-scene')).toBeVisible();
   const morning = page.getByTestId('todo-section-morning');
   await expect(morning.getByRole('checkbox', { name: 'Hoàn thành: Mua điện thoại cho mẹ' })).toBeVisible();
   await expect(morning.locator('[data-icon="bell"]')).toHaveCount(1);
@@ -866,8 +872,8 @@ test('Nhắc việc: bật Hôm nay thì việc vào buổi Sáng, chưa xong th
 
   // sau khi đổi đồng hồ giả, animation đóng menu của WebKit đứng ~5 giây (lệch timeline, không phải lỗi app):
   // không chờ dải tab thu lại, bấm thẳng nút (chạm ra ngoài cũng tự thu menu)
-  await goTab(page, 'Cài đặt');
-  await page.getByRole('button', { name: 'Mở nhắc việc' }).click();
+  await goTab(page, 'Hôm nay');
+  await page.getByRole('button', { name: 'Nhắc việc', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Nhắc việc', level: 1 })).toBeVisible();
   await expect(page.getByTestId('reminders-done').getByText('Mua điện thoại cho mẹ')).toBeVisible();
   await expect(page.getByTestId('reminders-active').getByText('Mua điện thoại cho mẹ')).toHaveCount(0);
