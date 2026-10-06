@@ -72,6 +72,36 @@ describe('RemindersScreen', () => {
     expect(onBack).toHaveBeenCalled();
   });
 
+  it('thẻ đầu trang đếm việc đang theo dõi và đã xong tuần này; mục đã xong có huy hiệu số việc', async () => {
+    const { deps, user, render } = setup();
+    await addReminder(deps, 'Vẽ tranh');
+    await addReminder(deps, 'Mua quần áo');
+    await addReminder(deps, 'Mua quà');
+    render();
+    const hero = await screen.findByTestId('reminders-hero');
+    await waitFor(() => expect(within(hero).getByTestId('rem-stat-active')).toHaveTextContent('3'));
+    expect(within(hero).getByTestId('rem-stat-done')).toHaveTextContent('0');
+    await user.click(screen.getByRole('checkbox', { name: 'Hoàn thành nhắc: Mua quà' }));
+    await waitFor(() => expect(within(hero).getByTestId('rem-stat-active')).toHaveTextContent('2'));
+    expect(within(hero).getByTestId('rem-stat-done')).toHaveTextContent('1');
+    expect(within(screen.getByTestId('reminders-done')).getByTestId('rem-done-count')).toHaveTextContent('1');
+  });
+
+  it('mỗi việc là một thẻ màu xoay vòng; nút Hôm nay là viên có icon mặt trời và chữ', async () => {
+    const { deps, render } = setup();
+    for (const t of ['A', 'B', 'C', 'D', 'E']) await addReminder(deps, t);
+    render();
+    const active = await screen.findByTestId('reminders-active');
+    await within(active).findByText('E');
+    const tones = within(active).getAllByRole('listitem').map((r) => r.getAttribute('data-tone'));
+    expect(tones).toEqual(['peach', 'mint', 'butter', 'lavender', 'peach']);
+    const sw = screen.getByRole('switch', { name: 'Thêm vào hôm nay: A' });
+    expect(sw).toHaveTextContent('Hôm nay');
+    expect(sw.querySelector('[data-icon="sun"]')).not.toBeNull();
+    // không còn hàng tiêu đề cột kiểu bảng
+    expect(active.querySelector('.rem__cols')).toBeNull();
+  });
+
   it('chạm chữ để sửa, Enter lưu', async () => {
     const { deps, user, render } = setup();
     const r = await addReminder(deps, 'Mua quà');

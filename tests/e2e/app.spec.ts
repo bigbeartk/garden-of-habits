@@ -822,6 +822,8 @@ test('Nhắc việc: bật Hôm nay thì việc vào buổi Sáng, chưa xong th
   await page.clock.setFixedTime(at('2026-10-05T10:00:00'));
   await page.goto('/');
   await openReminders(page);
+  await expect(page.getByTestId('reminders-hero').locator('[data-mood="sleep"]')).toBeVisible();
+  await page.screenshot({ path: 'test-results/reminders-empty.png' });
   await page.getByRole('button', { name: '＋ Việc nhắc mới' }).click();
   await page.getByLabel('Việc nhắc mới').fill('Mua điện thoại cho mẹ');
   await page.getByRole('button', { name: 'Lưu', exact: true }).click();
@@ -833,10 +835,17 @@ test('Nhắc việc: bật Hôm nay thì việc vào buổi Sáng, chưa xong th
   const sw = page.getByRole('switch', { name: 'Thêm vào hôm nay: Mua điện thoại cho mẹ' });
   await sw.click();
   await expect(sw).toHaveAttribute('aria-checked', 'true');
-  // hàng không tràn ngang khổ iPhone 13
-  const box = await active.boundingBox();
-  expect(box!.x + box!.width).toBeLessThanOrEqual(390);
-  await page.screenshot({ path: 'test-results/reminders.png' });
+  await expect(page.getByTestId('rem-stat-active')).toHaveText('2');
+  await page.getByRole('button', { name: '＋ Việc nhắc mới' }).click();
+  await page.getByLabel('Việc nhắc mới').fill('Đặt lịch khám răng định kỳ cho cả nhà vào cuối tháng sau khi đi công tác về');
+  await page.getByRole('button', { name: 'Lưu', exact: true }).click();
+  await expect(page.getByTestId('rem-stat-active')).toHaveText('3');
+  // thẻ đầu trang và mọi thẻ việc không tràn ngang khổ iPhone 13
+  for (const el of [page.getByTestId('reminders-hero'), ...(await active.getByRole('listitem').all())]) {
+    const box = await el.boundingBox();
+    expect(box!.x + box!.width).toBeLessThanOrEqual(390);
+  }
+  await page.screenshot({ path: 'test-results/reminders.png', fullPage: true });
 
   await openToday(page);
   await closeMenu(page);

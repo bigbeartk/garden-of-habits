@@ -2,33 +2,106 @@
   display: flex; flex-direction: column; gap: 14px;
   padding-bottom: calc(var(--tabbar-h) + 32px + var(--safe-area-inset-bottom, env(safe-area-inset-bottom)));
 }
-.rem__hint { margin: 0; }
-.rem__card { display: flex; flex-direction: column; gap: 6px; }
-.rem__title { font-family: var(--font-display); font-size: 1.1rem; margin: 0; }
-.rem__empty { text-align: center; margin: 8px 0; }
-.rem__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
 
-/* cột: ô tick | chữ | công tắc | xoá */
-.rem__cols, .rem__row { display: grid; grid-template-columns: 30px minmax(0, 1fr) 54px 32px; align-items: center; column-gap: 8px; }
-.rem__cols { font-size: 0.75rem; font-weight: 700; color: var(--cocoa-soft); padding-bottom: 4px; border-bottom: 1.5px dashed rgba(91, 70, 54, 0.25); }
-.rem__cols-text { grid-column: 2; }
-.rem__cols-today { grid-column: 3; text-align: center; }
-.rem__row { min-height: 48px; border-bottom: 1px solid rgba(91, 70, 54, 0.08); }
-.rem__row:last-child { border-bottom: none; }
-.rem__row.is-done { grid-template-columns: 30px minmax(0, 1fr); }
-.rem__row.is-done .todo__check { background: var(--leaf); }
-.rem__row.is-done .rem__text { color: var(--cocoa-soft); }
-.rem__row .todo__confirm { grid-column: 2 / -1; justify-self: end; }
-
-.rem__text {
-  border: none; background: none; padding: 6px 0; text-align: left; font: inherit; color: var(--cocoa);
-  overflow-wrap: anywhere; cursor: text;
+/* Thẻ đầu trang: chuông chibi + 2 con số */
+.rem-hero {
+  display: flex; align-items: center; gap: 12px; padding: 14px 14px 14px 10px;
+  border: 2px solid var(--cocoa); border-radius: var(--radius-lg); box-shadow: var(--shadow-pop);
+  background: linear-gradient(135deg, var(--mint) 0%, var(--lavender) 100%);
 }
+.rem-hero__bell { flex: none; display: block; transform-origin: 50% 12%; }
+.rem-hero__bell svg { display: block; }
+.rem-hero__bell.is-ringing { animation: rem-ring 0.9s ease-in-out; }
+.rem-hero__waves { animation: rem-waves 2.4s ease-in-out infinite; }
+.rem-hero__body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+.rem-hero__stats { display: flex; gap: 8px; }
+.rem-stat {
+  flex: 1; min-width: 0; margin: 0; padding: 6px 8px; display: flex; flex-direction: column; align-items: center;
+  background: rgba(255, 253, 251, 0.85); border-radius: var(--radius-sm); border: 2px solid rgba(91, 70, 54, 0.15);
+}
+.rem-stat b { font-family: var(--font-display); font-size: 1.6rem; line-height: 1.1; color: var(--berry); }
+.rem-stat--done b { color: #4F9A40; }
+.rem-stat span { font-size: 0.75rem; font-weight: 700; color: var(--cocoa-soft); white-space: nowrap; }
+.rem-hero__hint { margin: 0; font-size: 0.82rem; line-height: 1.4; }
+.rem-hero__chip {
+  display: inline-flex; align-items: center; gap: 2px; padding: 0 6px; vertical-align: -2px;
+  border-radius: 999px; background: var(--butter); border: 1.5px solid var(--cocoa); font-weight: 700; font-size: 0.75rem;
+}
+.rem-hero__chip .icon { display: block; }
+
+/* Việc đang theo dõi: mỗi việc một thẻ sticker màu pastel */
+.rem__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.rem__row {
+  --tone: var(--peach);
+  display: flex; flex-direction: column; gap: 6px; padding: 10px 10px 8px 12px;
+  background: var(--tone); border: 2px solid var(--cocoa); border-radius: var(--radius-md); box-shadow: var(--shadow-pop);
+  animation: rem-pop 0.35s cubic-bezier(0.3, 1.5, 0.6, 1);
+}
+.rem__row[data-tone='mint'] { --tone: var(--mint); }
+.rem__row[data-tone='butter'] { --tone: var(--butter); }
+.rem__row[data-tone='lavender'] { --tone: var(--lavender); }
+.rem__main { display: flex; align-items: center; gap: 10px; min-height: 40px; }
+.rem__text {
+  flex: 1; min-width: 0; border: none; background: none; padding: 4px 0; text-align: left;
+  font: inherit; font-weight: 600; color: var(--cocoa); overflow-wrap: anywhere; cursor: text;
+}
+.rem__edit { flex: 1; min-width: 0; }
 .rem__edit .input { width: 100%; }
+.rem__foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-left: 40px; }
+.rem__foot .todo__delete { margin-right: -4px; }
 
-.rem__switch { border: none; background: none; padding: 0; display: flex; justify-content: center; cursor: pointer; }
-.rem__switch.is-on .switch { background: var(--leaf); }
-.rem__switch.is-on .switch__knob { transform: translateX(20px); }
+/* Nút "Hôm nay": viên thuốc, tắt thì nét đứt, bật thì vàng bơ */
+.rem__today {
+  display: inline-flex; align-items: center; gap: 4px; min-height: 34px; padding: 0 12px 0 6px;
+  border-radius: 999px; border: 2px dashed rgba(91, 70, 54, 0.45); background: rgba(255, 253, 251, 0.6);
+  font: inherit; font-size: 0.85rem; font-weight: 700; color: var(--cocoa-soft); cursor: pointer;
+  transition: background 0.15s, transform 0.15s;
+}
+.rem__today .icon { display: block; opacity: 0.55; filter: grayscale(0.6); transition: opacity 0.15s; }
+.rem__today-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(91, 70, 54, 0.2); margin-left: 2px; }
+.rem__today.is-on {
+  border-style: solid; border-color: var(--cocoa); background: #FFE58A; color: var(--cocoa); box-shadow: var(--shadow-pop);
+}
+.rem__today.is-on .icon { opacity: 1; filter: none; }
+.rem__today.is-on .rem__today-dot { background: var(--leaf); box-shadow: 0 0 0 2px rgba(255, 253, 251, 0.9); }
+.rem__today:active { transform: scale(0.95); }
 
-.rem__new { display: flex; flex-direction: column; gap: 10px; }
-.rem__new-actions { display: flex; gap: 10px; }
+.rem__empty { text-align: center; margin: 8px 0; }
+.card.rem__empty { margin: 0; padding: 18px 16px; }
+
+/* Đã hoàn thành tuần này */
+.rem__done { display: flex; flex-direction: column; gap: 8px; border: 2px dashed rgba(123, 191, 106, 0.8); }
+.rem__title { display: flex; align-items: center; gap: 6px; margin: 0; font-family: var(--font-display); font-size: 1.1rem; }
+.rem__title .icon { flex: none; }
+.rem__count {
+  margin-left: auto; min-width: 28px; padding: 1px 9px; border-radius: 999px; text-align: center;
+  background: var(--mint); border: 2px solid var(--cocoa); font-size: 0.85rem;
+}
+.rem__done-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.rem__done-row {
+  display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 4px 10px;
+  background: rgba(205, 239, 227, 0.45); border-radius: var(--radius-sm);
+}
+.rem__done-row .todo__check { background: var(--leaf); }
+.rem__done-row .rem__text { color: var(--cocoa-soft); cursor: default; }
+
+/* Thêm việc nhắc mới */
+.rem__new {
+  display: flex; flex-direction: column; gap: 10px; padding: 12px;
+  background: var(--butter); border: 2px solid var(--cocoa); border-radius: var(--radius-md); box-shadow: var(--shadow-pop);
+}
+.rem__new-field { display: flex; align-items: center; gap: 8px; }
+.rem__new-field .icon { flex: none; }
+.rem__new-field .input { flex: 1; min-width: 0; background: var(--white); }
+.rem__new-actions { display: flex; justify-content: flex-end; gap: 10px; }
+
+@keyframes rem-pop { from { opacity: 0; scale: 0.92; } to { opacity: 1; scale: 1; } }
+@keyframes rem-ring {
+  15% { transform: rotate(14deg); } 30% { transform: rotate(-12deg); } 45% { transform: rotate(9deg); }
+  60% { transform: rotate(-6deg); } 75% { transform: rotate(3deg); } 100% { transform: rotate(0); }
+}
+@keyframes rem-waves { 0%, 100% { opacity: 0.25; } 50% { opacity: 1; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .rem__row, .rem-hero__bell.is-ringing, .rem-hero__waves { animation: none; }
+}
