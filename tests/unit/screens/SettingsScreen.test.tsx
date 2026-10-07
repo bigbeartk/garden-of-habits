@@ -160,6 +160,28 @@ describe('SettingsScreen chọn hình nền lịch', () => {
   });
 });
 
+describe('SettingsScreen icon nút menu', () => {
+  it('nằm cạnh hình nền; 7 lựa chọn, mặc định Theo hình nền; chọn thì lưu và bảng tự đóng', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
+    const user = userEvent.setup();
+    renderWithDeps(<SettingsScreen />, deps);
+    const toggle = await screen.findByRole('button', { name: /Đổi icon nút menu/ });
+    expect(toggle.closest('.settings__pickers')).toBe(screen.getByRole('button', { name: /Đổi hình nền lịch/ }).closest('.settings__pickers'));
+    await user.click(toggle);
+    let group = await screen.findByRole('radiogroup', { name: 'Icon nút menu' });
+    expect(within(group).getAllByRole('radio')).toHaveLength(7);
+    expect(within(group).getByRole('radio', { name: /Theo hình nền/ })).toHaveAttribute('aria-checked', 'true');
+    for (const [name, id] of [[/Chân mèo/, 'cat'], [/Chân cún/, 'dog'], [/Cỏ ba lá/, 'grass'], [/Bông hoa/, 'flower'], [/Theo hình nền/, 'auto']] as const) {
+      await user.click(within(group).getByRole('radio', { name }));
+      await waitFor(async () => expect(await getSetting(deps.db, 'menuIcon')).toBe(id));
+      await waitFor(() => expect(screen.queryByRole('radiogroup', { name: 'Icon nút menu' })).not.toBeInTheDocument());
+      await user.click(screen.getByRole('button', { name: /Đổi icon nút menu/ }));
+      group = await screen.findByRole('radiogroup', { name: 'Icon nút menu' });
+      expect(within(group).getByRole('radio', { name })).toHaveAttribute('aria-checked', 'true');
+    }
+  });
+});
+
 describe('SettingsScreen phiên bản app', () => {
   it('hiện mã phiên bản đang chạy', async () => {
     const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);

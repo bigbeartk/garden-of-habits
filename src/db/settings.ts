@@ -1,10 +1,12 @@
 import type { PlantDB } from './db';
-import type { CalendarBg, CalendarTheme } from '../domain/types';
+import type { CalendarBg, CalendarTheme, MenuIconChoice } from '../domain/types';
 import type { Lang } from '../i18n/lang';
 
 export interface SettingsShape {
   calendarBg: CalendarBg;
   calendarTheme: CalendarTheme;
+  /** icon nút menu nổi; không có = 'auto' (theo hình nền lịch) */
+  menuIcon: MenuIconChoice;
   /** hiện nút tròn đổi hình nền ngay trên trang Lịch (mặc định: có) */
   showCalendarBgButton: boolean;
   /** hiện chấm đỏ ở ô lịch của ngày có ghi chú (mặc định: có) */

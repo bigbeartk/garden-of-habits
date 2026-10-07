@@ -83,6 +83,11 @@ export interface Reminder {
 /** Kiểu hình nền màn Lịch: mặc định, nền động (mèo vươn vai / cỏ nở) hoặc ảnh người dùng chọn. */
 export type CalendarTheme = 'default' | 'cat' | 'dog' | 'grass' | 'rain' | 'gamer' | 'photo';
 
+/** Icon vẽ trên nút menu nổi. */
+export type MenuIconKind = 'flower' | 'cat' | 'dog' | 'grass' | 'rain' | 'gamer';
+/** Lựa chọn icon nút menu trong Cài đặt: 'auto' = theo hình nền lịch. */
+export type MenuIconChoice = 'auto' | MenuIconKind;
+
 export interface CalendarBg {
   mime: string;
   data: ArrayBuffer;

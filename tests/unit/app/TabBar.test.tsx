@@ -65,18 +65,16 @@ describe('TabBar (menu nổi thu gọn)', () => {
   });
 });
 
-describe('TabBar: icon nút menu theo hình nền lịch', () => {
+describe('TabBar: icon nút menu', () => {
   const toggleIcon = () => screen.getByRole('button', { name: 'Mở menu' }).querySelector('[data-icon]')!.getAttribute('data-icon');
 
-  it('mặc định (và ảnh riêng) vẫn là bông hoa', () => {
-    const { rerender } = render(<TabBar current="calendar" onChange={() => {}} />);
-    expect(toggleIcon()).toBe('menu');
-    rerender(<TabBar current="calendar" onChange={() => {}} theme="photo" />);
+  it('mặc định là bông hoa', () => {
+    render(<TabBar current="calendar" onChange={() => {}} />);
     expect(toggleIcon()).toBe('menu');
   });
 
-  it.each(['cat', 'dog', 'grass', 'rain', 'gamer'] as const)('nền %s có icon riêng', (theme) => {
-    render(<TabBar current="calendar" onChange={() => {}} theme={theme} />);
-    expect(toggleIcon()).toBe(`menu-${theme}`);
+  it.each(['cat', 'dog', 'grass', 'rain', 'gamer'] as const)('icon %s', (icon) => {
+    render(<TabBar current="calendar" onChange={() => {}} icon={icon} />);
+    expect(toggleIcon()).toBe(`menu-${icon}`);
   });
 });

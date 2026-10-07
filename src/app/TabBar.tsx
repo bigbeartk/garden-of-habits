@@ -4,7 +4,7 @@ import { useBackHandler } from './back';
 import { TABS, type Tab } from './nav';
 import { CloseIcon, MenuIcon } from '../components/icons';
 import { useI18n } from '../i18n/I18nProvider';
-import type { CalendarTheme } from '../domain/types';
+import type { MenuIconKind } from '../domain/types';
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 const HIDDEN = { clipPath: 'inset(0 0 0 100% round 999px)', opacity: 0.4 };
@@ -13,9 +13,9 @@ const SHOWN = { clipPath: 'inset(0 0 0 0% round 999px)', opacity: 1 };
 /**
  * Menu nổi ở góc phải dưới: chỉ có một nút tròn; bấm vào thì dải 4 tab trượt
  * từ nút ra bên trái, bấm lần nữa hoặc chạm ra ngoài thì trượt ngược về. Chọn tab không đóng dải.
- * Icon của nút theo hình nền lịch (`theme`); mặc định là bông hoa.
+ * Icon của nút (`icon`) do Cài đặt chọn hoặc theo hình nền lịch; mặc định là bông hoa.
  */
-export function TabBar({ current, onChange, theme = 'default' }: { current: Tab; onChange: (tab: Tab) => void; theme?: CalendarTheme }) {
+export function TabBar({ current, onChange, icon = 'flower' }: { current: Tab; onChange: (tab: Tab) => void; icon?: MenuIconKind }) {
   const { t: m } = useI18n();
   const [open, setOpen] = useState(false);
   const navRef = useRef<HTMLElement>(null);
@@ -81,7 +81,7 @@ export function TabBar({ current, onChange, theme = 'default' }: { current: Tab;
           animate={{ rotate: 0, scale: 1, opacity: 1 }}
           transition={{ duration: 0.25, ease: EASE }}
         >
-          {open ? <CloseIcon size={26} /> : <MenuIcon size={34} theme={theme} />}
+          {open ? <CloseIcon size={26} /> : <MenuIcon size={34} kind={icon} />}
         </motion.span>
       </motion.button>
     </nav>

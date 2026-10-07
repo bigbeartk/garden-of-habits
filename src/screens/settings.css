@@ -56,3 +56,28 @@
 .reset__summary { font-weight: 600; }
 .reset__warn { padding: 10px 14px; border-radius: var(--radius-sm); background: var(--butter); font-weight: 600; }
 .reset__label { font-weight: 600; margin-top: 4px; }
+
+/* thẻ Lịch: chọn hình nền và icon nút menu đứng cạnh nhau */
+.settings__pickers { display: flex; gap: 22px; align-self: center; }
+.settings__picker { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.settings__picker .bg-picker { width: auto; }
+.settings__picker-label { font-size: 0.8rem; font-weight: 700; color: var(--cocoa-soft); }
+.icon-picker__toggle {
+  width: 52px; height: 52px; padding: 0; display: grid; place-items: center; cursor: pointer;
+  border-radius: 50%; border: 2.5px solid var(--cocoa); background: var(--butter); box-shadow: var(--shadow-soft);
+}
+.icon-picker__toggle:active { transform: scale(0.94); }
+.icon-picker__options { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; width: 100%; }
+.icon-picker__option {
+  display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 2px 6px;
+  border-radius: var(--radius-sm); border: 2px solid transparent; background: rgba(255, 253, 251, 0.85);
+  font: inherit; font-size: 0.72rem; font-weight: 700; line-height: 1.15; color: var(--cocoa); cursor: pointer;
+}
+.icon-picker__option.is-selected { border-color: var(--cocoa); box-shadow: var(--shadow-pop); }
+.icon-picker__disc {
+  width: 46px; height: 46px; padding: 0; display: grid; place-items: center;
+  border-radius: 50%; border: 2px solid var(--cocoa); background: var(--butter);
+}
+/* "Theo hình nền": đĩa nét đứt cho biết icon tự đổi theo nền */
+.icon-picker__option.is-auto .icon-picker__disc { border-style: dashed; }
+.icon-picker__label { text-align: center; }

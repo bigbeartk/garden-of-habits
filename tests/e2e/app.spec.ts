@@ -932,3 +932,35 @@ test('xoá toàn bộ dữ liệu: gõ XOA rồi xoá, app bắt đầu lại t�
   await openToday(page);
   await expect(page.getByRole('checkbox', { name: 'Hoàn thành: Uống nước' })).toHaveCount(0);
 });
+
+test('Cài đặt: chọn icon nút menu cạnh hình nền lịch; Theo hình nền thì đổi theo nền', async ({ page }) => {
+  await page.clock.setFixedTime(at('2026-10-02T10:00:00'));
+  await page.goto('/');
+  await goTab(page, 'Cài đặt');
+  await closeMenu(page);
+  const bgBtn = page.getByRole('button', { name: /Đổi hình nền lịch/ });
+  const iconBtn = page.getByRole('button', { name: /Đổi icon nút menu/ });
+  const a = (await bgBtn.boundingBox())!;
+  const b = (await iconBtn.boundingBox())!;
+  expect(Math.abs(a.y - b.y)).toBeLessThanOrEqual(2); // cùng hàng
+  expect(b.x).toBeGreaterThan(a.x + a.width);
+  await page.screenshot({ path: 'test-results/settings-menu-icon.png' });
+
+  await iconBtn.click();
+  const group = page.getByRole('radiogroup', { name: 'Icon nút menu' });
+  await expect(group.getByRole('radio', { name: /Theo hình nền/ })).toHaveAttribute('aria-checked', 'true');
+  await page.waitForTimeout(500); // chờ bảng trượt lên hẳn rồi mới chụp
+  await page.screenshot({ path: 'test-results/menu-icon-sheet.png' });
+  await group.getByRole('radio', { name: /Chân cún/ }).click();
+  await expect(group).toHaveCount(0);
+  const menu = page.getByRole('button', { name: 'Mở menu' });
+  await expect(menu.locator('[data-icon="menu-dog"]')).toHaveCount(1);
+
+  // quay về "Theo hình nền" rồi chọn nền Mèo: icon thành chân mèo
+  await iconBtn.click();
+  await group.getByRole('radio', { name: /Theo hình nền/ }).click();
+  await expect(menu.locator('[data-icon="menu"]')).toHaveCount(1);
+  await bgBtn.click();
+  await page.getByRole('radiogroup', { name: 'Hình nền lịch' }).getByRole('radio', { name: /Mèo vươn vai/ }).click();
+  await expect(menu.locator('[data-icon="menu-cat"]')).toHaveCount(1);
+});

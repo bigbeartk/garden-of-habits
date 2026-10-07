@@ -5,6 +5,7 @@ import { useDeps } from '../app/deps';
 import { useNav } from '../app/nav';
 import { BackButton } from '../components/BackButton';
 import { BackgroundPicker } from '../components/BackgroundPicker';
+import { MenuIconPicker } from '../components/MenuIconPicker';
 import { BottomSheet } from '../components/BottomSheet';
 import { ConfirmButton } from '../components/ConfirmButton';
 import { HelpIcon } from '../components/icons';
@@ -130,7 +131,16 @@ export function SettingsScreen() {
 
       <div className="card settings__section">
         <h2>{t.settings.calendarTitle}</h2>
-        <BackgroundPicker />
+        <div className="settings__pickers">
+          <div className="settings__picker">
+            <BackgroundPicker />
+            <span className="settings__picker-label" aria-hidden="true">{t.settings.bgCaption}</span>
+          </div>
+          <div className="settings__picker">
+            <MenuIconPicker />
+            <span className="settings__picker-label" aria-hidden="true">{t.settings.menuIconCaption}</span>
+          </div>
+        </div>
         <SettingSwitch settingKey="showCalendarBgButton" label={t.settings.showBgButton} onError={setError} />
         <SettingSwitch settingKey="showNoteDot" label={t.settings.showNoteDot} onError={setError} />
       </div>

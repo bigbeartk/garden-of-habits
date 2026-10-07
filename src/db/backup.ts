@@ -78,6 +78,7 @@ const BackupSchema = z.object({
   reminders: z.array(ReminderSchema).default([]), // file phiên bản 1–4 chưa có
   calendarBg: z.object({ mime: z.string(), base64: z.string().regex(/^[A-Za-z0-9+/]*={0,2}$/) }).nullable(),
   calendarTheme: z.enum(['default', 'cat', 'dog', 'grass', 'rain', 'gamer', 'photo']).optional(), // file cũ chưa có
+  menuIcon: z.enum(['auto', 'flower', 'cat', 'dog', 'grass', 'rain', 'gamer']).optional(), // icon nút menu; file cũ chưa có
   // các công tắc bật/tắt (BOOLEAN_SETTINGS); file cũ có thể chưa có
   showCalendarBgButton: z.boolean().optional(),
   showNoteDot: z.boolean().optional(),
@@ -124,6 +125,7 @@ export async function createBackup(db: PlantDB, now: number): Promise<BackupFile
     const reminders = await db.reminders.orderBy('id').toArray();
     const bg = await getSetting(db, 'calendarBg');
     const calendarTheme = await getSetting(db, 'calendarTheme');
+    const menuIcon = await getSetting(db, 'menuIcon');
     const unlockedSpecials = await getSetting(db, 'unlockedSpecials');
     const unlockedStyles = await getSetting(db, 'unlockedStyles');
     const language = await getSetting(db, 'language');
@@ -143,6 +145,7 @@ export async function createBackup(db: PlantDB, now: number): Promise<BackupFile
       reminders,
       calendarBg: bg ? { mime: bg.mime, base64: bytesToBase64(bg.data) } : null,
       ...(calendarTheme ? { calendarTheme } : {}),
+      ...(menuIcon ? { menuIcon } : {}),
       ...(unlockedSpecials ? { unlockedSpecials } : {}),
       ...(unlockedStyles ? { unlockedStyles } : {}),
       ...(language ? { language } : {}),
@@ -201,6 +204,8 @@ export async function restoreBackup(db: PlantDB, backup: BackupFile, mode: Resto
       else await deleteSetting(db, 'calendarBg');
       if (backup.calendarTheme) await setSetting(db, 'calendarTheme', backup.calendarTheme);
       else await deleteSetting(db, 'calendarTheme');
+      if (backup.menuIcon) await setSetting(db, 'menuIcon', backup.menuIcon);
+      else await deleteSetting(db, 'menuIcon');
       if (backup.unlockedSpecials) await setSetting(db, 'unlockedSpecials', backup.unlockedSpecials);
       else await deleteSetting(db, 'unlockedSpecials');
       if (backup.unlockedStyles) await setSetting(db, 'unlockedStyles', backup.unlockedStyles);
@@ -241,6 +246,7 @@ export async function restoreBackup(db: PlantDB, backup: BackupFile, mode: Resto
       }
       if (bg && !(await getSetting(db, 'calendarBg'))) await setSetting(db, 'calendarBg', bg);
       if (backup.calendarTheme && !(await getSetting(db, 'calendarTheme'))) await setSetting(db, 'calendarTheme', backup.calendarTheme);
+      if (backup.menuIcon && !(await getSetting(db, 'menuIcon'))) await setSetting(db, 'menuIcon', backup.menuIcon);
       if (backup.unlockedSpecials) {
         const mine = (await getSetting(db, 'unlockedSpecials')) ?? [];
         await setSetting(db, 'unlockedSpecials', [...new Set([...mine, ...backup.unlockedSpecials])]);

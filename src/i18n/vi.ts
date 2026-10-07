@@ -1,4 +1,4 @@
-import type { CalendarTheme } from '../domain/types';
+import type { CalendarTheme, MenuIconChoice } from '../domain/types';
 import type { TimeOfDay } from '../domain/timeOfDay';
 import type { CellStatus } from '../domain/calendar';
 import type { ErrorParams } from '../domain/errors';
@@ -131,6 +131,11 @@ export const vi = {
     chooseOther: 'Chọn ảnh khác',
     processingImage: 'Đang xử lý ảnh…',
   },
+  menuIcon: {
+    options: { auto: 'Theo hình nền', flower: 'Bông hoa', cat: 'Chân mèo', dog: 'Chân cún', grass: 'Cỏ ba lá', rain: 'Mây mưa', gamer: 'Tay cầm game' } as Record<MenuIconChoice, string>,
+    toggle: (name: string) => `Đổi icon nút menu (đang dùng: ${name})`,
+    title: 'Icon nút menu',
+  },
   support: {
     title: 'Ủng hộ tôi',
     text: 'Nếu bạn thích khu vườn nhỏ này, có thể mời mình một ly cà phê nha ☕🌱',
@@ -197,6 +202,8 @@ export const vi = {
     templateNone: 'Chưa có mẫu mặc định',
     manageTemplates: 'Quản lý mẫu',
     calendarTitle: 'Lịch',
+    bgCaption: 'Hình nền',
+    menuIconCaption: 'Icon menu',
     showBgButton: 'Hiện nút đổi hình nền ở trang Lịch',
     showNoteDot: 'Hiện chấm đỏ ở ngày có ghi chú',
     backupTitle: 'Sao lưu & khôi phục',

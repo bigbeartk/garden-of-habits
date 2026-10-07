@@ -126,6 +126,11 @@ export const en: Messages = {
     chooseOther: 'Choose another',
     processingImage: 'Processing image…',
   },
+  menuIcon: {
+    options: { auto: 'Match background', flower: 'Flower', cat: 'Kitty paw', dog: 'Puppy paw', grass: 'Clover', rain: 'Rain cloud', gamer: 'Game pad' },
+    toggle: (name) => `Change menu button icon (current: ${name})`,
+    title: 'Menu button icon',
+  },
   support: {
     title: 'Support me',
     text: 'If you enjoy this little garden, you can buy me a coffee ☕🌱',
@@ -192,6 +197,8 @@ export const en: Messages = {
     templateNone: 'No default template',
     manageTemplates: 'Manage templates',
     calendarTitle: 'Calendar',
+    bgCaption: 'Background',
+    menuIconCaption: 'Menu icon',
     showBgButton: 'Show the background button on Calendar',
     showNoteDot: 'Show a red dot on days with a note',
     backupTitle: 'Backup & restore',

@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useDeps } from '../app/deps';
 import { getSetting } from '../db/settings';
-import type { CalendarTheme } from '../domain/types';
+import type { CalendarTheme, MenuIconChoice, MenuIconKind } from '../domain/types';
+import { resolveMenuIcon } from '../domain/menuIcon';
 
 /** Ảnh nền người dùng dưới dạng blob URL, kèm loại tệp (ảnh, GIF hay video). */
 export function useCalendarBg(): { url: string; mime: string } | null {
@@ -34,4 +35,15 @@ export function useCalendarTheme(): CalendarTheme {
   if (!info) return 'default';
   const theme = info.theme ?? (info.hasBg ? 'photo' : 'default');
   return theme === 'photo' && !info.hasBg ? 'default' : theme;
+}
+
+/** Lựa chọn icon nút menu đã lưu ('auto' khi chưa chọn). */
+export function useMenuIconChoice(): MenuIconChoice {
+  const deps = useDeps();
+  return useLiveQuery(async () => (await getSetting(deps.db, 'menuIcon')) ?? 'auto', [deps.db]) ?? 'auto';
+}
+
+/** Icon thật đang vẽ trên nút menu nổi. */
+export function useMenuIcon(): MenuIconKind {
+  return resolveMenuIcon(useMenuIconChoice(), useCalendarTheme());
 }

@@ -95,4 +95,15 @@ describe('App: nút menu theo hình nền lịch', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Đóng menu' }));
     await waitFor(() => expect(screen.getByRole('button', { name: 'Mở menu' }).querySelector('[data-icon="menu-dog"]')).not.toBeNull());
   });
+
+  it('chọn icon riêng trong Cài đặt thì không theo hình nền nữa', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
+    const day = await ensureToday(deps);
+    await markGreeted(deps, day.date);
+    await setSetting(deps.db, 'calendarTheme', 'dog');
+    await setSetting(deps.db, 'menuIcon', 'rain');
+    renderWithDeps(<App />, deps);
+    await screen.findByTestId('calendar-card');
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Mở menu' }).querySelector('[data-icon="menu-rain"]')).not.toBeNull());
+  });
 });

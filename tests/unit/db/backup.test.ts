@@ -463,3 +463,19 @@ describe('language trong sao lưu', () => {
     expect(bad.ok).toBe(false);
   });
 });
+
+describe('sao lưu icon nút menu', () => {
+  it('giữ menuIcon khi khôi phục; gộp chỉ lấy khi máy chưa chọn', async () => {
+    const src = makeDb();
+    await setSetting(src, 'menuIcon', 'dog');
+    const r = parseBackup(serializeBackup(await createBackup(src, 1)));
+    if (!r.ok) throw new Error(r.error);
+    const dst = makeDb();
+    await restoreBackup(dst, r.backup, 'replace');
+    expect(await getSetting(dst, 'menuIcon')).toBe('dog');
+    const mine = makeDb();
+    await setSetting(mine, 'menuIcon', 'cat');
+    await restoreBackup(mine, r.backup, 'merge');
+    expect(await getSetting(mine, 'menuIcon')).toBe('cat');
+  });
+});
