@@ -1,7 +1,7 @@
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { vi } from 'vitest';
-import { PlantPickerSheet } from '../../../src/components/PlantPickerSheet';
+import { PlantPotSheet } from '../../../src/components/PlantPotSheet';
 import { CATALOG } from '../../../src/content/catalog';
 import { handleBack } from '../../../src/app/back';
 import { setSetting } from '../../../src/db/settings';
@@ -9,6 +9,7 @@ import { DepsProvider } from '../../../src/app/deps';
 import { NavContext } from '../../../src/app/nav';
 import { I18nProvider } from '../../../src/i18n/I18nProvider';
 import { makeDay, makeDeps, renderWithDeps } from '../helpers';
+import type { DayRecord } from '../../../src/domain/types';
 
 /** chờ useLiveQuery đọc xong số ngày ra hoa: chạy cả bộ (hoặc trên CI) có thể lâu hơn 1 giây mặc định */
 const LIVE = { timeout: 3000 };
@@ -16,20 +17,65 @@ const LIVE = { timeout: 3000 };
 const blooms = (plantId: string, n: number) =>
   Array.from({ length: n }, (_, i) => makeDay({ date: `2026-08-${String(i + 1).padStart(2, '0')}`, plantId, finalStage: 'bloom' }));
 
-function setup(current = { id: 'sunflower', special: null as string | null, style: 'base' }) {
+function setup(current = { id: 'sunflower', special: null as string | null, style: 'base' }, extra: Partial<DayRecord> = {}) {
   const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
-  const onPick = vi.fn();
+  const onPickPlant = vi.fn();
+  const onPickPot = vi.fn();
   const onClose = vi.fn();
   const user = userEvent.setup();
+  const day = makeDay({ date: '2026-10-02', plantId: current.id, specialId: current.special, styleId: current.style, ...extra });
   const ui = () =>
-    renderWithDeps(
-      <PlantPickerSheet open currentId={current.id} currentSpecialId={current.special} currentStyleId={current.style} onClose={onClose} onPick={onPick} />,
-      deps,
-    );
-  return { deps, onPick, onClose, user, ui };
+    renderWithDeps(<PlantPotSheet open day={day} onClose={onClose} onPickPlant={onPickPlant} onPickPot={onPickPot} />, deps);
+  return { deps, onPick: onPickPlant, onPickPot, onClose, user, ui };
 }
 
-describe('PlantPickerSheet: dáng cây', () => {
+describe('PlantPotSheet: hai tab Cây / Chậu', () => {
+  it('mở ở tab Cây; tab có icon + chữ; chuyển sang Chậu thì hiện lưới chậu', async () => {
+    const { ui, user } = setup();
+    ui();
+    const dialog = await screen.findByRole('dialog', { name: 'Đổi cây & chậu' });
+    const tabs = within(dialog).getAllByRole('tab');
+    expect(tabs.map((t) => t.textContent)).toEqual(['Cây', 'Chậu']);
+    expect(tabs[0].querySelector('svg[data-icon="sprout"]')).not.toBeNull();
+    expect(tabs[1].querySelector('svg[data-icon="pot"]')).not.toBeNull();
+    expect(tabs[0]).toHaveAttribute('aria-selected', 'true');
+    expect(within(dialog).getByRole('tabpanel')).toHaveAccessibleName('Cây');
+    expect(within(dialog).getByRole('button', { name: 'Ngô' })).toBeInTheDocument();
+    await user.click(tabs[1]);
+    expect(tabs[1]).toHaveAttribute('aria-selected', 'true');
+    expect(within(dialog).queryByRole('button', { name: 'Ngô' })).toBeNull();
+    expect(within(dialog).getByRole('button', { name: 'Gốm mint' })).toBeInTheDocument();
+  });
+
+  it('chọn chậu gọi onPickPot; ảnh xem trước vẽ đúng dáng cây hôm nay', async () => {
+    const { ui, user, onPickPot } = setup({ id: 'sunflower', special: null, style: 'giant' }, { finalStage: 'bloom' });
+    ui();
+    await user.click(await screen.findByRole('tab', { name: 'Chậu' }));
+    for (const scene of screen.getAllByTestId('picker-scene')) expect(scene).toHaveAttribute('data-style', 'giant');
+    await user.click(screen.getByRole('button', { name: 'Gốm mint' }));
+    expect(onPickPot).toHaveBeenCalledWith('mint');
+  });
+
+  it('ngày tiết kiệm năng lượng: mở thẳng tab Chậu, tab Cây bị khoá', async () => {
+    const { ui, user } = setup(undefined, { isRestDay: true });
+    ui();
+    const plantTab = await screen.findByRole('tab', { name: 'Cây' });
+    expect(plantTab).toBeDisabled();
+    expect(screen.getByRole('tab', { name: 'Chậu' })).toHaveAttribute('aria-selected', 'true');
+    await user.click(plantTab);
+    expect(screen.queryByRole('button', { name: 'Ngô' })).toBeNull();
+  });
+
+  it('màn dáng ẩn hàng tab', async () => {
+    const { ui, user } = setup();
+    ui();
+    await user.click(await screen.findByRole('button', { name: /^Dáng cây: Hướng dương/ }));
+    await screen.findByRole('dialog', { name: 'Dáng của Hướng dương' });
+    expect(screen.queryByRole('tablist')).toBeNull();
+  });
+});
+
+describe('PlantPotSheet: dáng cây', () => {
   it('chỉ loài có dáng mới có nút dáng, ghi số dáng đã mở', async () => {
     const { deps, ui } = setup();
     await deps.db.days.bulkPut(blooms('sunflower', 12));
@@ -42,14 +88,14 @@ describe('PlantPickerSheet: dáng cây', () => {
   it('vừa mở bảng đã ghi đúng số dáng (không nháy 1/3)', async () => {
     const { deps, onPick, onClose } = setup();
     await deps.db.days.bulkPut(blooms('sunflower', 12));
-    const props = { currentId: 'sunflower', currentSpecialId: null, currentStyleId: 'base', onClose, onPick };
-    const { rerender } = renderWithDeps(<PlantPickerSheet open={false} {...props} />, deps);
+    const props = { day: makeDay({ date: '2026-10-02', plantId: 'sunflower' }), onClose, onPickPlant: onPick, onPickPot: vi.fn() };
+    const { rerender } = renderWithDeps(<PlantPotSheet open={false} {...props} />, deps);
     await new Promise((r) => setTimeout(r, 500));
     rerender(
       <DepsProvider value={deps}>
         <I18nProvider lang="vi">
           <NavContext.Provider value={() => {}}>
-            <PlantPickerSheet open {...props} />
+            <PlantPotSheet open {...props} />
           </NavContext.Provider>
         </I18nProvider>
       </DepsProvider>,

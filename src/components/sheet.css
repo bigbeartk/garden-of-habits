@@ -66,3 +66,19 @@
   .picker__item.is-locked:active { animation: picker-shake 0.3s; }
 }
 @keyframes picker-shake { 25% { translate: -3px 0; } 75% { translate: 3px 0; } }
+
+/* Hàng tab hai nửa trong bảng (Đổi cây & chậu): icon + chữ, tab đang chọn nền peach + bóng sticker */
+.seg-tabs {
+  display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 6px;
+  margin-bottom: 12px; padding: 4px;
+  border: 2px solid var(--cocoa); border-radius: 999px; background: var(--cream);
+}
+.seg-tabs__tab {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  min-height: 40px; padding: 0 12px;
+  border: 2px solid transparent; border-radius: 999px; background: transparent;
+  font: inherit; font-family: var(--font-display); font-size: 1rem; font-weight: 700; color: var(--cocoa);
+  cursor: pointer;
+}
+.seg-tabs__tab.is-active { border-color: var(--cocoa); background: var(--peach); box-shadow: var(--shadow-pop); }
+.seg-tabs__tab:disabled { opacity: 0.4; cursor: default; }

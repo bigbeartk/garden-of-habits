@@ -113,10 +113,34 @@ describe('TodayScreen', () => {
     const { user } = setup();
     const current = (await screen.findByTestId('plant-scene')).getAttribute('data-plant');
     const [targetName, targetId] = current === 'corn' ? ['Xương rồng', 'cactus'] : ['Ngô', 'corn'];
-    await user.click(screen.getByRole('button', { name: 'Đổi cây' }));
-    const dialog = await screen.findByRole('dialog', { name: 'Chọn cây hôm nay' });
+    await user.click(screen.getByRole('button', { name: 'Đổi cây & chậu' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Đổi cây & chậu' });
     await user.click(within(dialog).getByRole('button', { name: targetName }));
     await waitFor(() => expect(screen.getByTestId('plant-scene')).toHaveAttribute('data-plant', targetId));
+  });
+
+  it('một nút Đổi cây & chậu: tab Chậu đổi chậu rồi đóng bảng; không còn nút Đổi chậu riêng', async () => {
+    const { user } = setup();
+    await screen.findByTestId('plant-scene');
+    expect(screen.queryByRole('button', { name: 'Đổi chậu' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Đổi cây' })).toBeNull();
+    await user.click(screen.getByRole('button', { name: 'Đổi cây & chậu' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Đổi cây & chậu' });
+    await user.click(within(dialog).getByRole('tab', { name: 'Chậu' }));
+    await user.click(within(dialog).getByRole('button', { name: 'Chậu mèo' }));
+    await waitFor(() => expect(screen.getByTestId('plant-scene')).toHaveAttribute('data-pot', 'cat'));
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+  });
+
+  it('ngày tiết kiệm năng lượng vẫn mở được bảng để đổi chậu', async () => {
+    const { user } = setup();
+    await screen.findByTestId('plant-scene');
+    await user.click(screen.getByRole('button', { name: 'Ngày tiết kiệm năng lượng' }));
+    await screen.findByTestId('rest-message');
+    const btn = screen.getByRole('button', { name: 'Đổi cây & chậu' });
+    expect(btn).toBeEnabled();
+    await user.click(btn);
+    expect(await screen.findByRole('tab', { name: 'Chậu' })).toHaveAttribute('aria-selected', 'true');
   });
 
   it('chạm vào cây thì cây cười và nói một câu; chạm tiếp thì đổi câu', async () => {
@@ -147,8 +171,8 @@ describe('TodayScreen', () => {
   it('chưa gặp cây đặc biệt nào thì bảng chọn cây hiện lời gợi ý', async () => {
     const { user } = setup();
     await screen.findByTestId('plant-scene');
-    await user.click(screen.getByRole('button', { name: 'Đổi cây' }));
-    const dialog = await screen.findByRole('dialog', { name: 'Chọn cây hôm nay' });
+    await user.click(screen.getByRole('button', { name: 'Đổi cây & chậu' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Đổi cây & chậu' });
     expect(within(dialog).getByText(/10% cơ hội gặp cây đặc biệt/)).toBeInTheDocument();
   });
 
@@ -156,15 +180,15 @@ describe('TodayScreen', () => {
     const { deps, user } = setup();
     await setSetting(deps.db, 'unlockedSpecials', ['corn|glow']);
     await screen.findByTestId('plant-scene');
-    await user.click(screen.getByRole('button', { name: 'Đổi cây' }));
-    const dialog = await screen.findByRole('dialog', { name: 'Chọn cây hôm nay' });
+    await user.click(screen.getByRole('button', { name: 'Đổi cây & chậu' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Đổi cây & chậu' });
     await user.click(await within(dialog).findByRole('button', { name: 'Ngô · Phát sáng' }));
     const scene = screen.getByTestId('plant-scene');
     await waitFor(() => expect(scene).toHaveAttribute('data-special', 'glow'));
     expect(scene).toHaveAttribute('data-plant', 'corn');
 
-    await user.click(screen.getByRole('button', { name: 'Đổi cây' }));
-    const again = await screen.findByRole('dialog', { name: 'Chọn cây hôm nay' });
+    await user.click(screen.getByRole('button', { name: 'Đổi cây & chậu' }));
+    const again = await screen.findByRole('dialog', { name: 'Đổi cây & chậu' });
     expect(within(again).getByRole('button', { name: 'Ngô · Phát sáng' })).toHaveAttribute('aria-pressed', 'true');
     expect(within(again).getByRole('button', { name: 'Ngô' })).toHaveAttribute('aria-pressed', 'false');
     await user.click(within(again).getByRole('button', { name: 'Ngô' }));
@@ -307,10 +331,10 @@ describe('TodayScreen cây khen', () => {
 });
 
 describe('TodayScreen icon dưới chậu cây', () => {
-  it('4 nút dùng icon SVG tự vẽ, không dùng emoji', async () => {
+  it('các nút dùng icon SVG tự vẽ, không dùng emoji', async () => {
     const { user } = setup();
     await screen.findByTestId('plant-scene');
-    const expected: [string, string][] = [['Đổi cây', 'plant-swap'], ['Đổi chậu', 'pot'], ['Ghi chú', 'note'], ['Ngày tiết kiệm năng lượng', 'sleep-seed']];
+    const expected: [string, string][] = [['Đổi cây & chậu', 'plant-swap'], ['Ghi chú', 'note'], ['Ngày tiết kiệm năng lượng', 'sleep-seed']];
     for (const [name, icon] of expected) {
       const btn = screen.getByRole('button', { name });
       expect(btn.querySelector(`svg[data-icon="${icon}"]`)).not.toBeNull();
@@ -393,7 +417,7 @@ describe('TodayScreen lời cây nói của ngày', () => {
     const { deps, user } = await setupDay({ speech: 'A' });
     await user.click(await screen.findByRole('button', { name: 'Sửa lời cây nói' }));
     await user.type(screen.getByLabelText('Lời cây nói'), 'B');
-    await user.click(screen.getByRole('button', { name: 'Đổi chậu' }));
+    await user.click(screen.getByRole('button', { name: 'Đổi cây & chậu' }));
     await waitFor(async () => expect((await deps.db.days.get('2026-10-02'))!.speech).toBe('AB'));
   });
 
@@ -488,7 +512,7 @@ describe('TodayScreen: English', () => {
     const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
     renderWithDeps(<TodayScreen />, deps, undefined, 'en');
     expect(await screen.findByLabelText("Today's goal")).toBeInTheDocument();
-    for (const name of ['Change plant', 'Change pot', 'Note', 'Rest day', 'Add morning task', 'Back to Calendar']) {
+    for (const name of ['Change plant & pot', 'Note', 'Rest day', 'Add morning task', 'Back to Calendar']) {
       expect(screen.getByRole('button', { name })).toBeInTheDocument();
     }
   });

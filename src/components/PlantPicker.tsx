@@ -1,54 +1,44 @@
-import { useEffect, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { BottomSheet } from './BottomSheet';
 import { BackButton } from './BackButton';
 import { LockedStyleArt } from './LockedStyleArt';
 import { PlantScene } from './PlantScene';
 import { StylesIcon } from './icons';
-import { useBackHandler } from '../app/back';
 import { useDeps } from '../app/deps';
 import { PLANTS, getSpecies } from '../content/plants/registry';
 import { getStyle } from '../content/plants/styles';
 import { getSpecial } from '../content/specials/registry';
 import { listUnlockedSpecials } from '../domain/specialUnlocks';
-import { listUnlockedStyles, styleKey, styleProgress } from '../domain/styleUnlocks';
+import { styleKey, styleProgress } from '../domain/styleUnlocks';
 import { BASE_STYLE_ID } from '../domain/types';
 import { useI18n } from '../i18n/I18nProvider';
 
 interface Props {
-  open: boolean;
   currentId: string;
   currentSpecialId: string | null;
   currentStyleId: string;
-  onClose: () => void;
+  /** loài đang xem màn dáng; null = lưới loài (bảng giữ state để đổi tiêu đề và ẩn tab) */
+  styleFor: string | null;
+  onStyleFor: (plantId: string | null) => void;
+  /** dáng đã mở, bảng cha đọc sẵn cả lúc đóng: mở bảng là có số dáng ngay, không nháy "1/3" */
+  unlockedStyles: Set<string> | undefined;
   onPick: (plantId: string, specialId: string | null, styleId: string) => void;
 }
 
 /**
- * Bảng Đổi cây: các loài thường (dáng Gốc), rồi các cây đặc biệt đã gặp (chọn lại được).
- * Nút lá ở góc ô loài mở màn dáng của loài đó (thay nội dung bảng); dáng chưa mở không lộ hình.
+ * Tab Cây của bảng Đổi cây & chậu: các loài thường (dáng Gốc), rồi các cây đặc biệt đã gặp (chọn lại được).
+ * Nút lá ở góc ô loài mở màn dáng của loài đó (thay nội dung tab); dáng chưa mở không lộ hình.
  */
-export function PlantPickerSheet({ open, currentId, currentSpecialId, currentStyleId: rawStyleId, onClose, onPick }: Props) {
+export function PlantPicker({ currentId, currentSpecialId, currentStyleId: rawStyleId, styleFor, onStyleFor, unlockedStyles, onPick }: Props) {
   const { t, tr } = useI18n();
   const deps = useDeps();
   // dáng không thuộc loài hôm nay (file sao lưu, nội dung đã đổi) coi như Gốc
   const currentStyleId = getStyle(getSpecies(currentId), rawStyleId)?.id ?? BASE_STYLE_ID;
   const unlocked = useLiveQuery(() => listUnlockedSpecials(deps), [deps]) ?? [];
-  // đọc cả lúc bảng đóng: mở bảng là có số dáng ngay, không nháy "1/3"
-  const unlockedStyles = useLiveQuery(() => listUnlockedStyles(deps), [deps]);
-  /** loài đang xem màn dáng; null = lưới loài */
-  const [styleFor, setStyleFor] = useState<string | null>(null);
-  useEffect(() => {
-    if (!open) setStyleFor(null);
-  }, [open]);
-  // Back của Android ở màn dáng: về lưới loài thay vì đóng bảng
-  useBackHandler(open && styleFor !== null, () => setStyleFor(null), 'sheet');
 
-  const title = styleFor ? t.picker.stylesOf(tr(getSpecies(styleFor).name)) : t.picker.choosePlant;
   return (
-    <BottomSheet open={open} title={title} onClose={onClose}>
+    <>
       {styleFor ? (
-        <StyleView plantId={styleFor} currentId={currentId} currentStyleId={currentStyleId} onBack={() => setStyleFor(null)} onPick={onPick} />
+        <StyleView plantId={styleFor} currentId={currentId} currentStyleId={currentStyleId} onBack={() => onStyleFor(null)} onPick={onPick} />
       ) : (
         <>
           <div className="picker">
@@ -68,7 +58,7 @@ export function PlantPickerSheet({ open, currentId, currentSpecialId, currentSty
                     <span>{tr(p.name)}</span>
                   </button>
                   {!!p.styles?.length && (
-                    <button type="button" className="picker__style-btn" aria-label={t.picker.styleButton(tr(p.name), opened)} onClick={() => setStyleFor(p.id)}>
+                    <button type="button" className="picker__style-btn" aria-label={t.picker.styleButton(tr(p.name), opened)} onClick={() => onStyleFor(p.id)}>
                       <StylesIcon size={20} />
                       <span className="picker__style-count" aria-hidden="true">{opened}/3</span>
                       {p.id === currentId && currentStyleId !== BASE_STYLE_ID && <span className="icon-btn__badge" />}
@@ -109,7 +99,7 @@ export function PlantPickerSheet({ open, currentId, currentSpecialId, currentSty
           )}
         </>
       )}
-    </BottomSheet>
+    </>
   );
 }
 

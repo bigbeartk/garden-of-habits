@@ -130,13 +130,13 @@ test('mở được khi không có mạng', async ({ page, context, browserName 
   await context.setOffline(false);
 });
 
-test('hàng nút đổi cây/đổi chậu/ghi chú/ngày nghỉ/nhắc việc hiện đủ, cùng một hàng, không bị danh sách che', async ({ page }) => {
+test('hàng nút đổi cây & chậu/ghi chú/ngày nghỉ/nhắc việc hiện đủ, cùng một hàng, không bị danh sách che', async ({ page }) => {
   await page.clock.setFixedTime(at('2026-10-02T10:00:00'));
   await page.goto('/');
   await openToday(page);
   const list = await page.locator('.today__list').boundingBox();
   const tops: number[] = [];
-  for (const name of ['Đổi cây', 'Đổi chậu', 'Ghi chú', 'Ngày tiết kiệm năng lượng', 'Nhắc việc']) {
+  for (const name of ['Đổi cây & chậu', 'Ghi chú', 'Ngày tiết kiệm năng lượng', 'Nhắc việc']) {
     const btn = page.getByRole('button', { name, exact: true });
     await expect(btn).toBeInViewport();
     const box = await btn.boundingBox();
@@ -144,8 +144,8 @@ test('hàng nút đổi cây/đổi chậu/ghi chú/ngày nghỉ/nhắc việc h
     expect(box!.x + box!.width, `${name} tràn ngang`).toBeLessThanOrEqual(page.viewportSize()!.width);
     tops.push(Math.round(box!.y));
   }
-  expect(new Set(tops).size, '5 nút nằm cùng một hàng').toBe(1);
-  await page.screenshot({ path: 'test-results/today-five-buttons.png' });
+  expect(new Set(tops).size, '4 nút nằm cùng một hàng').toBe(1);
+  await page.screenshot({ path: 'test-results/today-action-buttons.png' });
 });
 
 test('lịch nằm giữa màn hình (theo chiều dọc, phía trên thanh tab)', async ({ page }) => {
@@ -331,7 +331,7 @@ test('nút tròn vẫn tròn dù Safari gán padding mặc định lớn cho <bu
   await addTodo(page, 'Dọn nhà');
   await closeDraft(page);
   const round = [
-    page.getByRole('button', { name: 'Đổi cây' }),
+    page.getByRole('button', { name: 'Đổi cây & chậu' }),
     page.getByRole('button', { name: 'Thêm việc buổi Sáng' }),
     page.getByRole('checkbox', { name: 'Hoàn thành: Dọn nhà' }),
     page.getByRole('button', { name: /^(Mở|Đóng) menu$/ }),
@@ -590,6 +590,32 @@ test('menu nổi: 4 tab Lịch, Hôm nay, Khu vườn, Cài đặt; Mẫu nằm 
   await expect(page.getByRole('heading', { name: 'Cài đặt' })).toBeVisible();
 });
 
+test('bảng Đổi cây & chậu: hai tab Cây/Chậu đủ chỗ, đổi chậu rồi đóng bảng', async ({ page }) => {
+  await page.clock.setFixedTime(at('2026-10-02T10:00:00'));
+  await page.goto('/');
+  await openToday(page);
+  await closeMenu(page);
+  await page.getByRole('button', { name: 'Đổi cây & chậu' }).click();
+  const sheet = page.getByRole('dialog', { name: 'Đổi cây & chậu' });
+  const plantTab = sheet.getByRole('tab', { name: 'Cây' });
+  const potTab = sheet.getByRole('tab', { name: 'Chậu' });
+  await expect(plantTab).toHaveAttribute('aria-selected', 'true');
+  // chờ bảng trượt lên xong rồi mới đo (đang trượt thì hai lần đo lệch nhau)
+  await page.waitForTimeout(400);
+  const a = (await plantTab.boundingBox())!;
+  const b = (await potTab.boundingBox())!;
+  expect(Math.abs(a.y - b.y)).toBeLessThan(1);
+  expect(Math.abs(a.width - b.width)).toBeLessThan(1);
+  expect(b.x + b.width).toBeLessThanOrEqual(page.viewportSize()!.width);
+  await page.screenshot({ path: 'test-results/plant-pot-sheet-plant.png' });
+  await potTab.click();
+  await expect(sheet.getByRole('button', { name: 'Chậu mèo' })).toBeVisible();
+  await page.screenshot({ path: 'test-results/plant-pot-sheet-pot.png' });
+  await sheet.getByRole('button', { name: 'Chậu mèo' }).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(page.getByTestId('plant-scene').first()).toHaveAttribute('data-pot', 'cat');
+});
+
 test('chọn lại cây đặc biệt đã mở khoá trong bảng Đổi cây', async ({ page }) => {
   await page.clock.setFixedTime(at('2026-10-02T10:00:00'));
   await page.goto('/');
@@ -610,8 +636,8 @@ test('chọn lại cây đặc biệt đã mở khoá trong bảng Đổi cây',
   await page.reload();
   await openToday(page);
   await closeMenu(page);
-  await page.getByRole('button', { name: 'Đổi cây' }).click();
-  const sheet = page.getByRole('dialog', { name: 'Chọn cây hôm nay' });
+  await page.getByRole('button', { name: 'Đổi cây & chậu' }).click();
+  const sheet = page.getByRole('dialog', { name: 'Đổi cây & chậu' });
   const specials = sheet.getByTestId('picker-specials');
   // hôm nay có thể tự trúng cây đặc biệt (10%, ngẫu nhiên thật) nên có thể nhiều hơn 3 cặp
   for (const name of ['Ngô · Phát sáng', 'Cây cam · Vàng ròng', 'Tulip · Pha lê']) {
@@ -667,7 +693,7 @@ test('chạm vào cây thì cây cười và nói một câu (WebKit)', async ({
   const drawnW = Math.min(svg.width, (svg.height * 200) / 240);
   expect(Math.abs(box.width - drawnW)).toBeLessThan(3);
   expect(Math.abs(box.x + box.width / 2 - (svg.x + svg.width / 2))).toBeLessThan(2);
-  const actions = (await page.getByRole('button', { name: 'Đổi cây' }).boundingBox())!;
+  const actions = (await page.getByRole('button', { name: 'Đổi cây & chậu' }).boundingBox())!;
   expect(box.y + box.height).toBeLessThanOrEqual(actions.y);
   // lời cây nói của ngày hiện sẵn; chạm vào thân cây thì cây đáp một câu tạm, chạm tiếp thì đổi câu
   const bubble = page.getByTestId('speech-bubble');
@@ -794,7 +820,7 @@ test('dáng cây: đủ 10 ngày ra hoa mở dáng 2; dáng 3 khoá và không l
   await page.reload();
   await openToday(page);
   await closeMenu(page);
-  await page.getByRole('button', { name: 'Đổi cây' }).click();
+  await page.getByRole('button', { name: 'Đổi cây & chậu' }).click();
   // nút dáng vẫn tròn trên Safari
   const styleBtn = page.getByRole('button', { name: 'Dáng cây: Hướng dương (2/3)' });
   const box = (await styleBtn.boundingBox())!;
@@ -836,7 +862,7 @@ test('dáng cây: ra hoa lần thứ 10 thì hiện khung mừng mở dáng mớ
   await page.reload();
   await openToday(page);
   await closeMenu(page);
-  await page.getByRole('button', { name: 'Đổi cây' }).click();
+  await page.getByRole('button', { name: 'Đổi cây & chậu' }).click();
   await page.getByRole('button', { name: 'Hướng dương', exact: true }).click();
   await expect(page.getByTestId('plant-scene').first()).toHaveAttribute('data-plant', 'sunflower');
   await addTodo(page, 'Tưới cây');

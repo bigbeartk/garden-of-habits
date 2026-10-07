@@ -5,11 +5,10 @@ import { useNav } from '../app/nav';
 import { BackButton } from '../components/BackButton';
 import { GoalInput } from '../components/GoalInput';
 import { IconButton } from '../components/IconButton';
-import { BellIcon, NoteIcon, PlantSwapIcon, PotIcon, SleepSeedIcon, SpeechIcon, SunIcon } from '../components/icons';
+import { BellIcon, NoteIcon, PlantSwapIcon, SleepSeedIcon, SpeechIcon, SunIcon } from '../components/icons';
 import { NoteSheet } from '../components/NoteSheet';
-import { PlantPickerSheet } from '../components/PlantPickerSheet';
+import { PlantPotSheet } from '../components/PlantPotSheet';
 import { PlantScene } from '../components/PlantScene';
-import { PotPickerSheet } from '../components/PotPickerSheet';
 import { SkyBackground } from '../components/SkyBackground';
 import { SpeechBubble, type SpeechKind } from '../components/SpeechBubble';
 import { StageBurst } from '../components/StageBurst';
@@ -39,7 +38,7 @@ import { useBackHandler } from '../app/back';
 import { RemindersScreen } from './RemindersScreen';
 import './today.css';
 
-type Sheet = null | 'plant' | 'pot' | 'note';
+type Sheet = null | 'plant' | 'note';
 
 export function TodayScreen() {
   const { t, lang, tr } = useI18n();
@@ -223,8 +222,7 @@ export function TodayScreen() {
           {special && <span className="today__badge">{t.today.specialBadge(tr(special.name))}</span>}
         </div>
         <div className="today__actions">
-          <IconButton label={t.today.changePlant} icon={<PlantSwapIcon size={30} />} onClick={() => setSheet('plant')} disabled={day.isRestDay} />
-          <IconButton label={t.today.changePot} icon={<PotIcon size={30} />} onClick={() => setSheet('pot')} />
+          <IconButton label={t.today.changePlantPot} icon={<PlantSwapIcon size={30} />} onClick={() => setSheet('plant')} />
           <IconButton label={t.today.note} icon={<NoteIcon size={30} />} onClick={() => setSheet('note')} badge={day.note.length > 0} />
           <IconButton
             label={day.isRestDay ? t.today.wakeUp : t.today.restDay}
@@ -273,19 +271,12 @@ export function TodayScreen() {
         )}
       </div>
 
-      <PlantPickerSheet
+      <PlantPotSheet
         open={sheet === 'plant'}
-        currentId={day.plantId}
-        currentSpecialId={day.specialId}
-        currentStyleId={day.styleId ?? 'base'}
-        onClose={() => setSheet(null)}
-        onPick={(id, specialId, styleId) => { run(changePlant(deps, day.date, id, specialId, styleId)); setSheet(null); }}
-      />
-      <PotPickerSheet
-        open={sheet === 'pot'}
         day={day}
         onClose={() => setSheet(null)}
-        onPick={(id) => { run(changePot(deps, day.date, id)); setSheet(null); }}
+        onPickPlant={(id, specialId, styleId) => { run(changePlant(deps, day.date, id, specialId, styleId)); setSheet(null); }}
+        onPickPot={(id) => { run(changePot(deps, day.date, id)); setSheet(null); }}
       />
       <NoteSheet
         open={sheet === 'note'}
