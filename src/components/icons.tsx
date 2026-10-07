@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import type { CalendarTheme } from '../domain/types';
 
 /**
  * Bộ icon SVG tự vẽ, phong cách sticker chibi (viền cocoa, màu pastel, nét bo tròn).
@@ -106,8 +107,95 @@ export function GearIcon({ size }: { size?: number }) {
   );
 }
 
-/** Nút mở menu: bông hoa 4 cánh */
-export function MenuIcon({ size }: { size?: number }) {
+/** Mắt cười cong (^ ^) cho icon có mặt */
+function HappyEyes({ x1, x2, y }: { x1: number; x2: number; y: number }) {
+  return <path d={`M${x1 - 1.4} ${y} q1.4 -1.6 2.8 0 M${x2 - 1.4} ${y} q1.4 -1.6 2.8 0`} fill="none" {...STROKE} strokeWidth={1.6} />;
+}
+
+/**
+ * Nút mở menu: bông hoa 4 cánh; nếu hình nền lịch có chủ đề (mèo, cún, cỏ, mưa, gaming)
+ * thì vẽ icon theo chủ đề đó (`data-icon="menu-<theme>"`). Ảnh riêng của người dùng vẫn là bông hoa.
+ */
+export function MenuIcon({ size, theme = 'default' }: { size?: number; theme?: CalendarTheme }) {
+  if (theme === 'cat') {
+    return (
+      <Svg name="menu-cat" size={size}>
+        <path d="M6.5 13 L6 4.5 L12.5 9 Z M25.5 13 L26 4.5 L19.5 9 Z" fill="#FFD8A8" {...STROKE} />
+        <path d="M7.6 10.5 L7.4 7 L10.2 9 Z M24.4 10.5 L24.6 7 L21.8 9 Z" fill="#FFB8C8" />
+        <ellipse cx={16} cy={17.5} rx={11} ry={9.5} fill="#FFD8A8" {...STROKE} />
+        <path d="M13.5 8.6 l1 3 M16 8.2 v3.2 M18.5 8.6 l-1 3" stroke="#E8A464" strokeWidth={1.6} strokeLinecap="round" />
+        <HappyEyes x1={11.6} x2={20.4} y={17} />
+        <path d="M15 19.6 h2 l-1 1.2 Z" fill="#FF8FA6" stroke={INK} strokeWidth={1} strokeLinejoin="round" />
+        <path d="M14.2 21.6 q0.9 0.9 1.8 0 q0.9 0.9 1.8 0" fill="none" {...STROKE} strokeWidth={1.3} />
+        <path d="M3 18 l4.5 0.8 M3.5 21.5 l4.2 -0.8 M29 18 l-4.5 0.8 M28.5 21.5 l-4.2 -0.8" stroke={INK} strokeWidth={1.1} strokeLinecap="round" />
+        <Blush x1={9.6} x2={22.4} y={20.4} />
+      </Svg>
+    );
+  }
+  if (theme === 'dog') {
+    // đầu Corgi: tai to dựng vẽ trước đầu để chân tai chìm vào đầu, mảng trắng giữa trán, mõm kem
+    return (
+      <Svg name="menu-dog" size={size}>
+        <path d="M5 15 L4.5 3.5 L13 10 Z M27 15 L27.5 3.5 L19 10 Z" fill="#F4A35C" {...STROKE} />
+        <path d="M6.6 11.5 L6.4 6.6 L10.4 9.8 Z M25.4 11.5 L25.6 6.6 L21.6 9.8 Z" fill="#FFB8C8" />
+        <ellipse cx={16} cy={18} rx={11.5} ry={9.5} fill="#F4A35C" {...STROKE} />
+        <path d="M16 9 C 14 13 12.5 16 11 20 C 11 25 21 25 21 20 C 19.5 16 18 13 16 9 Z" fill="#FFF1DD" />
+        <ellipse cx={16} cy={22} rx={6} ry={4.3} fill="#FFF1DD" {...STROKE} />
+        <ellipse cx={16} cy={19.8} rx={2} ry={1.4} fill={INK} />
+        <path d="M14.2 22.6 q0.9 1 1.8 0 q0.9 1 1.8 0" fill="none" {...STROKE} strokeWidth={1.3} />
+        <circle cx={10.8} cy={16.5} r={1.5} fill={INK} />
+        <circle cx={21.2} cy={16.5} r={1.5} fill={INK} />
+        <circle cx={11.3} cy={16} r={0.5} fill="#FFFFFF" />
+        <circle cx={21.7} cy={16} r={0.5} fill="#FFFFFF" />
+        <Blush x1={8.4} x2={23.6} y={20} />
+      </Svg>
+    );
+  }
+  if (theme === 'grass') {
+    // khóm cỏ có một bông hoa nhỏ mọc giữa
+    return (
+      <Svg name="menu-grass" size={size}>
+        <path d="M4 28 C 4.5 23 5.5 19 7.5 16 C 8.5 19.5 9.5 22 10 24 C 10.5 20 11.5 17 13 15 C 14 18 15 21 16 23 C 17 21 18 18 19 15 C 20.5 17 21.5 20 22 24 C 22.5 22 23.5 19.5 24.5 16 C 26.5 19 27.5 23 28 28 Z" fill="#6DBB5E" {...STROKE} />
+        <path d="M16 24 V12" stroke="#3E8F3A" strokeWidth={2} strokeLinecap="round" />
+        <path d="M16 19 q4 -3.4 6.5 -1.4 q-3 3.4 -6.5 1.4 Z" fill="#9ED9A0" {...STROKE} strokeWidth={1.5} />
+        {[0, 72, 144, 216, 288].map((a) => (
+          <circle key={a} cx={16} cy={5.6} r={2.9} fill="#FFB8C8" {...STROKE} strokeWidth={1.5} transform={`rotate(${a} 16 9.5)`} />
+        ))}
+        <circle cx={16} cy={9.5} r={2.5} fill="#FFE58A" {...STROKE} strokeWidth={1.5} />
+      </Svg>
+    );
+  }
+  if (theme === 'rain') {
+    // đám mây buồn ngủ và ba giọt mưa
+    return (
+      <Svg name="menu-rain" size={size}>
+        <path d="M8 19.5 C 3.5 19.5 3 13.5 7.5 12.7 C 7.5 7 14.5 5 17.5 9 C 20 6 26 7.5 25.5 12.3 C 30 13 29.5 19.5 25 19.5 Z" fill="#E3D9FF" {...STROKE} />
+        <path d="M12 14.5 q1.4 1.3 2.8 0 M18.2 14.5 q1.4 1.3 2.8 0" fill="none" {...STROKE} strokeWidth={1.5} />
+        <Blush x1={11} x2={22} y={16.7} />
+        {[9.5, 16.5, 23.5].map((x, i) => {
+          const y = 22.5 + (i % 2) * 1.5;
+          return <path key={x} d={`M${x} ${y} C ${x - 2.7} ${y + 3.4} ${x - 2.7} ${y + 6.2} ${x} ${y + 6.2} C ${x + 2.7} ${y + 6.2} ${x + 2.7} ${y + 3.4} ${x} ${y} Z`} fill="#BFDDFF" {...STROKE} strokeWidth={1.4} />;
+        })}
+      </Svg>
+    );
+  }
+  if (theme === 'gamer') {
+    // tay cầm chơi game kiểu pixel, như phòng gaming pixel
+    const px: [number, number, number, number, string][] = [
+      [6, 10, 20, 2, INK], [4, 12, 24, 2, INK], [2, 14, 28, 8, INK], [4, 22, 8, 2, INK], [20, 22, 8, 2, INK], [6, 24, 4, 2, INK], [22, 24, 4, 2, INK],
+      [6, 12, 20, 2, '#8B6BD9'], [4, 14, 24, 8, '#8B6BD9'], [6, 22, 4, 2, '#8B6BD9'], [22, 22, 4, 2, '#8B6BD9'],
+      [8, 15, 2, 6, '#1A1033'], [6, 17, 6, 2, '#1A1033'],
+      [22, 15, 3, 3, '#FF5FD2'], [19, 18, 3, 3, '#4DF3FF'],
+      [14, 17, 4, 1, '#FFE58A'], [6, 12, 4, 1, '#B9A3F0'],
+    ];
+    return (
+      <Svg name="menu-gamer" size={size}>
+        <g shapeRendering="crispEdges">
+          {px.map(([x, y, w, h, c], i) => <rect key={i} x={x} y={y} width={w} height={h} fill={c} />)}
+        </g>
+      </Svg>
+    );
+  }
   return (
     <Svg name="menu" size={size}>
       {[0, 90, 180, 270].map((a) => (

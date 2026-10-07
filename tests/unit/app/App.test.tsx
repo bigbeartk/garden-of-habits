@@ -1,8 +1,9 @@
-import { act, fireEvent, screen } from '@testing-library/react';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import { App } from '../../../src/app/App';
 import { CATALOG } from '../../../src/content/catalog';
 import { markGreeted, ensureToday } from '../../../src/domain/dayService';
 import { makeDeps, renderWithDeps } from '../helpers';
+import { setSetting } from '../../../src/db/settings';
 
 /** Tab đang chọn: mở menu nổi (nếu đang thu gọn) rồi đọc nút có aria-current. */
 async function currentTabButton(name: string) {
@@ -76,5 +77,22 @@ describe('App chuyển tab không có hiệu ứng', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Quay lại Cài đặt' }));
     expect(await screen.findByRole('heading', { name: 'Cài đặt' })).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'Mẫu việc cần làm' })).not.toBeInTheDocument();
+  });
+});
+
+describe('App: nút menu theo hình nền lịch', () => {
+  it('đổi hình nền Cún thì nút menu thành icon cún, ở mọi tab', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
+    const day = await ensureToday(deps);
+    await markGreeted(deps, day.date);
+    await setSetting(deps.db, 'calendarTheme', 'dog');
+    renderWithDeps(<App />, deps);
+    await screen.findByTestId('calendar-card');
+    const toggle = screen.getByRole('button', { name: 'Mở menu' });
+    await waitFor(() => expect(toggle.querySelector('[data-icon="menu-dog"]')).not.toBeNull());
+    fireEvent.click(toggle);
+    fireEvent.click(await screen.findByRole('button', { name: 'Cài đặt' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Đóng menu' }));
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Mở menu' }).querySelector('[data-icon="menu-dog"]')).not.toBeNull());
   });
 });

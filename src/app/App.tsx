@@ -6,6 +6,7 @@ import { TabBar } from './TabBar';
 import { dayKey } from '../domain/dayKey';
 import { ensureToday } from '../domain/dayService';
 import { useNow } from '../hooks/useNow';
+import { useCalendarTheme } from '../hooks/useCalendarBg';
 import { CalendarScreen } from '../screens/CalendarScreen';
 import { TodayScreen } from '../screens/TodayScreen';
 import { GardenScreen } from '../screens/GardenScreen';
@@ -16,6 +17,7 @@ export function App() {
   const deps = useDeps();
   const todayKey = dayKey(useNow());
   const [tab, setTab] = useState<Tab>('calendar');
+  const calendarTheme = useCalendarTheme();
 
   // Chạy khi mở app và mỗi khi sang ngày mới (kể cả khi app để mở qua 4:00 rồi quay lại).
   useEffect(() => {
@@ -45,7 +47,7 @@ export function App() {
           {tab === 'garden' && <GardenScreen />}
           {tab === 'settings' && <SettingsScreen />}
         </main>
-        <TabBar current={tab} onChange={setTab} />
+        <TabBar current={tab} onChange={setTab} theme={calendarTheme} />
       </div>
     </NavContext.Provider>
   );
