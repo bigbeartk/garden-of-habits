@@ -87,7 +87,7 @@ describe('RemindersScreen', () => {
     expect(within(screen.getByTestId('reminders-done')).getByTestId('rem-done-count')).toHaveTextContent('1');
   });
 
-  it('mỗi việc là một thẻ màu xoay vòng; nút Hôm nay là viên có icon mặt trời và chữ', async () => {
+  it('mỗi việc là một thẻ màu xoay vòng; nút Hôm nay chỉ có icon mặt trời, cùng hàng với chữ', async () => {
     const { deps, render } = setup();
     for (const t of ['A', 'B', 'C', 'D', 'E']) await addReminder(deps, t);
     render();
@@ -96,7 +96,8 @@ describe('RemindersScreen', () => {
     const tones = within(active).getAllByRole('listitem').map((r) => r.getAttribute('data-tone'));
     expect(tones).toEqual(['peach', 'mint', 'butter', 'lavender', 'peach']);
     const sw = screen.getByRole('switch', { name: 'Thêm vào hôm nay: A' });
-    expect(sw).toHaveTextContent('Hôm nay');
+    expect(sw.textContent).toBe('');
+    expect(sw.closest('.rem__main')).not.toBeNull();
     expect(sw.querySelector('[data-icon="sun"]')).not.toBeNull();
     // không còn hàng tiêu đề cột kiểu bảng
     expect(active.querySelector('.rem__cols')).toBeNull();

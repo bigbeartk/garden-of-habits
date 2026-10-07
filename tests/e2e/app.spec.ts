@@ -872,6 +872,15 @@ test('Nhắc việc: bật Hôm nay thì việc vào buổi Sáng, chưa xong th
     const box = await el.boundingBox();
     expect(box!.x + box!.width).toBeLessThanOrEqual(390);
   }
+  // nút ☀ Hôm nay chỉ là icon tròn, nằm cùng hàng với chữ của việc (không xuống dòng riêng)
+  const rowText = active.getByRole('button', { name: 'Mua quần áo', exact: true });
+  const rowSw = page.getByRole('switch', { name: 'Thêm vào hôm nay: Mua quần áo' });
+  await expect(rowSw).toHaveText('');
+  const tb = (await rowText.boundingBox())!;
+  const sb = (await rowSw.boundingBox())!;
+  expect(sb.y + sb.height / 2).toBeGreaterThan(tb.y);
+  expect(sb.y + sb.height / 2).toBeLessThan(tb.y + tb.height);
+  expect(Math.abs(sb.width - sb.height)).toBeLessThanOrEqual(1);
   await page.screenshot({ path: 'test-results/reminders.png', fullPage: true });
 
   // màn Nhắc việc nằm trong tab Hôm nay: về bằng nút quay lại

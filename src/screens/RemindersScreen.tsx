@@ -144,8 +144,6 @@ function ReminderRow({ r, tone, deps, run, onRing }: { r: Reminder; tone: Tone; 
         ) : (
           <button type="button" className="rem__text" onClick={() => { setText(r.text); setEditing(true); }}>{r.text}</button>
         )}
-      </div>
-      <div className="rem__foot">
         <button
           type="button" role="switch" aria-checked={on} aria-label={t.reminders.addToToday(r.text)}
           className={`rem__today${on ? ' is-on' : ''}`}
@@ -157,7 +155,6 @@ function ReminderRow({ r, tone, deps, run, onRing }: { r: Reminder; tone: Tone; 
           }}
         >
           <SunIcon size={20} />
-          <span>{t.reminders.today}</span>
           <span className="rem__today-dot" aria-hidden="true" />
         </button>
         <DeleteWithConfirm text={r.text} onConfirm={() => run(deleteReminder(deps, r.id))} />
