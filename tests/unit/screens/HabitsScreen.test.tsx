@@ -1,0 +1,56 @@
+import { describe, expect, it, vi } from 'vitest';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
+import { makeDeps, renderWithDeps } from '../helpers';
+import { HabitsScreen } from '../../../src/screens/HabitsScreen';
+import { addHabit, listHabits } from '../../../src/domain/habitService';
+
+describe('HabitsScreen', () => {
+  it('thêm thói quen: tên, emoji, màu, thứ', async () => {
+    const { deps } = makeDeps();
+    renderWithDeps(<HabitsScreen onBack={() => {}} />, deps);
+    fireEvent.click(screen.getByRole('button', { name: '＋ Thói quen mới' }));
+    fireEvent.change(screen.getByLabelText('Tên thói quen'), { target: { value: 'Yoga' } });
+    fireEvent.click(screen.getByRole('radio', { name: '🧘' }));
+    fireEvent.click(screen.getByRole('radio', { name: 'Oải hương' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Thứ Ba' })); // tắt T3 (mặc định bật đủ 7)
+    fireEvent.click(screen.getByRole('button', { name: 'Lưu thói quen' }));
+    await waitFor(async () => expect(await listHabits(deps.db)).toHaveLength(1));
+    expect((await listHabits(deps.db))[0]).toMatchObject({ name: 'Yoga', icon: '🧘', color: 'lavender', weekdays: [0, 1, 3, 4, 5, 6] });
+    expect(await screen.findByText('Yoga')).toBeInTheDocument();
+  });
+
+  it('nút Lưu tắt khi tên rỗng hoặc không chọn thứ nào', () => {
+    const { deps } = makeDeps();
+    renderWithDeps(<HabitsScreen onBack={() => {}} startAdding />, deps);
+    const save = screen.getByRole('button', { name: 'Lưu thói quen' });
+    expect(save).toBeDisabled();
+    fireEvent.change(screen.getByLabelText('Tên thói quen'), { target: { value: 'A' } });
+    expect(save).toBeEnabled();
+    for (const d of ['Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy', 'Chủ Nhật']) fireEvent.click(screen.getByRole('button', { name: d }));
+    expect(save).toBeDisabled();
+  });
+
+  it('thẻ ghi lịch; sửa; xoá có xác nhận', async () => {
+    const { deps } = makeDeps();
+    await addHabit(deps, { name: 'Đi bộ', icon: '🚶', color: 'mint', weekdays: [1, 3] });
+    await addHabit(deps, { name: 'Uống nước', icon: '💧', color: 'sky', weekdays: [0, 1, 2, 3, 4, 5, 6] });
+    renderWithDeps(<HabitsScreen onBack={() => {}} />, deps);
+    expect(await screen.findByText('T2 · T4')).toBeInTheDocument();
+    expect(screen.getByText('Mỗi ngày')).toBeInTheDocument();
+    fireEvent.click(screen.getAllByRole('button', { name: 'Sửa' })[0]);
+    fireEvent.change(screen.getByLabelText('Tên thói quen'), { target: { value: 'Đi bộ 30 phút' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Lưu thói quen' }));
+    expect(await screen.findByText('Đi bộ 30 phút')).toBeInTheDocument();
+    fireEvent.click(screen.getAllByRole('button', { name: 'Xoá' })[0]);
+    fireEvent.click(screen.getByRole('button', { name: 'Xoá cả lịch sử' }));
+    await waitFor(async () => expect(await listHabits(deps.db)).toHaveLength(1));
+  });
+
+  it('nút Quay lại Khu vườn gọi onBack', () => {
+    const { deps } = makeDeps();
+    const onBack = vi.fn();
+    renderWithDeps(<HabitsScreen onBack={onBack} />, deps);
+    fireEvent.click(screen.getByRole('button', { name: 'Quay lại Khu vườn' }));
+    expect(onBack).toHaveBeenCalled();
+  });
+});

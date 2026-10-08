@@ -1,0 +1,28 @@
+.screen--habits { display: flex; flex-direction: column; gap: 12px; padding-bottom: calc(var(--tabbar-h) + 32px + var(--safe-area-inset-bottom, env(safe-area-inset-bottom))); }
+.habits__head { display: flex; align-items: center; gap: 4px; }
+.habits__new {
+  width: 100%; padding: 12px; border: 2px dashed var(--cocoa-soft); border-radius: 18px; background: rgba(255, 255, 255, 0.7);
+  font-family: var(--font-display); font-weight: 700; font-size: 1rem; color: var(--cocoa); cursor: pointer;
+}
+.habits__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.habit-card { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.habit-card__icon {
+  flex: none; width: 44px; height: 44px; border-radius: 50%; border: 2px solid var(--cocoa);
+  display: grid; place-items: center; font-size: 1.4rem; box-shadow: var(--shadow-pop);
+}
+.habit-card__text { flex: 1 1 0; min-width: 0; }
+.habit-card__name { margin: 0; font-size: 1.05rem; overflow-wrap: anywhere; }
+.habit-card__days { margin: 2px 0 0; font-size: 0.85rem; color: var(--cocoa-soft); font-weight: 700; }
+.habit-card__actions { display: flex; gap: 6px; margin-left: auto; }
+.habit-form { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+.habit-form__label { margin: 4px 0 0; font-weight: 700; }
+.habit-form__icons { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; }
+.habit-form__icon {
+  aspect-ratio: 1; padding: 0; border-radius: 12px; border: 2px solid transparent; background: var(--white);
+  font-size: 1.25rem; line-height: 1; cursor: pointer;
+}
+.habit-form__icon.is-on { border-color: var(--cocoa); background: var(--butter); box-shadow: var(--shadow-pop); }
+.habit-form__colors { display: flex; gap: 8px; flex-wrap: wrap; }
+.habit-form__color { width: 34px; height: 34px; padding: 0; border-radius: 50%; border: 2px solid var(--cocoa-soft); cursor: pointer; }
+.habit-form__color.is-on { border: 3px solid var(--cocoa); box-shadow: var(--shadow-pop); }
+.habit-form__actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 6px; }
