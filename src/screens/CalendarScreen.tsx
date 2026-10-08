@@ -10,6 +10,7 @@ import { firstDayKey, listDaysInRange } from '../db/queries';
 import { getSetting } from '../db/settings';
 import { plannedCountsInRange } from '../domain/plannedService';
 import { FutureDayScreen } from './FutureDayScreen';
+import { ChevronIcon } from '../components/icons';
 import { useBackHandler } from '../app/back';
 
 const MAX_MONTHS_AHEAD = 12;
@@ -105,9 +106,9 @@ export function CalendarScreen() {
         </div>
       )}
       <header className={`cal__head card${glass}`} data-testid="calendar-head">
-        <button type="button" className="btn btn--round" aria-label={t.calendar.prevMonth} onClick={() => go(-1)}>‹</button>
+        <button type="button" className="btn btn--round" aria-label={t.calendar.prevMonth} onClick={() => go(-1)}><ChevronIcon dir="left" size={24} /></button>
         <h1 className="screen__title" aria-live="polite">{monthLabel(lang, view.year, view.month)}</h1>
-        <button type="button" className="btn btn--round" aria-label={t.calendar.nextMonth} onClick={() => go(1)} disabled={atLastMonth}>›</button>
+        <button type="button" className="btn btn--round" aria-label={t.calendar.nextMonth} onClick={() => go(1)} disabled={atLastMonth}><ChevronIcon dir="right" size={24} /></button>
       </header>
 
       <motion.div

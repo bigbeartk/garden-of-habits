@@ -295,6 +295,21 @@ export function BackIcon({ size }: { size?: number }) {
   );
 }
 
+/**
+ * Mũi tên chuyển tháng / chuyển kỳ: vẽ bằng SVG, khung của nét đặt đúng tâm 16,16.
+ * Không dùng ký tự ‹ › vì chữ nằm theo đường kẻ của font nên lệch khỏi tâm nút tròn.
+ */
+export function ChevronIcon({ dir, size }: { dir: 'left' | 'right'; size?: number }) {
+  return (
+    <Svg name={`chevron-${dir}`} size={size}>
+      <path
+        d={dir === 'left' ? 'M20 8 L12 16 L20 24' : 'M12 8 L20 16 L12 24'}
+        fill="none" stroke={INK} strokeWidth={3.6} strokeLinecap="round" strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
 /** Buổi sáng: mặt trời cười, má hồng */
 export function MorningIcon({ size }: { size?: number }) {
   return (

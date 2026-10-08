@@ -11,7 +11,7 @@
 .habit-report__nav { display: flex; align-items: center; justify-content: center; gap: 12px; }
 .habit-report__arrow {
   width: 30px; height: 30px; padding: 0; border-radius: 50%; border: 2px solid var(--cocoa); background: var(--peach);
-  font-weight: 800; line-height: 1; cursor: pointer;
+  display: grid; place-items: center; cursor: pointer;
 }
 .habit-report__arrow:disabled { opacity: 0.35; cursor: default; }
 .habit-report__label { font-family: var(--font-display); font-weight: 700; background: var(--butter); padding: 0 8px; border-radius: 6px; }

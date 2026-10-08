@@ -5,6 +5,7 @@ import { HABIT_COLORS } from '../content/habits';
 import { PLANTS } from '../content/plants/registry';
 import { DEFAULT_POT_ID } from '../content/pots/registry';
 import { PlantScene } from './PlantScene';
+import { ChevronIcon } from './icons';
 import { listDaysInRange } from '../db/queries';
 import { dayKey, parseDayKey } from '../domain/dayKey';
 import { habitReport, periodRange, shiftPeriod, type HabitReportResult, type ReportKind } from '../domain/habitReport';
@@ -70,9 +71,9 @@ export function HabitReport({ onManage }: { onManage: () => void }) {
         ))}
       </div>
       <div className="habit-report__nav">
-        <button type="button" className="habit-report__arrow" aria-label={t.habits.prev} onClick={() => setAnchor(shiftPeriod(kind, anchor, -1))}>‹</button>
+        <button type="button" className="habit-report__arrow" aria-label={t.habits.prev} onClick={() => setAnchor(shiftPeriod(kind, anchor, -1))}><ChevronIcon dir="left" size={18} /></button>
         <span className="habit-report__label">{label}</span>
-        <button type="button" className="habit-report__arrow" aria-label={t.habits.next} disabled={isCurrent} onClick={() => setAnchor(shiftPeriod(kind, anchor, 1))}>›</button>
+        <button type="button" className="habit-report__arrow" aria-label={t.habits.next} disabled={isCurrent} onClick={() => setAnchor(shiftPeriod(kind, anchor, 1))}><ChevronIcon dir="right" size={18} /></button>
       </div>
       {kind === 'week' && <WeekTable report={report} todayKey={todayKey} />}
       {kind === 'month' && <MonthCards report={report} />}

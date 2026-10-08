@@ -1025,3 +1025,33 @@ test('Cài đặt: chọn icon nút menu cạnh hình nền lịch; Theo hình n
   await page.getByRole('radiogroup', { name: 'Hình nền lịch' }).getByRole('radio', { name: /Mèo vươn vai/ }).click();
   await expect(menu.locator('[data-icon="menu-cat"]')).toHaveCount(1);
 });
+
+/** Tâm icon mũi tên phải trùng tâm nút tròn (ký tự ‹ › cũ nằm thấp ~2px theo đường kẻ của font). */
+async function expectCenteredChevron(page: Page, name: string, dir: 'left' | 'right') {
+  const btn = page.getByRole('button', { name });
+  const icon = btn.locator(`svg[data-icon="chevron-${dir}"]`);
+  await expect(icon).toBeVisible();
+  const b = (await btn.boundingBox())!;
+  const i = (await icon.boundingBox())!;
+  expect(Math.abs(i.x + i.width / 2 - (b.x + b.width / 2))).toBeLessThanOrEqual(0.5);
+  expect(Math.abs(i.y + i.height / 2 - (b.y + b.height / 2))).toBeLessThanOrEqual(0.5);
+}
+
+test('mũi tên chuyển tháng / chuyển kỳ thói quen nằm giữa nút tròn', async ({ page }) => {
+  await page.clock.setFixedTime(at('2026-10-09T10:00:00'));
+  await page.goto('/');
+  await goTab(page, 'Lịch');
+  await closeMenu(page);
+  await expectCenteredChevron(page, 'Tháng trước', 'left');
+  await expectCenteredChevron(page, 'Tháng sau', 'right');
+
+  await goTab(page, 'Khu vườn');
+  await closeMenu(page);
+  await page.getByRole('tab', { name: 'Thói quen' }).click();
+  await page.getByRole('button', { name: '＋ Thói quen đầu tiên' }).click();
+  await page.getByLabel('Tên thói quen').fill('Uống nước');
+  await page.getByRole('button', { name: 'Lưu thói quen' }).click();
+  await page.getByRole('button', { name: 'Quay lại Khu vườn' }).click();
+  await expectCenteredChevron(page, 'Kỳ trước', 'left');
+  await expectCenteredChevron(page, 'Kỳ sau', 'right');
+});
