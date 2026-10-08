@@ -11,6 +11,13 @@ export function monthLabel(lang: Lang, year: number, month: number): string {
   return new Date(year, month, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 }
 
+/** ngày + tháng ngắn cho hàng chọn kỳ: '06/10' / 'Oct 6' */
+export function shortDate(lang: Lang, key: string): string {
+  const d = parseDayKey(key);
+  if (lang === 'vi') return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}`;
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
 export function weekdayName(lang: Lang, key: string): string {
   const d = parseDayKey(key);
   return lang === 'vi' ? VI_WEEKDAY_LONG[d.getDay()] : d.toLocaleDateString('en-US', { weekday: 'long' });

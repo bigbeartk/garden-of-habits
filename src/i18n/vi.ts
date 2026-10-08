@@ -4,6 +4,8 @@ import type { CellStatus } from '../domain/calendar';
 import type { ErrorParams } from '../domain/errors';
 import type { GrowthStage } from '../domain/growth';
 import type { Period } from '../domain/period';
+import type { HabitColor } from '../domain/types';
+import type { ReportKind } from '../domain/habitReport';
 
 const PERIOD_VI: Record<Period, string> = { morning: 'Sáng', afternoon: 'Chiều', evening: 'Tối' };
 
@@ -294,6 +296,47 @@ export const vi = {
     newLabel: 'Việc nhắc mới',
     newPlaceholder: 'Việc cần nhớ…',
     save: 'Lưu',
+  },
+  habits: {
+    stripTitle: 'Thói quen hôm nay',
+    chip: (name: string) => `Thói quen: ${name}`,
+    manage: 'Quản lý thói quen',
+    addFirstChip: 'Thêm thói quen',
+    title: 'Thói quen',
+    backToGarden: 'Quay lại Khu vườn',
+    newHabit: '＋ Thói quen mới',
+    empty: 'Chưa có thói quen nào. Tạo một thói quen nhỏ để bắt đầu nhé!',
+    firstHabit: '＋ Thói quen đầu tiên',
+    everyDay: 'Mỗi ngày',
+    edit: 'Sửa',
+    delete: 'Xoá',
+    deleteConfirm: 'Xoá cả lịch sử',
+    form: {
+      name: 'Tên thói quen',
+      namePlaceholder: 'Ví dụ: Uống nước',
+      icon: 'Biểu tượng',
+      color: 'Màu',
+      days: 'Lịch',
+      save: 'Lưu thói quen',
+    },
+    colorName: {
+      peach: 'Hồng đào', mint: 'Bạc hà', butter: 'Vàng bơ', lavender: 'Oải hương',
+      sky: 'Xanh trời', rose: 'Hồng', sage: 'Xanh lá', cocoa: 'Ca cao',
+    } as Record<HabitColor, string>,
+    views: { plants: 'Cây', habits: 'Thói quen' },
+    viewsLabel: 'Xem Khu vườn theo',
+    kinds: { week: 'Tuần', month: 'Tháng', year: 'Năm' } as Record<ReportKind, string>,
+    kindsLabel: 'Kiểu báo cáo',
+    prev: 'Kỳ trước',
+    next: 'Kỳ sau',
+    perfectRow: 'Ngày trọn vẹn',
+    perfectBadge: (name: string) => `Làm đủ cả kỳ: ${name}`,
+    perfectWeek: 'Cả tuần trọn vẹn',
+    stats: { met: 'Đạt', perfectDays: 'Ngày trọn vẹn', totalDone: 'Tổng lần làm', bestStreak: 'Chuỗi dài nhất' },
+    dayUnit: 'ngày',
+    yearLabel: (y: number) => `Năm ${y}`,
+    monthShort: ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'],
+    cellLabel: (name: string, date: string) => `${name} · ${date}`,
   },
 };
 

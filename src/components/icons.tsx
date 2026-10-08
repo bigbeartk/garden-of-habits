@@ -422,3 +422,16 @@ export function BellIcon({ size }: { size?: number }) {
     </Svg>
   );
 }
+
+/** Tờ lịch nhỏ có 2 ô ✓: thói quen. */
+export function HabitsIcon({ size }: { size?: number }) {
+  return (
+    <Svg name="habits" size={size}>
+      <rect x={6} y={7} width={20} height={20} rx={4} fill="#CDEFE3" {...STROKE} />
+      <path d="M6 12.5 L26 12.5" fill="none" {...STROKE} />
+      <path d="M11 5 L11 9 M21 5 L21 9" fill="none" {...STROKE} />
+      <path d="M9.5 18 L11.5 20 L14.5 16.5" fill="none" {...STROKE} />
+      <path d="M17.5 21.5 L19.5 23.5 L22.5 20" fill="none" {...STROKE} />
+    </Svg>
+  );
+}

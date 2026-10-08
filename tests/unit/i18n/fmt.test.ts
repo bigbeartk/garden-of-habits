@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { dateTime, longDate, monthLabel, weekdayName } from '../../../src/i18n/fmt';
+import { dateTime, longDate, monthLabel, shortDate, weekdayName } from '../../../src/i18n/fmt';
 import { en } from '../../../src/i18n/en';
 import { vi } from '../../../src/i18n/vi';
 
@@ -14,6 +14,10 @@ describe('fmt', () => {
     expect(monthLabel('en', 2026, 9)).toBe('October 2026');
     expect(longDate('en', '2026-10-01')).toBe('Thursday, Oct 1, 2026');
     expect(en.calendar.weekdaysShort).toEqual(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']);
+  });
+  it('shortDate', () => {
+    expect(shortDate('vi', '2026-10-06')).toBe('06/10');
+    expect(shortDate('en', '2026-10-06')).toBe('Oct 6');
   });
   it('tên thứ', () => {
     expect(weekdayName('vi', '2026-10-04')).toBe('Chủ Nhật');
