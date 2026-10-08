@@ -479,3 +479,66 @@ describe('sao lưu icon nút menu', () => {
     expect(await getSetting(mine, 'menuIcon')).toBe('cat');
   });
 });
+
+describe('thói quen trong sao lưu', () => {
+  const H = { id: 'h1', name: 'Uống nước', icon: '💧', color: 'sky' as const, weekdays: [1, 3], order: 0, startDate: '2026-10-01', createdAt: 1, updatedAt: 1 };
+
+  it('xuất rồi khôi phục (replace) giữ thói quen, lần tick và gardenView', async () => {
+    const src = makeDb();
+    await src.habits.add(H);
+    await src.habitChecks.add({ habitId: 'h1', date: '2026-10-05', at: 9 });
+    await setSetting(src, 'gardenView', 'habits');
+    const parsed = parseBackup(serializeBackup(await createBackup(src, 1)));
+    if (!parsed.ok) throw new Error(parsed.error);
+    const dst = makeDb();
+    await restoreBackup(dst, parsed.backup, 'replace');
+    expect(await dst.habits.toArray()).toEqual([H]);
+    expect(await dst.habitChecks.toArray()).toEqual([{ habitId: 'h1', date: '2026-10-05', at: 9 }]);
+    expect(await getSetting(dst, 'gardenView')).toBe('habits');
+  });
+
+  it('file v5 không có thói quen → [] và không xoá gardenView khi gộp', async () => {
+    const r = parseBackup(JSON.stringify({ format: BACKUP_FORMAT, schemaVersion: 5, exportedAt: 1, days: [], templates: [], calendarBg: null }));
+    if (!r.ok) throw new Error(r.error);
+    expect(r.backup.habits).toEqual([]);
+    expect(r.backup.habitChecks).toEqual([]);
+    const db = makeDb();
+    await setSetting(db, 'gardenView', 'habits');
+    await restoreBackup(db, r.backup, 'merge');
+    expect(await getSetting(db, 'gardenView')).toBe('habits');
+  });
+
+  it('gộp: thói quen mới hơn thắng, lần tick hợp lại, bỏ tick mồ côi', async () => {
+    const db = makeDb();
+    await db.habits.add({ ...H, name: 'Cũ', updatedAt: 1 });
+    await db.habitChecks.add({ habitId: 'h1', date: '2026-10-05', at: 1 });
+    const r = parseBackup(JSON.stringify({
+      format: BACKUP_FORMAT, schemaVersion: 6, exportedAt: 1, days: [], templates: [], calendarBg: null,
+      habits: [{ ...H, name: 'Mới', updatedAt: 5 }],
+      habitChecks: [{ habitId: 'h1', date: '2026-10-07', at: 2 }, { habitId: 'ghost', date: '2026-10-07', at: 2 }],
+    }));
+    if (!r.ok) throw new Error(r.error);
+    await restoreBackup(db, r.backup, 'merge');
+    expect((await db.habits.get('h1'))!.name).toBe('Mới');
+    expect((await db.habitChecks.toArray()).map((c) => c.date).sort()).toEqual(['2026-10-05', '2026-10-07']);
+    expect(await db.habitChecks.where('habitId').equals('ghost').count()).toBe(0);
+  });
+
+  it('replace bỏ tick mồ côi trong file', async () => {
+    const r = parseBackup(JSON.stringify({
+      format: BACKUP_FORMAT, schemaVersion: 6, exportedAt: 1, days: [], templates: [], calendarBg: null,
+      habits: [], habitChecks: [{ habitId: 'ghost', date: '2026-10-07', at: 2 }],
+    }));
+    if (!r.ok) throw new Error(r.error);
+    const db = makeDb();
+    await restoreBackup(db, r.backup, 'replace');
+    expect(await db.habitChecks.count()).toBe(0);
+  });
+
+  it('thói quen sai màu → file hỏng', () => {
+    const r = parseBackup(JSON.stringify({
+      format: BACKUP_FORMAT, schemaVersion: 6, exportedAt: 1, days: [], templates: [], calendarBg: null, habits: [{ ...H, color: 'neon' }],
+    }));
+    expect(r.ok).toBe(false);
+  });
+});

@@ -68,6 +68,22 @@ const ReminderSchema = z.object({
   updatedAt: z.number(),
 });
 
+const HABIT_COLORS = ['peach', 'mint', 'butter', 'lavender', 'sky', 'rose', 'sage', 'cocoa'] as const;
+
+const HabitSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  icon: z.string(),
+  color: z.enum(HABIT_COLORS),
+  weekdays: z.array(z.number().int().min(0).max(6)),
+  order: z.number(),
+  startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  createdAt: z.number(),
+  updatedAt: z.number(),
+});
+
+const HabitCheckSchema = z.object({ habitId: z.string(), date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), at: z.number() });
+
 const BackupSchema = z.object({
   format: z.literal(BACKUP_FORMAT),
   schemaVersion: z.number().int().min(1),
@@ -77,6 +93,9 @@ const BackupSchema = z.object({
   planned: z.array(PlannedSchema).default([]), // file phiên bản 1–2 chưa có
   plannedGoals: z.array(z.object({ date: z.string(), title: z.string() })).default([]), // file phiên bản 1–3 chưa có
   reminders: z.array(ReminderSchema).default([]), // file phiên bản 1–4 chưa có
+  habits: z.array(HabitSchema).default([]), // file phiên bản 1–5 chưa có
+  habitChecks: z.array(HabitCheckSchema).default([]),
+  gardenView: z.enum(['plants', 'habits']).optional(), // file cũ chưa có
   calendarBg: z.object({ mime: z.string(), base64: z.string().regex(/^[A-Za-z0-9+/]*={0,2}$/) }).nullable(),
   calendarTheme: z.enum(['default', 'cat', 'dog', 'grass', 'rain', 'gamer', 'photo']).optional(), // file cũ chưa có
   menuIcon: z.enum(['auto', 'flower', 'cat', 'dog', 'grass', 'rain', 'gamer']).optional(), // icon nút menu; file cũ chưa có
@@ -117,13 +136,19 @@ export function base64ToBytes(b64: string): ArrayBuffer {
   return bytes.buffer;
 }
 
+/** Mọi bảng mà sao lưu/khôi phục đụng tới (dùng cho transaction). */
+const tables = (db: PlantDB) => [db.days, db.templates, db.settings, db.planned, db.plannedGoals, db.reminders, db.habits, db.habitChecks];
+
 export async function createBackup(db: PlantDB, now: number): Promise<BackupFile> {
-  return db.transaction('r', [db.days, db.templates, db.settings, db.planned, db.plannedGoals, db.reminders], async () => {
+  return db.transaction('r', tables(db), async () => {
     const days = await db.days.orderBy('date').toArray();
     const templates = await db.templates.orderBy('createdAt').toArray();
     const planned = await db.planned.orderBy('date').toArray();
     const plannedGoals = await db.plannedGoals.toArray();
     const reminders = await db.reminders.orderBy('id').toArray();
+    const habits = await db.habits.orderBy('order').toArray();
+    const habitChecks = await db.habitChecks.toArray();
+    const gardenView = await getSetting(db, 'gardenView');
     const bg = await getSetting(db, 'calendarBg');
     const calendarTheme = await getSetting(db, 'calendarTheme');
     const menuIcon = await getSetting(db, 'menuIcon');
@@ -144,6 +169,9 @@ export async function createBackup(db: PlantDB, now: number): Promise<BackupFile
       planned,
       plannedGoals,
       reminders,
+      habits,
+      habitChecks,
+      ...(gardenView ? { gardenView } : {}),
       calendarBg: bg ? { mime: bg.mime, base64: bytesToBase64(bg.data) } : null,
       ...(calendarTheme ? { calendarTheme } : {}),
       ...(menuIcon ? { menuIcon } : {}),
@@ -187,7 +215,7 @@ export function parseBackup(text: string): ParseResult {
 
 export async function restoreBackup(db: PlantDB, backup: BackupFile, mode: RestoreMode): Promise<{ days: number; templates: number }> {
   const bg = backup.calendarBg ? { mime: backup.calendarBg.mime, data: base64ToBytes(backup.calendarBg.base64) } : null;
-  return db.transaction('rw', [db.days, db.templates, db.settings, db.planned, db.plannedGoals, db.reminders], async () => {
+  return db.transaction('rw', tables(db), async () => {
     let days = 0;
     let templates = 0;
     if (mode === 'replace') {
@@ -201,6 +229,13 @@ export async function restoreBackup(db: PlantDB, backup: BackupFile, mode: Resto
       await db.planned.bulkPut(backup.planned);
       await db.plannedGoals.bulkPut(backup.plannedGoals);
       await db.reminders.bulkPut(backup.reminders);
+      await db.habits.clear();
+      await db.habitChecks.clear();
+      await db.habits.bulkPut(backup.habits);
+      const habitIds = new Set(backup.habits.map((h) => h.id));
+      await db.habitChecks.bulkPut(backup.habitChecks.filter((c) => habitIds.has(c.habitId)));
+      if (backup.gardenView) await setSetting(db, 'gardenView', backup.gardenView);
+      else await deleteSetting(db, 'gardenView');
       if (bg) await setSetting(db, 'calendarBg', bg);
       else await deleteSetting(db, 'calendarBg');
       if (backup.calendarTheme) await setSetting(db, 'calendarTheme', backup.calendarTheme);
@@ -245,6 +280,14 @@ export async function restoreBackup(db: PlantDB, backup: BackupFile, mode: Resto
         const cur = await db.reminders.get(r.id);
         if (!cur || r.updatedAt > cur.updatedAt) await db.reminders.put(r);
       }
+      for (const h of backup.habits) {
+        const cur = await db.habits.get(h.id);
+        if (!cur || h.updatedAt > cur.updatedAt) await db.habits.put(h);
+      }
+      for (const c of backup.habitChecks) {
+        if ((await db.habits.get(c.habitId)) && !(await db.habitChecks.get([c.habitId, c.date]))) await db.habitChecks.put(c);
+      }
+      if (backup.gardenView && !(await getSetting(db, 'gardenView'))) await setSetting(db, 'gardenView', backup.gardenView);
       if (bg && !(await getSetting(db, 'calendarBg'))) await setSetting(db, 'calendarBg', bg);
       if (backup.calendarTheme && !(await getSetting(db, 'calendarTheme'))) await setSetting(db, 'calendarTheme', backup.calendarTheme);
       if (backup.menuIcon && !(await getSetting(db, 'menuIcon'))) await setSetting(db, 'menuIcon', backup.menuIcon);
