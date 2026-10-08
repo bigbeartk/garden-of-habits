@@ -233,6 +233,28 @@ describe('Khu vườn: công tắc Cây | Thói quen', () => {
     expect(await screen.findByLabelText('Tên thói quen')).toBeTruthy();
   });
 
+  it('mở từ chip Hôm nay: Back về tab Hôm nay, nhãn Quay lại Hôm nay', async () => {
+    const { deps } = makeDeps();
+    const nav = vi.fn();
+    requestHabitManager('list', 'today');
+    renderWithDeps(<GardenScreen />, deps, nav);
+    expect(await screen.findByTestId('habits-screen')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Quay lại Khu vườn' })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Quay lại Hôm nay' }));
+    expect(nav).toHaveBeenCalledWith('today');
+  });
+
+  it('mở từ Khu vườn: Back về Khu vườn, không đổi tab', async () => {
+    const { deps } = makeDeps();
+    const nav = vi.fn();
+    renderWithDeps(<GardenScreen />, deps, nav);
+    fireEvent.click(await screen.findByRole('tab', { name: 'Thói quen' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Quản lý thói quen' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Quay lại Khu vườn' }));
+    expect(await screen.findByTestId('habit-report')).toBeTruthy();
+    expect(nav).not.toHaveBeenCalled();
+  });
+
   it('trạng thái trống: nút "Thói quen đầu tiên" mở màn quản lý ở chế độ thêm', async () => {
     const { deps } = makeDeps();
     renderWithDeps(<GardenScreen />, deps);

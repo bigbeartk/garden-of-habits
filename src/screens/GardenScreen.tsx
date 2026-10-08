@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useBackHandler } from '../app/back';
 import { useDeps } from '../app/deps';
-import { type HabitManagerMode, peekHabitManagerRequest, takeHabitManagerRequest } from '../app/habitIntent';
+import { type HabitManagerMode, peekHabitManagerOrigin, peekHabitManagerRequest, takeHabitManagerRequest } from '../app/habitIntent';
 import { useNav } from '../app/nav';
 import { BackButton } from '../components/BackButton';
 import { HabitReport } from '../components/HabitReport';
@@ -54,8 +54,14 @@ export function GardenScreen() {
   const [viewLocal, setViewLocal] = useState<GardenView | null>(null);
   // peek trong initializer (StrictMode gọi hai lần), xoá cờ trong effect lúc mount
   const [managing, setManaging] = useState<false | HabitManagerMode>(() => peekHabitManagerRequest());
+  const [origin] = useState(() => peekHabitManagerOrigin()); // mở từ chip Hôm nay thì Back về Hôm nay
   useEffect(() => { takeHabitManagerRequest(); }, []);
-  useBackHandler(managing !== false, () => setManaging(false), 'screen');
+  function leaveManager() {
+    setViewLocal('habits');
+    setManaging(false);
+    if (origin === 'today') nav('today');
+  }
+  useBackHandler(managing !== false, leaveManager, 'screen');
   const view: GardenView | null = managing ? 'habits' : viewLocal ?? savedView;
 
   function pickView(v: GardenView) {
@@ -69,7 +75,14 @@ export function GardenScreen() {
   };
 
   if (managing) {
-    return <HabitsScreen startAdding={managing === 'add'} onBack={() => { setViewLocal('habits'); setManaging(false); }} />;
+    const fromToday = origin === 'today';
+    return (
+      <HabitsScreen
+        startAdding={managing === 'add'}
+        backLabel={fromToday ? t.nav.backToToday : undefined}
+        onBack={leaveManager}
+      />
+    );
   }
 
   return (

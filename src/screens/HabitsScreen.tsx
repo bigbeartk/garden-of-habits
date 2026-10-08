@@ -21,7 +21,7 @@ export function scheduleLabel(weekdays: number[], t: Messages): string {
 }
 
 /** Habit management screen, opened from the Garden (Habits view) or the + chip on Today; `onBack` returns to the Garden. */
-export function HabitsScreen({ onBack, startAdding = false }: { onBack: () => void; startAdding?: boolean }) {
+export function HabitsScreen({ onBack, startAdding = false, backLabel }: { onBack: () => void; startAdding?: boolean; backLabel?: string }) {
   const { t } = useI18n();
   const deps = useDeps();
   const habits = useLiveQuery(() => listHabits(deps.db), [deps.db]) ?? [];
@@ -32,7 +32,7 @@ export function HabitsScreen({ onBack, startAdding = false }: { onBack: () => vo
   return (
     <section className="screen screen--habits" data-testid="habits-screen">
       <header className="habits__head">
-        <BackButton inline label={t.habits.backToGarden} onClick={onBack} />
+        <BackButton inline label={backLabel ?? t.habits.backToGarden} onClick={onBack} />
         <h1 className="screen__title">{t.habits.manage}</h1>
       </header>
       {editing !== 'new' && (

@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { peekHabitManagerRequest, requestHabitManager, takeHabitManagerRequest } from '../../../src/app/habitIntent';
+import { peekHabitManagerOrigin, peekHabitManagerRequest, requestHabitManager, takeHabitManagerRequest } from '../../../src/app/habitIntent';
 
 it('cờ mở màn quản lý chỉ đọc được một lần', () => {
   expect(takeHabitManagerRequest()).toBe(false);
@@ -22,4 +22,12 @@ it('cờ mang chế độ thêm', () => {
   expect(peekHabitManagerRequest()).toBe('add');
   expect(takeHabitManagerRequest()).toBe('add');
   expect(takeHabitManagerRequest()).toBe(false);
+});
+
+it('cờ nhớ nơi mở và take đặt lại', () => {
+  expect(peekHabitManagerOrigin()).toBe('garden');
+  requestHabitManager('list', 'today');
+  expect(peekHabitManagerOrigin()).toBe('today');
+  takeHabitManagerRequest();
+  expect(peekHabitManagerOrigin()).toBe('garden');
 });

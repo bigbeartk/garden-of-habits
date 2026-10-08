@@ -39,11 +39,10 @@ test('tạo thói quen, tick ở Hôm nay, xem ở Khu vườn', async ({ page }
   await page.getByRole('button', { name: 'Thêm thói quen' }).click();
   await expect(page.getByTestId('habits-screen')).toBeVisible();
   await createHabit(page, 'Uống nước', { formOpen: true }); // chip "Thêm thói quen" mở thẳng form thêm
-  await page.getByRole('button', { name: 'Quay lại Khu vườn' }).click();
-  await expect(page.getByTestId('habit-report')).toBeVisible();
-
-  await goTab(page, 'Hôm nay');
-  await closeMenu(page);
+  // mở từ chip Hôm nay thì Back về Hôm nay
+  await expect(page.getByRole('button', { name: 'Quay lại Khu vườn' })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Quay lại Hôm nay' }).click();
+  await expect(page.getByTestId('habit-strip')).toBeVisible();
   const chip = page.getByRole('switch', { name: 'Thói quen: Uống nước' });
   await chip.click();
   await expect(chip).toHaveAttribute('aria-checked', 'true');
@@ -70,7 +69,7 @@ test('10 thói quen tên dài: bảng tuần không tràn, trang không cuộn n
   await closeMenu(page);
   await page.getByRole('tab', { name: 'Thói quen' }).click();
   await page.getByRole('button', { name: '＋ Thói quen đầu tiên' }).click();
-  for (let i = 1; i <= 10; i++) await createHabit(page, `Thói quen rất dài số ${i} để thử tràn chữ`);
+  for (let i = 1; i <= 10; i++) await createHabit(page, `Thói quen rất dài số ${i} để thử tràn chữ`, { formOpen: i === 1 });
   await page.getByRole('button', { name: 'Quay lại Khu vườn' }).click();
   const report = page.getByTestId('habit-report');
   await expect(report).toBeVisible();
