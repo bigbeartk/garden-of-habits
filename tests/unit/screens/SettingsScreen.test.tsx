@@ -75,12 +75,12 @@ describe('SettingsScreen nút quay lại', () => {
 });
 
 describe('SettingsScreen thứ tự thẻ', () => {
-  it('Mẫu việc → Lịch → Ngôn ngữ → Sao lưu & khôi phục; hướng dẫn cài app không còn là thẻ', async () => {
+  it('Mẫu việc → Thói quen → Lịch → Ngôn ngữ → Sao lưu & khôi phục; hướng dẫn cài app không còn là thẻ', async () => {
     const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
     renderWithDeps(<SettingsScreen />, deps);
     await screen.findByRole('heading', { name: 'Lịch' });
     const heads = [...document.querySelectorAll('.settings__section > h2')].map((h) => h.textContent);
-    expect(heads.slice(0, 4)).toEqual(['Mẫu việc', 'Lịch', 'Ngôn ngữ · Language', 'Sao lưu & khôi phục']);
+    expect(heads.slice(0, 5)).toEqual(['Mẫu việc', 'Thói quen', 'Lịch', 'Ngôn ngữ · Language', 'Sao lưu & khôi phục']);
     expect(heads).not.toContain('Cài app lên màn hình chính');
   });
 
@@ -357,5 +357,21 @@ describe('SettingsScreen — xoá toàn bộ dữ liệu', () => {
     const dialog = await screen.findByRole('dialog', { name: 'Delete all data?' });
     await user.type(within(dialog).getByLabelText('Type DELETE to confirm'), 'delete');
     expect(within(dialog).getByRole('button', { name: 'Delete forever' })).toBeEnabled();
+  });
+});
+
+describe('SettingsScreen công tắc hiện thói quen ở Hôm nay', () => {
+  it('mặc định bật; tắt thì lưu false, bật lại thì lưu true', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
+    const user = userEvent.setup();
+    renderWithDeps(<SettingsScreen />, deps);
+    expect(await screen.findByRole('heading', { name: 'Thói quen' })).toBeInTheDocument();
+    const toggle = await screen.findByRole('switch', { name: 'Hiện thói quen ở màn Hôm nay' });
+    expect(toggle).toHaveAttribute('aria-checked', 'true');
+    await user.click(toggle);
+    await waitFor(async () => expect(await getSetting(deps.db, 'showHabitStrip')).toBe(false));
+    await user.click(toggle);
+    expect(toggle).toHaveAttribute('aria-checked', 'true');
+    await waitFor(async () => expect(await getSetting(deps.db, 'showHabitStrip')).toBe(true));
   });
 });

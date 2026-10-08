@@ -3,6 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { useDeps } from '../app/deps';
 import type { HabitManagerMode } from '../app/habitIntent';
 import { HABIT_COLORS } from '../content/habits';
+import { getSetting } from '../db/settings';
 import { checksOn, habitsForDay, listHabits, toggleHabit } from '../domain/habitService';
 import { useI18n } from '../i18n/I18nProvider';
 import { errorText } from '../i18n/errors';
@@ -15,11 +16,16 @@ export function HabitStrip({ date, isRestDay, onChecked, onManage }: {
 }) {
   const { t } = useI18n();
   const deps = useDeps();
-  const data = useLiveQuery(async () => ({ habits: await listHabits(deps.db), done: await checksOn(deps.db, date) }), [deps.db, date]);
+  // công tắc trong Cài đặt (mặc định bật); chưa đọc xong thì chưa hiện để khỏi nháy
+  const data = useLiveQuery(async () => ({
+    show: (await getSetting(deps.db, 'showHabitStrip')) ?? true,
+    habits: await listHabits(deps.db),
+    done: await checksOn(deps.db, date),
+  }), [deps.db, date]);
   /** giữ cục bộ để bấm nhanh hai lần không đọc lại giá trị cũ từ DB */
   const [local, setLocal] = useState<Record<string, boolean>>({});
   const [error, setError] = useState<string | null>(null);
-  if (!data || isRestDay) return null;
+  if (!data || !data.show || isRestDay) return null;
 
   if (data.habits.length === 0) {
     return (

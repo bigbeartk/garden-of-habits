@@ -542,3 +542,18 @@ describe('thói quen trong sao lưu', () => {
     expect(r.ok).toBe(false);
   });
 });
+
+describe('sao lưu công tắc hiện thói quen ở Hôm nay', () => {
+  it('giữ showHabitStrip khi khôi phục (thay thế và gộp)', async () => {
+    const src = makeDb();
+    await setSetting(src, 'showHabitStrip', false);
+    const r = parseBackup(serializeBackup(await createBackup(src, 1)));
+    if (!r.ok) throw new Error(r.error);
+    const dst = makeDb();
+    await restoreBackup(dst, r.backup, 'replace');
+    expect(await getSetting(dst, 'showHabitStrip')).toBe(false);
+    const dst2 = makeDb();
+    await restoreBackup(dst2, r.backup, 'merge');
+    expect(await getSetting(dst2, 'showHabitStrip')).toBe(false);
+  });
+});

@@ -88,3 +88,35 @@ test('10 thói quen tên dài: bảng tuần không tràn, trang không cuộn n
   const overflowToday = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(overflowToday).toBeLessThanOrEqual(0);
 });
+
+test('tắt "Hiện thói quen ở màn Hôm nay" trong Cài đặt: Hôm nay mất dải chip, Khu vườn vẫn có Thói quen', async ({ page }) => {
+  await page.clock.setFixedTime(at('2026-10-08T10:00:00'));
+  await page.goto('/');
+  await goTab(page, 'Khu vườn');
+  await closeMenu(page);
+  await page.getByRole('tab', { name: 'Thói quen' }).click();
+  await page.getByRole('button', { name: '＋ Thói quen đầu tiên' }).click();
+  await createHabit(page, 'Uống nước', { formOpen: true });
+  await page.getByRole('button', { name: 'Quay lại Khu vườn' }).click();
+
+  await goTab(page, 'Hôm nay');
+  await closeMenu(page);
+  await expect(page.getByRole('switch', { name: 'Thói quen: Uống nước' })).toBeVisible();
+
+  await goTab(page, 'Cài đặt');
+  await closeMenu(page);
+  const toggle = page.getByRole('switch', { name: 'Hiện thói quen ở màn Hôm nay' });
+  await expect(toggle).toHaveAttribute('aria-checked', 'true');
+  await toggle.click();
+  await expect(toggle).toHaveAttribute('aria-checked', 'false');
+
+  await goTab(page, 'Hôm nay');
+  await closeMenu(page);
+  await expect(page.getByTestId('plant-scene')).toBeVisible();
+  await expect(page.getByTestId('habit-strip')).toHaveCount(0);
+
+  await goTab(page, 'Khu vườn');
+  await closeMenu(page);
+  await page.getByRole('tab', { name: 'Thói quen' }).click();
+  await expect(page.getByTestId('habit-report')).toBeVisible();
+});

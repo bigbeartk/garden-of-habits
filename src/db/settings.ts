@@ -15,6 +15,8 @@ export interface SettingsShape {
   showNoteDot: boolean;
   /** hiện bong bóng lời cây nói của ngày ở màn Hôm nay (mặc định: có) */
   showPlantSpeech: boolean;
+  /** hiện dải thói quen ở màn Hôm nay (mặc định: có); tắt thì vẫn xem/quản lý ở Khu vườn */
+  showHabitStrip: boolean;
   /** màn Khu vườn chỉ hiện luống có ít nhất 1 ngày (mặc định: không) */
   gardenOnlyPlanted: boolean;
   /** màn Khu vườn tách ngày cây đặc biệt thành luống riêng (mặc định: không) */
@@ -44,5 +46,5 @@ export async function deleteSetting(db: PlantDB, key: keyof SettingsShape): Prom
 }
 
 /** Các công tắc bật/tắt; đều có trong file sao lưu (tuỳ chọn, file cũ có thể thiếu). */
-export const BOOLEAN_SETTINGS = ['showCalendarBgButton', 'showNoteDot', 'showPlantSpeech', 'gardenOnlyPlanted', 'gardenSeparateSpecial'] as const;
+export const BOOLEAN_SETTINGS = ['showCalendarBgButton', 'showNoteDot', 'showPlantSpeech', 'gardenOnlyPlanted', 'gardenSeparateSpecial', 'showHabitStrip'] as const;
 export type BooleanSetting = (typeof BOOLEAN_SETTINGS)[number];

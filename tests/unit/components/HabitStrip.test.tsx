@@ -4,6 +4,7 @@ import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { makeDay, makeDeps, renderWithDeps } from '../helpers';
 import { HabitStrip } from '../../../src/components/HabitStrip';
 import { addHabit, checksOn } from '../../../src/domain/habitService';
+import { setSetting } from '../../../src/db/settings';
 
 const TODAY = '2026-10-02'; // thứ Sáu (makeDeps mặc định)
 
@@ -98,5 +99,27 @@ describe('HabitStrip', () => {
     const chip = await screen.findByRole('switch', { name: 'Thói quen: Uống nước' });
     await waitFor(() => expect(chip).toHaveAttribute('aria-checked', 'false'));
     expect(screen.getByText('0/1')).toBeInTheDocument();
+  });
+});
+
+describe('HabitStrip theo công tắc trong Cài đặt', () => {
+  it('tắt "Hiện thói quen ở màn Hôm nay" thì không hiện gì, kể cả chip Thêm thói quen', async () => {
+    const { deps } = makeDeps();
+    await setSetting(deps.db, 'showHabitStrip', false);
+    await addHabit(deps, { name: 'Uống nước', icon: '💧', color: 'sky', weekdays: [5] });
+    const { container } = renderWithDeps(<HabitStrip date="2026-10-02" isRestDay={false} onChecked={() => {}} onManage={() => {}} />, deps);
+    await new Promise((r) => setTimeout(r, 50));
+    expect(container.querySelector('[data-testid="habit-strip"]')).toBeNull();
+    expect(screen.queryByRole('switch')).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Thêm thói quen' })).toBeNull();
+  });
+
+  it('bật lại thì dải hiện ra', async () => {
+    const { deps } = makeDeps();
+    await setSetting(deps.db, 'showHabitStrip', false);
+    await addHabit(deps, { name: 'Uống nước', icon: '💧', color: 'sky', weekdays: [5] });
+    renderWithDeps(<HabitStrip date="2026-10-02" isRestDay={false} onChecked={() => {}} onManage={() => {}} />, deps);
+    await setSetting(deps.db, 'showHabitStrip', true);
+    expect(await screen.findByRole('switch', { name: 'Thói quen: Uống nước' })).toBeInTheDocument();
   });
 });

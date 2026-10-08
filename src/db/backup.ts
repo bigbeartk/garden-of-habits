@@ -103,6 +103,7 @@ const BackupSchema = z.object({
   showCalendarBgButton: z.boolean().optional(),
   showNoteDot: z.boolean().optional(),
   showPlantSpeech: z.boolean().optional(),
+  showHabitStrip: z.boolean().optional(),
   gardenOnlyPlanted: z.boolean().optional(),
   gardenSeparateSpecial: z.boolean().optional(),
   unlockedSpecials: z.array(z.string()).optional(), // cây đặc biệt đã mở khoá; file cũ chưa có

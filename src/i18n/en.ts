@@ -210,6 +210,8 @@ export const en: Messages = {
     menuIconCaption: 'Menu icon',
     showBgButton: 'Show the background button on Calendar',
     showNoteDot: 'Show a red dot on days with a note',
+    habitsTitle: 'Habits',
+    showHabitStrip: 'Show habits on the Today screen',
     backupTitle: 'Backup & restore',
     lastBackup: (when) => `Last backup: ${when}`,
     neverBackedUp: "You haven't backed up yet.",

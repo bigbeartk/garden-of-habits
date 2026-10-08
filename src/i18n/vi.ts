@@ -218,6 +218,8 @@ export const vi = {
     menuIconCaption: 'Icon menu',
     showBgButton: 'Hiện nút đổi hình nền ở trang Lịch',
     showNoteDot: 'Hiện chấm đỏ ở ngày có ghi chú',
+    habitsTitle: 'Thói quen',
+    showHabitStrip: 'Hiện thói quen ở màn Hôm nay',
     backupTitle: 'Sao lưu & khôi phục',
     lastBackup: (when: string) => `Lần sao lưu gần nhất: ${when}`,
     neverBackedUp: 'Bạn chưa sao lưu lần nào.',
