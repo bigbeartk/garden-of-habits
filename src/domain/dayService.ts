@@ -1,5 +1,5 @@
 import type { PlantDB } from '../db/db';
-import { dayKey } from './dayKey';
+import { dayKey, parseDayKey } from './dayKey';
 import { stageOfTodos, type GrowthStage } from './growth';
 import { newId } from './id';
 import { pickUniform, rollSpecial, type Rng } from './random';
@@ -32,7 +32,13 @@ export async function ensureToday(deps: DayDeps): Promise<DayRecord> {
   return db.transaction('rw', [db.days, db.templates, db.planned, db.plannedGoals, db.settings, db.reminders], async () => {
     const existing = await db.days.get(date);
     if (existing) return existing;
-    const template = (await db.templates.toArray()).find((t) => t.isDefault);
+    // mẫu mặc định (mỗi ngày) rồi các mẫu khác chọn đúng thứ của ngày (theo thứ tự tạo)
+    const weekday = parseDayKey(date).getDay();
+    const all = await db.templates.orderBy('createdAt').toArray();
+    const templates = [
+      ...all.filter((t) => t.isDefault),
+      ...all.filter((t) => !t.isDefault && t.weekdays?.includes(weekday)),
+    ];
     // việc đã lên lịch cho hôm nay: vào sau việc của mẫu, rồi xoá khỏi danh sách chờ
     const planned = await db.planned.where('date').equals(date).sortBy('createdAt');
     const goal = await db.plannedGoals.get(date);
@@ -51,7 +57,7 @@ export async function ensureToday(deps: DayDeps): Promise<DayRecord> {
       title: goal?.title ?? '',
       greetedAt: null,
       note: '',
-      todos: withReminders(toTodos([...(template?.items ?? []), ...planned], 0), reminders),
+      todos: withReminders(toTodos([...templates.flatMap((t) => t.items), ...planned], 0), reminders),
       finalStage: 'seed',
       createdAt: ts,
       updatedAt: ts,

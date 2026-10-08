@@ -46,6 +46,7 @@ const TemplateSchema = z.object({
     ]),
   ),
   isDefault: z.boolean(),
+  weekdays: z.array(z.number().int().min(0).max(6)).optional(), // file cũ chưa có
   createdAt: z.number(),
   updatedAt: z.number(),
 });

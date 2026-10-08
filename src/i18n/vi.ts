@@ -123,6 +123,11 @@ export const vi = {
     onePerLine: '(mỗi dòng một việc)',
     itemsPlaceholder: 'Mỗi dòng một việc…',
     save: 'Lưu mẫu',
+    weekdays: 'Tự thêm vào các thứ',
+    weekdaysHint: 'Đến 4 giờ sáng những ngày này, việc của mẫu tự lên danh sách.',
+    /** theo getDay(): 0 = Chủ Nhật */
+    dayShort: ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'],
+    dayLong: ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'],
   },
   background: {
     options: { default: 'Mặc định', cat: 'Mèo vươn vai', dog: 'Cún vẫy đuôi', grass: 'Cỏ nở', rain: 'Mưa chill', gamer: 'Gaming pixel', photo: 'Ảnh của bạn' } as Record<CalendarTheme, string>,
@@ -264,6 +269,7 @@ export const vi = {
     edit: 'Sửa',
     delete: 'Xoá',
     deleteConfirm: 'Chắc chắn xoá',
+    autoDays: (days: string) => `Tự thêm: ${days}`,
   },
   reminders: {
     title: 'Nhắc việc',

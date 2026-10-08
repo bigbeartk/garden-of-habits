@@ -118,6 +118,10 @@ export const en: Messages = {
     onePerLine: '(one per line)',
     itemsPlaceholder: 'One task per line…',
     save: 'Save template',
+    weekdays: 'Auto-add on these days',
+    weekdaysHint: 'At 4 AM on these days, this template’s tasks join your list.',
+    dayShort: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+    dayLong: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
   },
   background: {
     options: { default: 'Default', cat: 'Stretching cat', dog: 'Wagging pup', grass: 'Blooming grass', rain: 'Chill rain', gamer: 'Pixel gaming', photo: 'Your photo' },
@@ -258,6 +262,7 @@ export const en: Messages = {
     edit: 'Edit',
     delete: 'Delete',
     deleteConfirm: 'Yes, delete',
+    autoDays: (days) => `Auto-adds: ${days}`,
   },
   reminders: {
     title: 'Reminders',

@@ -17,16 +17,22 @@ function cleanItems(items: TemplateItem[]): TemplateItem[] {
   return items.map((i) => ({ text: i.text.trim(), period: i.period })).filter((i) => i.text);
 }
 
+/** bỏ trùng, bỏ giá trị không phải 0–6, sắp xếp tăng dần */
+export function cleanWeekdays(days: number[]): number[] {
+  return [...new Set(days)].filter((d) => Number.isInteger(d) && d >= 0 && d <= 6).sort((a, b) => a - b);
+}
+
 export function listTemplates(db: PlantDB): Promise<Template[]> {
   return db.templates.orderBy('createdAt').toArray();
 }
 
-export async function createTemplate(db: PlantDB, name: string, items: TemplateItem[], now: number): Promise<Template> {
+export async function createTemplate(db: PlantDB, name: string, items: TemplateItem[], now: number, weekdays: number[] = []): Promise<Template> {
   const template: Template = {
     id: newId(),
     name: cleanName(name),
     items: cleanItems(items),
     isDefault: false,
+    weekdays: cleanWeekdays(weekdays),
     createdAt: now,
     updatedAt: now,
   };
@@ -37,7 +43,7 @@ export async function createTemplate(db: PlantDB, name: string, items: TemplateI
 export async function updateTemplate(
   db: PlantDB,
   id: string,
-  patch: { name?: string; items?: TemplateItem[] },
+  patch: { name?: string; items?: TemplateItem[]; weekdays?: number[] },
   now: number,
 ): Promise<Template> {
   return db.transaction('rw', db.templates, async () => {
@@ -46,6 +52,7 @@ export async function updateTemplate(
     const next: Template = { ...current, updatedAt: now };
     if (patch.name !== undefined) next.name = cleanName(patch.name);
     if (patch.items !== undefined) next.items = cleanItems(patch.items);
+    if (patch.weekdays !== undefined) next.weekdays = cleanWeekdays(patch.weekdays);
     await db.templates.put(next);
     return next;
   });

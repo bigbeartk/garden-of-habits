@@ -96,6 +96,41 @@ test('sang ngày mới: mẫu mặc định tự lên và cây chào', async ({ 
   await expect(page.getByRole('checkbox', { name: 'Hoàn thành: Ăn sáng' })).toBeVisible();
 });
 
+test('mẫu chọn thứ: hàng 7 nút tròn vừa một dòng; đúng thứ thì việc tự lên Hôm nay', async ({ page }) => {
+  await page.clock.setFixedTime(at('2026-10-02T10:00:00')); // thứ Sáu
+  await page.goto('/');
+  await openTemplates(page);
+  await page.getByRole('button', { name: '＋ Mẫu mới' }).click();
+  await page.getByLabel('Tên mẫu').fill('Cuối tuần');
+  await page.getByLabel('Việc buổi Chiều (mỗi dòng một việc)').fill('Đi chợ');
+  const days = page.getByRole('group', { name: 'Tự thêm vào các thứ' });
+  const boxes = await days.getByRole('button').evaluateAll((els) => els.map((e) => e.getBoundingClientRect().toJSON()));
+  expect(boxes).toHaveLength(7);
+  for (const b of boxes) {
+    expect(Math.abs(b.width - b.height)).toBeLessThan(1); // tròn
+    expect(Math.abs(b.top - boxes[0].top)).toBeLessThan(1); // cùng một hàng
+    expect(b.width).toBeGreaterThanOrEqual(36);
+  }
+  const card = await page.locator('.tpl-form').boundingBox();
+  expect(boxes[6].right).toBeLessThanOrEqual(card!.x + card!.width);
+  await days.getByRole('button', { name: 'Thứ Bảy' }).click();
+  await expect(days.getByRole('button', { name: 'Thứ Bảy' })).toHaveAttribute('aria-pressed', 'true');
+  await page.screenshot({ path: 'test-results/template-weekdays-form.png' });
+  await page.getByRole('button', { name: 'Lưu mẫu' }).click();
+  await expect(page.getByTestId('tpl-weekdays')).toHaveText('Tự thêm: T7');
+  await page.screenshot({ path: 'test-results/template-weekdays-card.png' });
+
+  await page.clock.setFixedTime(at('2026-10-03T08:00:00')); // thứ Bảy
+  await page.reload();
+  await expect(page.getByRole('checkbox', { name: 'Hoàn thành: Đi chợ' })).toBeVisible();
+  await expect(page.getByTestId('todo-section-afternoon').getByText('Đi chợ')).toBeVisible();
+
+  await page.clock.setFixedTime(at('2026-10-04T08:00:00')); // Chủ Nhật
+  await page.reload();
+  await expect(page.getByTestId('speech-bubble')).toBeVisible();
+  await expect(page.getByRole('checkbox', { name: 'Hoàn thành: Đi chợ' })).toHaveCount(0);
+});
+
 test('ngày tiết kiệm năng lượng hiện hạt ngủ trên lịch', async ({ page }) => {
   await page.clock.setFixedTime(at('2026-10-02T10:00:00'));
   await page.goto('/');

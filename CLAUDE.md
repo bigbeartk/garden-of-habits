@@ -86,7 +86,7 @@ src/
 - **Một ngày mới được tạo** như sau:
   - random đều một loài cây; chậu là `defaultPotId` của loài đó;
   - **10%** khả năng là cây đặc biệt (`SPECIAL_CHANCE`); khi trúng, hiệu ứng được chọn theo `weight`;
-  - todo lấy từ **mẫu mặc định**, rồi tới các **việc đã lên lịch** cho ngày đó (bảng `planned`, xoá khỏi bảng sau khi chuyển). Việc chưa xong hôm qua ở lại ngày cũ, không chuyển sang.
+  - todo lấy từ **mẫu mặc định**, rồi các **mẫu khác có chọn đúng thứ** của ngày (`Template.weekdays`, thứ theo khoá ngày nên 2h sáng thứ Bảy vẫn là thứ Sáu; theo thứ tự tạo; mẫu mặc định không bị thêm hai lần), rồi tới các **việc đã lên lịch** cho ngày đó (bảng `planned`, xoá khỏi bảng sau khi chuyển). Việc chưa xong hôm qua ở lại ngày cũ, không chuyển sang.
 - **Giai đoạn cây** tính theo tỉ lệ việc xong trong ngày (`stageFor`):
   - 0 việc xong, hoặc chưa có việc nào → `seed` (hạt giống)
   - ≥ 1 việc → `sprout` (nảy mầm)
@@ -97,7 +97,7 @@ src/
 - **Mục tiêu ngày** (lưu ở trường `title`, giao diện gọi là "Mục tiêu"): ô ở đầu danh sách (`GoalInput`), lưu khi rời ô hoặc Enter, tối đa 60 ký tự. Ngày tương lai có mục tiêu đặt trước (bảng `plannedGoals`, `setPlannedGoal`/`getPlannedGoal`), đến 4:00 ngày đó `ensureToday` chuyển thành `title` rồi xoá. Ngày đã qua chỉ xem mục tiêu trong bảng chi tiết.
 - **Nút quay lại** (`BackButton`, class `back-btn`, icon `back`, nhãn mặc định `Quay lại Lịch`, đổi được qua `label`): có ở **Hôm nay, ngày tương lai, Khu vườn, Cài đặt** (về màn Lịch) và **Mẫu** (nhãn `Quay lại Cài đặt`, về Cài đặt), **Nhắc việc** (nhãn `Quay lại Hôm nay`, về Hôm nay); **chỉ mũi tên, không nền/viền**. Trên trời (Hôm nay/tương lai) nó nổi ở góc trái trên (trời tối thì mũi tên trắng); ở Khu vườn/Mẫu/Cài đặt nằm đầu hàng tiêu đề (`inline`).
 - **Màn Mẫu nằm trong Cài đặt** (không còn là tab): thẻ đầu tiên của Cài đặt là **"Mẫu việc"**, ghi `⭐ Đang dùng: <tên>` (hoặc `Chưa có mẫu mặc định`) + nút `Quản lý mẫu`; bấm thì `SettingsScreen` hiện `TemplatesScreen` (prop `onBack`) thay chỗ trang Cài đặt. Thứ tự thẻ Cài đặt: Mẫu việc → Lịch → Ngôn ngữ → Sao lưu & khôi phục → Ủng hộ tôi (Nhắc việc đã chuyển sang màn Hôm nay). Hướng dẫn cài app không còn là thẻ: nút tròn `Hướng dẫn cài app` (icon `help`) ở cuối hàng tiêu đề mở BottomSheet `Cài app lên màn hình chính` (các bước + trạng thái lưu bền vững); dữ liệu chưa lưu bền vững thì nút có chấm hồng.
-- **Màn Mẫu:** nút `＋ Mẫu mới` rộng nét đứt; thẻ mẫu có tên + nút ngôi sao SVG (`star`, chữ "Mặc định"/"Đặt mặc định", thẻ mặc định viền vàng), 3 khối màu theo buổi (icon + tên + số việc), hàng nút [Thêm vào hôm nay][Sửa][Xoá]; form có 3 khối màu kèm icon. Mẫu/Cài đặt chừa `padding-bottom` cho nút menu nổi.
+- **Màn Mẫu:** nút `＋ Mẫu mới` rộng nét đứt; thẻ mẫu có tên + nút ngôi sao SVG (`star`, chữ "Mặc định"/"Đặt mặc định", thẻ mặc định viền vàng), 3 khối màu theo buổi (icon + tên + số việc), hàng nút [Thêm vào hôm nay][Sửa][Xoá]; form có 3 khối màu kèm icon, rồi hàng **`Tự thêm vào các thứ`** (`role="group"`, 7 nút tròn T2…CN `aria-pressed`, nhãn `Thứ Hai`…`Chủ Nhật`; bật = nền peach, tắt = nét đứt); thẻ mẫu có chọn thứ hiện nhãn `tpl-weekdays` `Tự thêm: T7 · CN`. Chỉ áp dụng khi **tạo ngày mới**, không tự thêm vào hôm nay đã có. Mẫu/Cài đặt chừa `padding-bottom` cho nút menu nổi.
 - **Buổi Sáng / Chiều / Tối** (`domain/period.ts`): mỗi todo và mỗi việc trong mẫu có `period`. Màn Hôm nay luôn hiện đủ 3 mục (mục trống ghi "Chưa có việc"); mỗi mục có số việc xong/tổng riêng; mục của buổi hiện tại (`periodOf`: 4–11h sáng, 11–18h chiều, còn lại tối) có viền đậm. **Kéo thả** (nắm `⋮⋮`) chuyển được việc sang buổi khác, kể cả buổi trống, hoặc sắp xếp trong buổi: `TodoList` tự viết bằng pointer events (không dùng `Reorder` của motion vì nó không kéo qua danh sách khác), buổi đích viền hồng (`is-drop-target`), vạch `todo__drop-line` báo vị trí, kéo gần mép thì vùng danh sách tự cuộn; lưu bằng `moveTodo(deps, date, id, period, index)`. Test E2E kéo phải đóng menu nổi trước. Cây vẫn lớn theo tỉ lệ việc xong của **cả ngày**.
 - **Chạm vào cây** (màn Hôm nay): nút trong suốt `Chạm vào cây` (`.today__plant-tap`, phủ đúng khung 200×240 của cây, không lấn hàng 4 nút). Chạm thì cây cười (`data-mood="smile"`), nảy lên (`bounceKey`) và nói một câu ~3,5 giây (`data-kind="tap"`): `pickTap` lấy từ `COMMON_TAPS` (`content/taps.ts`) + `species.taps`, không lặp câu vừa nói. Ngày tiết kiệm năng lượng: cây vẫn ngủ, nói câu `SLEEPY_TAPS`. Câu tạm (khen/chạm) và khung ✨ giới thiệu có `pointer-events: none`, vì câu dài phủ xuống thân cây và từng nuốt mất cú chạm; riêng bong bóng lời của ngày bắt chạm (để sửa), nó chỉ 3 dòng và ẩn được.
 - **Cây khen:** xong một việc thì cây cười và nói một câu khen khoảng 3,5 giây (`pickPraise`: câu chung `COMMON_PRAISES` + `species.praises`); xong việc cuối cùng (cây vừa ra hoa) thì dùng `BLOOM_PRAISES`. Câu khen/chạm hiện tạm trong cùng bong bóng rồi quay về lời của ngày.
@@ -291,7 +291,8 @@ interface DayRecord {
   updatedAt: number;         // dùng khi gộp backup (bản mới hơn thắng)
 }
 
-interface Template { id: string; name: string; items: TemplateItem[]; isDefault: boolean; createdAt: number; updatedAt: number }
+interface Template { id: string; name: string; items: TemplateItem[]; isDefault: boolean; weekdays?: number[]; createdAt: number; updatedAt: number }
+// weekdays: 0 = CN … 6 = T7 (getDay), đã bỏ trùng + sắp xếp (cleanWeekdays); không có = không tự thêm theo thứ; có trong sao lưu (tuỳ chọn, không tăng SCHEMA_VERSION)
 // chỉ một mẫu được isDefault = true (setDefaultTemplate đảm bảo)
 
 // settings

@@ -14,16 +14,21 @@ function toTexts(items: TemplateItem[]): Texts {
   return texts;
 }
 
-export function TemplateForm({ initialName = '', initialItems = [], onSave, onCancel }: {
+/** thứ hiển thị bắt đầu từ thứ Hai; giá trị theo getDay() (0 = CN) */
+export const WEEK_ORDER = [1, 2, 3, 4, 5, 6, 0];
+
+export function TemplateForm({ initialName = '', initialItems = [], initialWeekdays = [], onSave, onCancel }: {
   initialName?: string;
   initialItems?: TemplateItem[];
-  onSave: (name: string, items: TemplateItem[]) => Promise<void>;
+  initialWeekdays?: number[];
+  onSave: (name: string, items: TemplateItem[], weekdays: number[]) => Promise<void>;
   onCancel: () => void;
 }) {
   const { t } = useI18n();
   const id = useId();
   const [name, setName] = useState(initialName);
   const [texts, setTexts] = useState<Texts>(() => toTexts(initialItems));
+  const [weekdays, setWeekdays] = useState<number[]>(initialWeekdays);
   const [error, setError] = useState<string | null>(null);
   return (
     <form
@@ -32,7 +37,7 @@ export function TemplateForm({ initialName = '', initialItems = [], onSave, onCa
         e.preventDefault();
         const items = PERIODS.flatMap((p) => parseItems(texts[p]).map((text) => ({ text, period: p })));
         try {
-          await onSave(name, items);
+          await onSave(name, items, weekdays);
         } catch (err) {
           setError(errorText(err, t));
         }
@@ -54,6 +59,27 @@ export function TemplateForm({ initialName = '', initialItems = [], onSave, onCa
           />
         </div>
       ))}
+      <div className="tpl-form__days-wrap">
+        <p id={`${id}-days`} className="tpl-form__label">{t.templateForm.weekdays}</p>
+        <div role="group" aria-labelledby={`${id}-days`} className="tpl-form__days">
+          {WEEK_ORDER.map((d) => {
+            const on = weekdays.includes(d);
+            return (
+              <button
+                key={d}
+                type="button"
+                className={`tpl-form__day${on ? ' is-on' : ''}`}
+                aria-pressed={on}
+                aria-label={t.templateForm.dayLong[d]}
+                onClick={() => setWeekdays((prev) => (prev.includes(d) ? prev.filter((x) => x !== d) : [...prev, d]))}
+              >
+                {t.templateForm.dayShort[d]}
+              </button>
+            );
+          })}
+        </div>
+        <small className="muted">{t.templateForm.weekdaysHint}</small>
+      </div>
       {error && <p role="alert" className="error">{error}</p>}
       <div className="tpl-form__actions">
         <button type="button" className="btn btn--ghost" onClick={onCancel}>{t.common.cancelForm}</button>

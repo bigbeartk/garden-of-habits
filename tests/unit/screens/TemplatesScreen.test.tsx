@@ -95,6 +95,40 @@ describe('TemplatesScreen mẫu theo buổi', () => {
   });
 });
 
+describe('TemplatesScreen chọn thứ tự thêm', () => {
+  it('chọn thứ trong form, thẻ mẫu ghi các thứ; sửa thì hiện lại đúng thứ', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
+    const user = userEvent.setup();
+    renderWithDeps(<TemplatesScreen onBack={() => {}} />, deps);
+    await user.click(screen.getByRole('button', { name: '＋ Mẫu mới' }));
+    await user.type(screen.getByLabelText('Tên mẫu'), 'Cuối tuần');
+    const days = screen.getByRole('group', { name: 'Tự thêm vào các thứ' });
+    expect(within(days).getAllByRole('button').map((b) => b.textContent)).toEqual(['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN']);
+    const sun = within(days).getByRole('button', { name: 'Chủ Nhật' });
+    await user.click(within(days).getByRole('button', { name: 'Thứ Bảy' }));
+    await user.click(sun);
+    await user.click(within(days).getByRole('button', { name: 'Thứ Hai' }));
+    await user.click(within(days).getByRole('button', { name: 'Thứ Hai' }));
+    expect(sun).toHaveAttribute('aria-pressed', 'true');
+    await user.click(screen.getByRole('button', { name: 'Lưu mẫu' }));
+    const card = (await screen.findByRole('heading', { name: 'Cuối tuần' })).closest('li')!;
+    expect(within(card).getByTestId('tpl-weekdays')).toHaveTextContent('Tự thêm: T7 · CN');
+    expect((await deps.db.templates.toArray())[0].weekdays).toEqual([0, 6]);
+    await user.click(within(card).getByRole('button', { name: 'Sửa' }));
+    const edit = screen.getByRole('group', { name: 'Tự thêm vào các thứ' });
+    expect(within(edit).getByRole('button', { name: 'Thứ Bảy' })).toHaveAttribute('aria-pressed', 'true');
+    expect(within(edit).getByRole('button', { name: 'Thứ Hai' })).toHaveAttribute('aria-pressed', 'false');
+  });
+
+  it('mẫu không chọn thứ thì thẻ không có dòng thứ', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
+    await createTemplate(deps.db, 'Mẫu A', [{ text: 'x', period: 'morning' }], 1);
+    renderWithDeps(<TemplatesScreen onBack={() => {}} />, deps);
+    await screen.findByRole('heading', { name: 'Mẫu A' });
+    expect(screen.queryByTestId('tpl-weekdays')).toBeNull();
+  });
+});
+
 describe('TemplatesScreen nút quay lại và ngôi sao tự vẽ', () => {
   it('nút mũi tên quay về Cài đặt', async () => {
     const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
@@ -124,4 +158,8 @@ it('Mẫu bằng English', async () => {
   expect(await screen.findByRole('button', { name: '＋ New template' })).toBeInTheDocument();
   expect(screen.getByRole('heading', { name: 'Task templates' })).toBeInTheDocument();
   expect(screen.getByRole('button', { name: 'Back to Settings' })).toBeInTheDocument();
+  await userEvent.setup().click(screen.getByRole('button', { name: '＋ New template' }));
+  const days = screen.getByRole('group', { name: 'Auto-add on these days' });
+  expect(within(days).getAllByRole('button').map((b) => b.textContent)).toEqual(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']);
+  expect(within(days).getByRole('button', { name: 'Sunday' })).toBeInTheDocument();
 });

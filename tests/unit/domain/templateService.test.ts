@@ -15,6 +15,16 @@ describe('templateService', () => {
     await expect(createTemplate(db, '  ', [{ text: 'A', period: 'morning' }], 100)).rejects.toThrow('Tên mẫu không được để trống');
   });
 
+  it('lưu thứ tự thêm (weekdays): bỏ trùng, bỏ giá trị lạ, sắp xếp; sửa được', async () => {
+    const db = makeDb();
+    const t = await createTemplate(db, 'Cuối tuần', [], 1, [6, 0, 6, 9, -1, 2.5]);
+    expect(t.weekdays).toEqual([0, 6]);
+    expect((await createTemplate(db, 'Không', [], 2)).weekdays).toEqual([]);
+    const u = await updateTemplate(db, t.id, { weekdays: [3] }, 5);
+    expect(u.weekdays).toEqual([3]);
+    expect((await updateTemplate(db, t.id, { name: 'X' }, 6)).weekdays).toEqual([3]);
+  });
+
   it('listTemplates theo thứ tự tạo', async () => {
     const db = makeDb();
     await createTemplate(db, 'Hai', [], 200);

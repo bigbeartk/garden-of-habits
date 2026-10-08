@@ -5,11 +5,11 @@ import { useDeps } from '../app/deps';
 import { useNav } from '../app/nav';
 import { BackButton } from '../components/BackButton';
 import { ConfirmButton } from '../components/ConfirmButton';
-import { TemplateForm } from '../components/TemplateForm';
+import { TemplateForm, WEEK_ORDER } from '../components/TemplateForm';
 import { addTodos, ensureToday } from '../domain/dayService';
 import { createTemplate, deleteTemplate, listTemplates, setDefaultTemplate, updateTemplate } from '../domain/templateService';
 import { PERIODS } from '../domain/period';
-import { PeriodIcon, StarIcon } from '../components/icons';
+import { CalendarIcon, PeriodIcon, StarIcon } from '../components/icons';
 import type { Template } from '../domain/types';
 import { useI18n } from '../i18n/I18nProvider';
 import { errorText } from '../i18n/errors';
@@ -58,8 +58,8 @@ export function TemplatesScreen({ onBack }: { onBack: () => void }) {
       {editing === 'new' && (
         <TemplateForm
           onCancel={() => setEditing(null)}
-          onSave={async (name, items) => {
-            await createTemplate(deps.db, name, items, nowMs());
+          onSave={async (name, items, weekdays) => {
+            await createTemplate(deps.db, name, items, nowMs(), weekdays);
             setEditing(null);
           }}
         />
@@ -74,9 +74,10 @@ export function TemplatesScreen({ onBack }: { onBack: () => void }) {
               <TemplateForm
                 initialName={t.name}
                 initialItems={t.items}
+                initialWeekdays={t.weekdays}
                 onCancel={() => setEditing(null)}
-                onSave={async (name, items) => {
-                  await updateTemplate(deps.db, t.id, { name, items }, nowMs());
+                onSave={async (name, items, weekdays) => {
+                  await updateTemplate(deps.db, t.id, { name, items, weekdays }, nowMs());
                   setEditing(null);
                 }}
               />
@@ -95,6 +96,12 @@ export function TemplatesScreen({ onBack }: { onBack: () => void }) {
                     <span>{t.isDefault ? i18n.t.templates.isDefault : i18n.t.templates.makeDefault}</span>
                   </button>
                 </div>
+                {(t.weekdays?.length ?? 0) > 0 && (
+                  <p className="tpl__days" data-testid="tpl-weekdays">
+                    <CalendarIcon size={20} />
+                    <span>{i18n.t.templates.autoDays(WEEK_ORDER.filter((d) => t.weekdays!.includes(d)).map((d) => i18n.t.templateForm.dayShort[d]).join(' · '))}</span>
+                  </p>
+                )}
                 <div className="tpl__periods">
                   {PERIODS.filter((p) => t.items.some((i) => i.period === p)).map((p) => {
                     const items = t.items.filter((i) => i.period === p);

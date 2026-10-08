@@ -43,6 +43,8 @@ export interface Template {
   name: string;
   items: TemplateItem[];
   isDefault: boolean;
+  /** thứ trong tuần (0 = CN … 6 = T7, như getDay) mà mẫu tự thêm vào ngày mới; không có = không tự thêm */
+  weekdays?: number[];
   createdAt: number;
   updatedAt: number;
 }

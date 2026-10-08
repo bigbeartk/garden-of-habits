@@ -15,7 +15,7 @@ async function seeded() {
     makeDay({ date: '2026-10-01', note: 'một', updatedAt: 10 }),
     makeDay({ date: '2026-10-02', todos: [{ id: 't', text: 'A', done: true, doneAt: 5, order: 0, period: 'evening' }], finalStage: 'bloom', updatedAt: 20 }),
   ]);
-  await db.templates.put(tpl('sang', true, 3));
+  await db.templates.put({ ...tpl('sang', true, 3), weekdays: [0, 6] }); // weekdays phải đi qua sao lưu
   await setSetting(db, 'calendarBg', { mime: 'image/jpeg', data: new Uint8Array([9, 8, 7]).buffer });
   return db;
 }

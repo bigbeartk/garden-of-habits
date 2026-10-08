@@ -42,6 +42,28 @@ describe('ensureToday', () => {
     expect((await ensureToday(deps)).todos).toEqual([]);
   });
 
+  it('thêm việc của các mẫu chọn đúng thứ của ngày, sau mẫu mặc định', async () => {
+    // 2026-10-02 là thứ Sáu (getDay 5)
+    const { deps } = makeDeps();
+    await deps.db.templates.bulkAdd([
+      { ...TEMPLATE(false, [m('Đi chợ')]), weekdays: [5, 6], createdAt: 2 },
+      { ...TEMPLATE(false, [m('Không đúng thứ')]), weekdays: [0, 1] },
+      { ...TEMPLATE(false, [{ text: 'Gọi mẹ', period: 'evening' }]), weekdays: [5], createdAt: 3 },
+      { ...TEMPLATE(true, [m('Tập thể dục')]), weekdays: [5] },
+    ]);
+    const day = await ensureToday(deps);
+    expect(day.todos.map((t) => t.text)).toEqual(['Tập thể dục', 'Đi chợ', 'Gọi mẹ']);
+  });
+
+  it('thứ tính theo mốc 4:00: 2 giờ sáng thứ Bảy vẫn là thứ Sáu', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 3, 2, 0));
+    await deps.db.templates.bulkAdd([
+      { ...TEMPLATE(false, [m('Thứ Sáu')]), weekdays: [5] },
+      { ...TEMPLATE(false, [m('Thứ Bảy')]), weekdays: [6] },
+    ]);
+    expect((await ensureToday(deps)).todos.map((t) => t.text)).toEqual(['Thứ Sáu']);
+  });
+
   it('todo chưa xong hôm qua không được chuyển sang hôm nay', async () => {
     const { deps, clock } = makeDeps();
     const d1 = await ensureToday(deps);
