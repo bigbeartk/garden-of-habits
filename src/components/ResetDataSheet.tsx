@@ -53,7 +53,7 @@ export function ResetDataSheet({ open, onClose, onBackup, onDone }: {
     <BottomSheet open={open} title={r.title} onClose={onClose}>
       <div className="reset">
         <p className="reset__lose">{r.lose}</p>
-        {summary && <p className="reset__summary">{r.summary(summary.days, summary.templates, summary.reminders, summary.planned)}</p>}
+        {summary && <p className="reset__summary">{r.summary(summary.days, summary.templates, summary.reminders, summary.planned, summary.habits)}</p>}
         <p className="muted">{r.extra}</p>
         <p className="reset__warn">{r.backupFirst}</p>
         <button type="button" className="btn btn--primary" onClick={onBackup}>{t.settings.backupNow}</button>

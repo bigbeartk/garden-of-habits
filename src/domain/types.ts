@@ -82,6 +82,28 @@ export interface Reminder {
   updatedAt: number;
 }
 
+/** 8 màu pastel của thói quen; mã hex ở content/habits.ts */
+export type HabitColor = 'peach' | 'mint' | 'butter' | 'lavender' | 'sky' | 'rose' | 'sage' | 'cocoa';
+
+/** Thói quen: điểm danh riêng, không phải todo, không làm cây lớn. */
+export interface Habit {
+  id: string;
+  name: string;
+  icon: string;          // emoji do người dùng chọn (HABIT_ICONS)
+  color: HabitColor;
+  weekdays: number[];    // 0 = CN … 6 = T7, đã cleanWeekdays, không rỗng
+  order: number;         // thứ tự hiển thị = thứ tự tạo
+  startDate: string;     // dayKey lúc tạo; ngày trước đó không tính
+  createdAt: number;
+  updatedAt: number;
+}
+
+/** Có bản ghi = thói quen `habitId` đã làm ngày `date`. */
+export interface HabitCheck { habitId: string; date: string; at: number }
+
+/** Khu vườn đang xem cây hay thói quen. */
+export type GardenView = 'plants' | 'habits';
+
 /** Kiểu hình nền màn Lịch: mặc định, nền động (mèo vươn vai / cỏ nở) hoặc ảnh người dùng chọn. */
 export type CalendarTheme = 'default' | 'cat' | 'dog' | 'grass' | 'rain' | 'gamer' | 'photo';
 

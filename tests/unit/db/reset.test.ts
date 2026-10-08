@@ -9,6 +9,7 @@ async function seeded() {
   await db.planned.put({ id: 'p', date: '2026-10-09', text: 'Đi khám', period: 'morning', createdAt: 1 });
   await db.plannedGoals.put({ date: '2026-10-09', title: 'Khoẻ' });
   await db.reminders.put({ id: 'r', text: 'Mua quà', autoToday: false, doneAt: null, createdAt: 1, updatedAt: 1 });
+  await db.habits.put({ id: 'h1', name: 'Uống nước', icon: '💧', color: 'sky', weekdays: [1], order: 0, startDate: '2026-10-01', createdAt: 1, updatedAt: 1 });
   await setSetting(db, 'language', 'en');
   await setSetting(db, 'calendarTheme', 'cat');
   await setSetting(db, 'unlockedStyles', ['sunflower|mini']);
@@ -48,6 +49,17 @@ describe('resetAllData', () => {
 describe('dataSummary', () => {
   it('đếm những gì sẽ mất', async () => {
     const db = await seeded();
-    expect(await dataSummary(db)).toEqual({ days: 2, templates: 1, reminders: 1, planned: 1 });
+    expect(await dataSummary(db)).toEqual({ days: 2, templates: 1, reminders: 1, planned: 1, habits: 1 });
+  });
+});
+
+describe('resetAllData: thói quen', () => {
+  it('xoá cả thói quen và lần tick', async () => {
+    const db = makeDb();
+    await db.habits.add({ id: 'h1', name: 'x', icon: '💧', color: 'sky', weekdays: [1], order: 0, startDate: '2026-10-01', createdAt: 1, updatedAt: 1 });
+    await db.habitChecks.add({ habitId: 'h1', date: '2026-10-02', at: 1 });
+    await resetAllData(db);
+    expect(await db.habits.count()).toBe(0);
+    expect(await db.habitChecks.count()).toBe(0);
   });
 });

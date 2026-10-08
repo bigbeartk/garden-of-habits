@@ -1,7 +1,7 @@
-import Dexie, { type EntityTable } from 'dexie';
-import type { DayRecord, PlannedGoal, PlannedTodo, Reminder, Template } from '../domain/types';
+import Dexie, { type EntityTable, type Table } from 'dexie';
+import type { DayRecord, Habit, HabitCheck, PlannedGoal, PlannedTodo, Reminder, Template } from '../domain/types';
 
-export const SCHEMA_VERSION = 5;
+export const SCHEMA_VERSION = 6;
 
 export interface SettingRow {
   key: string;
@@ -15,6 +15,8 @@ export class PlantDB extends Dexie {
   planned!: EntityTable<PlannedTodo, 'id'>;
   plannedGoals!: EntityTable<PlannedGoal, 'date'>;
   reminders!: EntityTable<Reminder, 'id'>;
+  habits!: EntityTable<Habit, 'id'>;
+  habitChecks!: Table<HabitCheck, [string, string]>;
 
   constructor(name = 'chau-cay-chibi') {
     super(name);
@@ -47,6 +49,11 @@ export class PlantDB extends Dexie {
     this.version(4).stores({ days: 'date', templates: 'id, createdAt', settings: 'key', planned: 'id, date', plannedGoals: 'date' });
     // v5: bảng việc nhắc (việc dài hạn, màn Nhắc việc).
     this.version(5).stores({ days: 'date', templates: 'id, createdAt', settings: 'key', planned: 'id, date', plannedGoals: 'date', reminders: 'id' });
+    // v6: thói quen (điểm danh riêng) + lần tick, khoá ghép [habitId+date].
+    this.version(6).stores({
+      days: 'date', templates: 'id, createdAt', settings: 'key', planned: 'id, date', plannedGoals: 'date', reminders: 'id',
+      habits: 'id, order', habitChecks: '[habitId+date], habitId, date',
+    });
   }
 }
 

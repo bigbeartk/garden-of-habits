@@ -1,10 +1,12 @@
 import type { PlantDB } from './db';
-import type { CalendarBg, CalendarTheme, MenuIconChoice } from '../domain/types';
+import type { CalendarBg, CalendarTheme, GardenView, MenuIconChoice } from '../domain/types';
 import type { Lang } from '../i18n/lang';
 
 export interface SettingsShape {
   calendarBg: CalendarBg;
   calendarTheme: CalendarTheme;
+  /** Khu vườn đang xem Cây hay Thói quen; không có = 'plants' */
+  gardenView: GardenView;
   /** icon nút menu nổi; không có = 'auto' (theo hình nền lịch) */
   menuIcon: MenuIconChoice;
   /** hiện nút tròn đổi hình nền ngay trên trang Lịch (mặc định: có) */

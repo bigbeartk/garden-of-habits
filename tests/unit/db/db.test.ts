@@ -33,10 +33,23 @@ describe('db', () => {
 });
 
 describe('DB v5: bảng nhắc việc', () => {
-  it('SCHEMA_VERSION là 5 và lưu/đọc được việc nhắc', async () => {
-    expect(SCHEMA_VERSION).toBe(5);
+  it('SCHEMA_VERSION là 6 và lưu/đọc được việc nhắc', async () => {
+    expect(SCHEMA_VERSION).toBe(6);
     const db = makeDb();
     await db.reminders.put({ id: 'r1', text: 'Mua quà', autoToday: false, doneAt: null, createdAt: 1, updatedAt: 1 });
     expect((await db.reminders.get('r1'))?.text).toBe('Mua quà');
+  });
+});
+
+describe('DB v6: thói quen', () => {
+  it('v6 có bảng habits và habitChecks (khoá ghép habitId+date)', async () => {
+    const db = makeDb();
+    await db.open();
+    expect(db.verno).toBe(6);
+    await db.habits.add({ id: 'h1', name: 'Uống nước', icon: '💧', color: 'sky', weekdays: [0, 1, 2, 3, 4, 5, 6], order: 0, startDate: '2026-10-01', createdAt: 1, updatedAt: 1 });
+    await db.habitChecks.add({ habitId: 'h1', date: '2026-10-02', at: 5 });
+    expect(await db.habitChecks.get(['h1', '2026-10-02'])).toEqual({ habitId: 'h1', date: '2026-10-02', at: 5 });
+    expect(await db.habitChecks.where('habitId').equals('h1').count()).toBe(1);
+    expect(await db.habits.orderBy('order').first()).toMatchObject({ id: 'h1' });
   });
 });

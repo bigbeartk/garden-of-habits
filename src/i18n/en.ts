@@ -225,8 +225,8 @@ export const en: Messages = {
       button: '🗑 Delete all data',
       title: 'Delete all data?',
       lose: 'You will permanently lose:',
-      summary: (days, templates, reminders, planned) =>
-        `${days} ${days === 1 ? 'plant day' : 'plant days'} · ${templates} ${templates === 1 ? 'template' : 'templates'} · ${reminders} ${reminders === 1 ? 'reminder' : 'reminders'} · ${planned} planned ${planned === 1 ? 'task' : 'tasks'}`,
+      summary: (days, templates, reminders, planned, habits) =>
+        `${days} ${days === 1 ? 'plant day' : 'plant days'} · ${templates} ${templates === 1 ? 'template' : 'templates'} · ${reminders} ${reminders === 1 ? 'reminder' : 'reminders'} · ${planned} planned ${planned === 1 ? 'task' : 'tasks'} · ${habits} ${habits === 1 ? 'habit' : 'habits'}`,
       extra: 'Plus the calendar background, unlocked special plants and styles, and all options. The app starts over like a fresh install.',
       backupFirst: "Back up first — this can't be undone.",
       word: 'DELETE',

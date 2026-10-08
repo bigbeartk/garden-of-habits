@@ -231,8 +231,8 @@ export const vi = {
       button: '🗑 Xoá toàn bộ dữ liệu',
       title: 'Xoá toàn bộ dữ liệu?',
       lose: 'Sẽ mất vĩnh viễn:',
-      summary: (days: number, templates: number, reminders: number, planned: number) =>
-        `${days} ngày cây · ${templates} mẫu · ${reminders} việc nhắc · ${planned} việc đã lên lịch`,
+      summary: (days: number, templates: number, reminders: number, planned: number, habits: number) =>
+        `${days} ngày cây · ${templates} mẫu · ${reminders} việc nhắc · ${planned} việc đã lên lịch · ${habits} thói quen`,
       extra: 'Cùng ảnh nền lịch, cây đặc biệt và dáng cây đã mở khoá, mọi tuỳ chọn. App sẽ bắt đầu lại như mới cài.',
       backupFirst: 'Hãy sao lưu trước nhé, xoá rồi không lấy lại được.',
       word: 'XOA',
