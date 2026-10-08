@@ -38,8 +38,9 @@ export function HabitStrip({ date, isRestDay, onChecked, onManage }: {
   function toggle(id: string) {
     const next = !isOn(id);
     setLocal((m) => ({ ...m, [id]: next }));
-    if (next) onChecked();
-    toggleHabit(deps, id).catch((e: Error) => {
+    toggleHabit(deps, id).then((checked) => {
+      if (checked) onChecked();
+    }).catch((e: Error) => {
       setLocal((m) => ({ ...m, [id]: !next }));
       setError(errorText(e, t));
     });

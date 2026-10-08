@@ -261,6 +261,7 @@ export function TodayScreen() {
               onSave={(goal) => run(setTitle(deps, day.date, goal))}
             />
             <HabitStrip
+              key={day.date}
               date={day.date}
               isRestDay={day.isRestDay}
               onChecked={() => setCelebrating(true)}
