@@ -2,6 +2,9 @@ import { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useDeps } from '../app/deps';
 import { HABIT_COLORS } from '../content/habits';
+import { PLANTS } from '../content/plants/registry';
+import { DEFAULT_POT_ID } from '../content/pots/registry';
+import { PlantScene } from './PlantScene';
 import { listDaysInRange } from '../db/queries';
 import { dayKey, parseDayKey } from '../domain/dayKey';
 import { habitReport, periodRange, shiftPeriod, type HabitReportResult, type ReportKind } from '../domain/habitReport';
@@ -38,6 +41,9 @@ export function HabitReport({ onManage }: { onManage: () => void }) {
   if (data.habits.length === 0) {
     return (
       <div className="habit-report habit-report--empty card" data-testid="habit-report">
+        <div className="habit-report__empty-art" aria-hidden="true" data-testid="habit-empty-art">
+          <PlantScene plantId={PLANTS[0].id} potId={DEFAULT_POT_ID} stage="seed" specialId={null} mood="sleep" mode="sleeping" />
+        </div>
         <p className="muted">{t.habits.empty}</p>
         <button type="button" className="btn btn--primary" onClick={onManage}>{t.habits.firstHabit}</button>
       </div>

@@ -5,7 +5,7 @@ import { CalendarScreen } from '../../../src/screens/CalendarScreen';
 import { GardenScreen } from '../../../src/screens/GardenScreen';
 import { CATALOG } from '../../../src/content/catalog';
 import { makeDay, makeDeps, renderWithDeps } from '../helpers';
-import { getSetting } from '../../../src/db/settings';
+import { getSetting, setSetting } from '../../../src/db/settings';
 import { requestHabitManager } from '../../../src/app/habitIntent';
 
 async function openGarden() {
@@ -22,6 +22,7 @@ async function openGarden() {
   const nav = vi.fn();
   renderWithDeps(<GardenScreen />, deps, nav);
   const garden = await screen.findByTestId('garden');
+  await within(garden).findByTestId('garden-summary'); // thân màn chờ đọc setting gardenView
   return { deps, user, garden, nav };
 }
 
@@ -222,5 +223,36 @@ describe('Khu vườn: công tắc Cây | Thói quen', () => {
     requestHabitManager();
     renderWithDeps(<GardenScreen />, deps);
     expect(await screen.findByTestId('habits-screen')).toBeTruthy();
+    expect(screen.queryByLabelText('Tên thói quen')).toBeNull(); // chế độ danh sách
+  });
+
+  it('yêu cầu chế độ thêm từ Hôm nay: mở thẳng form thêm', async () => {
+    const { deps } = makeDeps();
+    requestHabitManager('add');
+    renderWithDeps(<GardenScreen />, deps);
+    expect(await screen.findByLabelText('Tên thói quen')).toBeTruthy();
+  });
+
+  it('trạng thái trống: nút "Thói quen đầu tiên" mở màn quản lý ở chế độ thêm', async () => {
+    const { deps } = makeDeps();
+    renderWithDeps(<GardenScreen />, deps);
+    fireEvent.click(await screen.findByRole('tab', { name: 'Thói quen' }));
+    fireEvent.click(await screen.findByRole('button', { name: '＋ Thói quen đầu tiên' }));
+    expect(await screen.findByLabelText('Tên thói quen')).toBeTruthy();
+  });
+
+  it('đã lưu xem Thói quen: không nháy màn Cây trước khi báo cáo hiện', async () => {
+    const { deps } = makeDeps();
+    await setSetting(deps.db, 'gardenView', 'habits');
+    const seen: string[] = [];
+    const obs = new MutationObserver(() => {
+      if (document.querySelector('[data-testid="garden-summary"],[data-testid^="garden-plant-"]')) seen.push('plants');
+    });
+    obs.observe(document.body, { childList: true, subtree: true });
+    renderWithDeps(<GardenScreen />, deps);
+    expect(document.querySelector('[data-testid="garden-summary"]')).toBeNull();
+    expect(await screen.findByTestId('habit-report')).toBeTruthy();
+    obs.disconnect();
+    expect(seen).toEqual([]);
   });
 });

@@ -1,4 +1,4 @@
-import { useId, useState } from 'react';
+import { useId, useRef, useState } from 'react';
 import { HABIT_COLORS, HABIT_COLOR_IDS, HABIT_ICONS } from '../content/habits';
 import { HABIT_NAME_MAX, type HabitInput } from '../domain/habitService';
 import { useI18n } from '../i18n/I18nProvider';
@@ -15,16 +15,25 @@ export function HabitForm({ initial = BLANK, onSave, onCancel }: {
   const id = useId();
   const [v, setV] = useState<HabitInput>(initial);
   const [error, setError] = useState<string | null>(null);
-  const valid = v.name.trim() !== '' && v.weekdays.length > 0;
+  const [busy, setBusy] = useState(false);
+  /** chặn nộp hai lần trong cùng một nhịp (state chưa kịp cập nhật) */
+  const inFlight = useRef(false);
+  const valid =v.name.trim() !== '' && v.weekdays.length > 0;
   return (
     <form
       className="habit-form card"
       onSubmit={async (e) => {
         e.preventDefault();
+        if (inFlight.current) return;
+        inFlight.current = true;
+        setBusy(true);
         try {
           await onSave(v);
         } catch (err) {
           setError(errorText(err, t));
+        } finally {
+          inFlight.current = false;
+          setBusy(false);
         }
       }}
     >
@@ -60,7 +69,7 @@ export function HabitForm({ initial = BLANK, onSave, onCancel }: {
       {error && <p role="alert" className="error">{error}</p>}
       <div className="habit-form__actions">
         <button type="button" className="btn btn--ghost" onClick={onCancel}>{t.common.cancelForm}</button>
-        <button type="submit" className="btn btn--primary" disabled={!valid}>{f.save}</button>
+        <button type="submit" className="btn btn--primary" disabled={!valid || busy}>{f.save}</button>
       </div>
     </form>
   );

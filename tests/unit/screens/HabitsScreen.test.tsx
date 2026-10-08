@@ -19,6 +19,18 @@ describe('HabitsScreen', () => {
     expect(await screen.findByText('Yoga')).toBeInTheDocument();
   });
 
+  it('nộp form hai lần liên tiếp chỉ tạo một thói quen', async () => {
+    const { deps } = makeDeps();
+    renderWithDeps(<HabitsScreen onBack={() => {}} startAdding />, deps);
+    fireEvent.change(screen.getByLabelText('Tên thói quen'), { target: { value: 'Yoga' } });
+    const form = screen.getByRole('button', { name: 'Lưu thói quen' }).closest('form')!;
+    fireEvent.submit(form);
+    fireEvent.submit(form);
+    await waitFor(async () => expect(await listHabits(deps.db)).toHaveLength(1));
+    await new Promise((r) => setTimeout(r, 50));
+    expect(await listHabits(deps.db)).toHaveLength(1);
+  });
+
   it('nút Lưu tắt khi tên rỗng hoặc không chọn thứ nào', () => {
     const { deps } = makeDeps();
     renderWithDeps(<HabitsScreen onBack={() => {}} startAdding />, deps);

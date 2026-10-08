@@ -1,5 +1,7 @@
 .habit-report { display: flex; flex-direction: column; gap: 10px; background: rgba(255, 253, 251, 0.95); }
 .habit-report--empty { align-items: center; text-align: center; }
+.habit-report__empty-art { height: 120px; aspect-ratio: 5 / 6; }
+.habit-report__empty-art svg { display: block; width: 100%; height: 100%; }
 .habit-report__kinds { display: flex; gap: 6px; }
 .habit-report__kind {
   flex: 1; padding: 6px 0; border: 2px solid var(--cocoa-soft); border-radius: 999px; background: var(--white);

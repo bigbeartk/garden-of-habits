@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useDeps } from '../app/deps';
+import type { HabitManagerMode } from '../app/habitIntent';
 import { HABIT_COLORS } from '../content/habits';
 import { checksOn, habitsForDay, listHabits, toggleHabit } from '../domain/habitService';
 import { useI18n } from '../i18n/I18nProvider';
@@ -10,7 +11,7 @@ import './habit-strip.css';
 
 /** Dải chip thói quen có lịch hôm nay, đầu danh sách ở màn Hôm nay. Chạm chip = tick / bỏ tick. */
 export function HabitStrip({ date, isRestDay, onChecked, onManage }: {
-  date: string; isRestDay: boolean; onChecked: () => void; onManage: () => void;
+  date: string; isRestDay: boolean; onChecked: () => void; onManage: (mode: HabitManagerMode) => void;
 }) {
   const { t } = useI18n();
   const deps = useDeps();
@@ -23,7 +24,7 @@ export function HabitStrip({ date, isRestDay, onChecked, onManage }: {
   if (data.habits.length === 0) {
     return (
       <div className="habit-strip habit-strip--empty">
-        <button type="button" className="habit-chip habit-chip--add is-faint" onClick={onManage}>
+        <button type="button" className="habit-chip habit-chip--add is-faint" onClick={() => onManage('add')}>
           <span className="habit-chip__dot"><PlusIcon size={22} /></span>
           <span className="habit-chip__name">{t.habits.addFirstChip}</span>
         </button>
@@ -68,7 +69,7 @@ export function HabitStrip({ date, isRestDay, onChecked, onManage }: {
             </button>
           );
         })}
-        <button type="button" className="habit-chip habit-chip--add" aria-label={t.habits.manage} onClick={onManage}>
+        <button type="button" className="habit-chip habit-chip--add" aria-label={t.habits.manage} onClick={() => onManage('list')}>
           <span className="habit-chip__dot"><PlusIcon size={22} /></span>
         </button>
       </div>

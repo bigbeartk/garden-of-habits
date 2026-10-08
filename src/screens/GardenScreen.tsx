@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useBackHandler } from '../app/back';
 import { useDeps } from '../app/deps';
-import { peekHabitManagerRequest, takeHabitManagerRequest } from '../app/habitIntent';
+import { type HabitManagerMode, peekHabitManagerRequest, takeHabitManagerRequest } from '../app/habitIntent';
 import { useNav } from '../app/nav';
 import { BackButton } from '../components/BackButton';
 import { HabitReport } from '../components/HabitReport';
@@ -48,14 +48,15 @@ export function GardenScreen() {
   const beds = onlyPlanted ? report.beds.filter((b) => b.count > 0) : report.beds;
   const nothing = beds.length === 0;
 
-  const savedView = useLiveQuery(async () => (await getSetting(deps.db, 'gardenView')) ?? 'plants', [deps.db]);
+  /** null = đang đọc setting (chưa vẽ thân màn, khỏi nháy màn Cây khi đã lưu Thói quen) */
+  const savedView = useLiveQuery(async (): Promise<GardenView | null> => (await getSetting(deps.db, 'gardenView')) ?? 'plants', [deps.db], null);
   /** giữ cục bộ để đổi ngay, không chờ đọc lại DB */
   const [viewLocal, setViewLocal] = useState<GardenView | null>(null);
   // peek trong initializer (StrictMode gọi hai lần), xoá cờ trong effect lúc mount
-  const [managing, setManaging] = useState(() => peekHabitManagerRequest());
+  const [managing, setManaging] = useState<false | HabitManagerMode>(() => peekHabitManagerRequest());
   useEffect(() => { takeHabitManagerRequest(); }, []);
-  useBackHandler(managing, () => setManaging(false), 'screen');
-  const view: GardenView = managing ? 'habits' : viewLocal ?? savedView ?? 'plants';
+  useBackHandler(managing !== false, () => setManaging(false), 'screen');
+  const view: GardenView | null = managing ? 'habits' : viewLocal ?? savedView;
 
   function pickView(v: GardenView) {
     setViewLocal(v);
@@ -68,7 +69,7 @@ export function GardenScreen() {
   };
 
   if (managing) {
-    return <HabitsScreen onBack={() => { setViewLocal('habits'); setManaging(false); }} />;
+    return <HabitsScreen startAdding={managing === 'add'} onBack={() => { setViewLocal('habits'); setManaging(false); }} />;
   }
 
   return (
@@ -90,11 +91,11 @@ export function GardenScreen() {
             {/* đang lọc mà công tắc đang ẩn thì báo bằng chấm nhỏ */}
             {!optionsOpen && (onlyPlanted || separateSpecial) && <span className="icon-btn__badge" aria-hidden="true" />}
           </button>
-        ) : (
-          <button type="button" className="icon-btn garden__options-btn" aria-label={t.habits.manage} title={t.habits.manage} onClick={() => setManaging(true)}>
+        ) : view === 'habits' ? (
+          <button type="button" className="icon-btn garden__options-btn" aria-label={t.habits.manage} title={t.habits.manage} onClick={() => setManaging('list')}>
             <HabitsIcon size={24} />
           </button>
-        )}
+        ) : null}
       </header>
 
       <div role="tablist" aria-label={t.habits.viewsLabel} className="garden__views">
@@ -104,8 +105,8 @@ export function GardenScreen() {
           </button>
         ))}
       </div>
-      {view === 'habits' ? (
-        <HabitReport onManage={() => setManaging(true)} />
+      {view === null ? null : view === 'habits' ? (
+        <HabitReport onManage={() => setManaging('add')} />
       ) : (
         <>
           <div className="garden__range card">

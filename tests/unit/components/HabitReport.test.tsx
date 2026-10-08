@@ -14,6 +14,7 @@ describe('HabitReport', () => {
     renderWithDeps(<HabitReport onManage={onManage} />, deps);
     fireEvent.click(await screen.findByRole('button', { name: '＋ Thói quen đầu tiên' }));
     expect(onManage).toHaveBeenCalled();
+    expect(screen.getByTestId('habit-empty-art').querySelector('[data-mode="sleeping"]')).not.toBeNull();
   });
 
   it('bảng tuần: trạng thái ô, số tổng, chuyển kỳ', async () => {

@@ -13,7 +13,16 @@ describe('HabitStrip', () => {
     const onManage = vi.fn();
     renderWithDeps(<HabitStrip date={TODAY} isRestDay={false} onChecked={() => {}} onManage={onManage} />, deps);
     fireEvent.click(await screen.findByRole('button', { name: 'Thêm thói quen' }));
-    expect(onManage).toHaveBeenCalled();
+    expect(onManage).toHaveBeenCalledWith('add');
+  });
+
+  it('có thói quen: chip ＋ cuối mở danh sách', async () => {
+    const { deps } = makeDeps();
+    await addHabit(deps, { name: 'Uống nước', icon: '💧', color: 'sky', weekdays: [5] });
+    const onManage = vi.fn();
+    renderWithDeps(<HabitStrip date={TODAY} isRestDay={false} onChecked={() => {}} onManage={onManage} />, deps);
+    fireEvent.click(await screen.findByRole('button', { name: 'Quản lý thói quen' }));
+    expect(onManage).toHaveBeenCalledWith('list');
   });
 
   it('chỉ hiện thói quen có lịch hôm nay; tick gọi onChecked và lưu', async () => {

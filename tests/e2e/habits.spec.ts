@@ -23,8 +23,9 @@ async function openToday(page: Page) {
   await expect(page.getByTestId('plant-scene')).toBeVisible();
 }
 
-async function createHabit(page: Page, name: string) {
-  await page.getByRole('button', { name: '＋ Thói quen mới' }).click();
+async function createHabit(page: Page, name: string, opts: { formOpen?: boolean } = {}) {
+  if (!opts.formOpen) await page.getByRole('button', { name: '＋ Thói quen mới' }).click();
+  await expect(page.getByLabel('Tên thói quen')).toBeVisible();
   await page.getByLabel('Tên thói quen').fill(name);
   await page.getByRole('button', { name: 'Lưu thói quen' }).click();
   await expect(page.getByText(name, { exact: true })).toBeVisible();
@@ -37,7 +38,7 @@ test('tạo thói quen, tick ở Hôm nay, xem ở Khu vườn', async ({ page }
   await closeMenu(page);
   await page.getByRole('button', { name: 'Thêm thói quen' }).click();
   await expect(page.getByTestId('habits-screen')).toBeVisible();
-  await createHabit(page, 'Uống nước');
+  await createHabit(page, 'Uống nước', { formOpen: true }); // chip "Thêm thói quen" mở thẳng form thêm
   await page.getByRole('button', { name: 'Quay lại Khu vườn' }).click();
   await expect(page.getByTestId('habit-report')).toBeVisible();
 

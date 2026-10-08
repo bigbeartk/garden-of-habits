@@ -110,7 +110,7 @@ test.describe('máy tiếng Anh', () => {
     await goTabEn(page, 'Garden');
     await page.getByRole('tab', { name: 'Habits' }).click();
     await page.getByRole('button', { name: '＋ First habit' }).click();
-    await page.getByRole('button', { name: '＋ New habit' }).click();
+    await expect(page.getByLabel('Habit name')).toBeVisible(); // form already open
     await page.getByLabel('Habit name').fill('Drink water');
     await page.getByRole('button', { name: 'Save habit' }).click();
     await page.getByRole('button', { name: 'Back to Garden' }).click();

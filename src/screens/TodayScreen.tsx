@@ -265,8 +265,8 @@ export function TodayScreen() {
               date={day.date}
               isRestDay={day.isRestDay}
               onChecked={() => setCelebrating(true)}
-              onManage={() => {
-                requestHabitManager();
+              onManage={(mode) => {
+                requestHabitManager(mode);
                 run(setSetting(deps.db, 'gardenView', 'habits'));
                 nav('garden');
               }}
