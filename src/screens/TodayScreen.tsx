@@ -3,7 +3,9 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { useDeps } from '../app/deps';
 import { useNav } from '../app/nav';
 import { BackButton } from '../components/BackButton';
+import { requestHabitManager } from '../app/habitIntent';
 import { GoalInput } from '../components/GoalInput';
+import { HabitStrip } from '../components/HabitStrip';
 import { IconButton } from '../components/IconButton';
 import { BellIcon, NoteIcon, PlantSwapIcon, SleepSeedIcon, SpeechIcon, SunIcon } from '../components/icons';
 import { NoteSheet } from '../components/NoteSheet';
@@ -257,6 +259,16 @@ export function TodayScreen() {
               label={t.today.goalLabel}
               placeholder={t.today.goalPlaceholder}
               onSave={(goal) => run(setTitle(deps, day.date, goal))}
+            />
+            <HabitStrip
+              date={day.date}
+              isRestDay={day.isRestDay}
+              onChecked={() => setCelebrating(true)}
+              onManage={() => {
+                requestHabitManager();
+                run(setSetting(deps.db, 'gardenView', 'habits'));
+                nav('garden');
+              }}
             />
             <TodoList
               todos={day.todos}
