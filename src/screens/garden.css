@@ -61,3 +61,10 @@
 .garden__bed--special { border-color: #D9A400; background: linear-gradient(180deg, #FFF8DC 0, #FFF3C4 62%, #F5D778 62%, #EBC352 100%); }
 .garden__bed--special::before { background: radial-gradient(circle at 10% 100%, #D9A400 4px, transparent 5px) 0 0 / 14px 10px repeat-x; }
 .garden__bed--special::after { content: '✨'; position: absolute; top: 4px; right: 6px; font-size: 0.9rem; }
+
+.garden__views { display: flex; gap: 6px; padding: 4px; border: 2px solid var(--cocoa); border-radius: 999px; background: rgba(255, 253, 251, 0.92); }
+.garden__view {
+  flex: 1; padding: 6px 0; border: 0; border-radius: 999px; background: none; cursor: pointer;
+  font-family: var(--font-display); font-weight: 700; font-size: 1rem; color: var(--cocoa-soft);
+}
+.garden__view.is-on { background: var(--peach); color: var(--cocoa); box-shadow: inset 0 0 0 2px var(--cocoa); }

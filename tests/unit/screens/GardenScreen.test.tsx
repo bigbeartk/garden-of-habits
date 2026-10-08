@@ -6,6 +6,7 @@ import { GardenScreen } from '../../../src/screens/GardenScreen';
 import { CATALOG } from '../../../src/content/catalog';
 import { makeDay, makeDeps, renderWithDeps } from '../helpers';
 import { getSetting } from '../../../src/db/settings';
+import { requestHabitManager } from '../../../src/app/habitIntent';
 
 async function openGarden() {
   const { deps } = makeDeps(new Date(2026, 9, 15, 10, 0), CATALOG);
@@ -199,5 +200,27 @@ describe('GardenScreen: English', () => {
     expect(screen.getByRole('button', { name: 'Display options' })).toBeInTheDocument();
     expect(within(screen.getByTestId('garden-plant-corn')).getByText('days')).toBeInTheDocument();
     expect(within(screen.getByTestId('garden-wilted')).getByText('Wilted')).toBeInTheDocument();
+  });
+});
+
+describe('Khu vườn: công tắc Cây | Thói quen', () => {
+  it('công tắc Cây | Thói quen, nhớ lựa chọn, mở màn quản lý', async () => {
+    const { deps } = makeDeps();
+    renderWithDeps(<GardenScreen />, deps);
+    fireEvent.click(await screen.findByRole('tab', { name: 'Thói quen' }));
+    expect(await screen.findByTestId('habit-report')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Tuỳ chọn hiển thị' })).toBeNull();
+    await waitFor(async () => expect(await getSetting(deps.db, 'gardenView')).toBe('habits'));
+    fireEvent.click(screen.getByRole('button', { name: 'Quản lý thói quen' }));
+    expect(await screen.findByTestId('habits-screen')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Quay lại Khu vườn' }));
+    expect(await screen.findByTestId('habit-report')).toBeTruthy();
+  });
+
+  it('mở thẳng màn quản lý khi có yêu cầu từ Hôm nay', async () => {
+    const { deps } = makeDeps();
+    requestHabitManager();
+    renderWithDeps(<GardenScreen />, deps);
+    expect(await screen.findByTestId('habits-screen')).toBeTruthy();
   });
 });
