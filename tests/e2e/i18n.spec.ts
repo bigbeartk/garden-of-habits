@@ -103,4 +103,17 @@ test.describe('máy tiếng Anh', () => {
     expect(box.x + box.width).toBeLessThanOrEqual(page.viewportSize()!.width);
     expect(await summary.evaluate((el) => el.scrollWidth <= el.clientWidth + 1)).toBe(true);
   });
+
+  test('habits in English', async ({ page }) => {
+    await page.clock.setFixedTime(at('2026-10-08T10:00:00'));
+    await page.goto('/');
+    await goTabEn(page, 'Garden');
+    await page.getByRole('tab', { name: 'Habits' }).click();
+    await page.getByRole('button', { name: '＋ First habit' }).click();
+    await page.getByRole('button', { name: '＋ New habit' }).click();
+    await page.getByLabel('Habit name').fill('Drink water');
+    await page.getByRole('button', { name: 'Save habit' }).click();
+    await page.getByRole('button', { name: 'Back to Garden' }).click();
+    await expect(page.getByTestId('habit-stats')).toContainText('Best streak');
+  });
 });
