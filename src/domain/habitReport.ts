@@ -103,7 +103,8 @@ export function habitReport(
   const totalCounted = rows.reduce((n, r) => n + r.counted, 0);
   return {
     from, to, dates, rows, perfectDays,
-    perfectPeriod: countedDays > 0 && perfectDays.length === countedDays,
+    // kỳ phải đã kết thúc (to <= hôm nay): kỳ đang diễn ra còn ngày tương lai chưa làm
+    perfectPeriod: to <= todayKey && countedDays > 0 && perfectDays.length === countedDays,
     stats: { metPct: pct(totalDone, totalCounted), perfectDays: perfectDays.length, totalDone, bestStreak },
   };
 }

@@ -61,10 +61,27 @@ describe('habitReport', () => {
   });
 
   it('ngày không có lịch / ngày nghỉ không làm đứt chuỗi', () => {
+    // kỳ 05–11/10 đã qua hết (hôm nay 11/10), nên mới được tính 👑
     const t = habit({ id: 't', weekdays: [1, 3] });
     const checks = [check('t', '2026-10-05'), check('t', '2026-10-07')];
-    const r = habitReport([t], checks, new Set(['2026-10-06']), '2026-10-05', '2026-10-11', today);
+    const r = habitReport([t], checks, new Set(['2026-10-06']), '2026-10-05', '2026-10-11', '2026-10-11');
     expect(r.stats.bestStreak).toBe(2);
+    expect(r.perfectPeriod).toBe(true);
+  });
+
+  it('kỳ đang diễn ra (còn ngày tương lai) chưa được 👑 dù mọi ngày đã có đều trọn vẹn', () => {
+    // hôm nay 08/10, kỳ 05–11/10; thói quen mỗi ngày, 05–08 đều đã tick
+    const daily = habit({ id: 'd' });
+    const checks = ['05', '06', '07', '08'].map((d) => check('d', `2026-10-${d}`));
+    const r = habitReport([daily], checks, NONE, '2026-10-05', '2026-10-11', today);
+    expect(r.stats.perfectDays).toBe(4);
+    expect(r.perfectPeriod).toBe(false);
+  });
+
+  it('kỳ đã qua hết và mọi ngày có lịch đều trọn vẹn → 👑', () => {
+    const daily = habit({ id: 'd' });
+    const checks = ['05', '06', '07', '08', '09', '10', '11'].map((d) => check('d', `2026-10-${d}`));
+    const r = habitReport([daily], checks, NONE, '2026-10-05', '2026-10-11', '2026-10-12');
     expect(r.perfectPeriod).toBe(true);
   });
 
