@@ -10,7 +10,7 @@ const VI_CHARS = /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽê
 
 describe('errorText', () => {
   it('mọi mã có câu tiếng Anh, không lọt chữ Việt', () => {
-    expect(CODES.length).toBe(16);
+    expect(CODES.length).toBe(21);
     for (const code of CODES) {
       const s = errorText(new AppError(code, { date: '2026-10-01', id: 'x' }), en);
       expect(s.length).toBeGreaterThan(0);
