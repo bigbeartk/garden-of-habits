@@ -61,14 +61,5 @@
 .tpl-form__days-wrap { display: flex; flex-direction: column; gap: 6px; }
 .tpl-form__days-wrap .tpl-form__label { margin: 0; }
 .tpl-form__days-wrap small { font-size: 0.8rem; }
-.tpl-form__days { display: flex; gap: 6px; }
-/* nút tròn: padding 0 để Safari không nở thành bầu dục */
-.tpl-form__day {
-  flex: 1 1 0; min-width: 0; max-width: 44px; aspect-ratio: 1; padding: 0; border-radius: 50%; cursor: pointer;
-  border: 2px dashed var(--cocoa-soft); background: var(--white); color: var(--cocoa-soft);
-  font-family: var(--font-display); font-size: 0.85rem; font-weight: 700; line-height: 1;
-}
-.tpl-form__day.is-on { border: 2px solid var(--cocoa); background: var(--peach); color: var(--cocoa); box-shadow: var(--shadow-pop); }
-.tpl-form__day:active { transform: scale(0.94); }
 .confirm { display: inline-flex; gap: 6px; }
 .btn--danger { background: #FFC9D0; border-color: #C2415B; color: #8E2238; }

@@ -1,6 +1,7 @@
 import { useId, useState } from 'react';
 import { PERIODS, type Period } from '../domain/period';
 import { PeriodIcon } from './icons';
+import { WeekdayPicker } from './WeekdayPicker';
 import { parseItems } from '../domain/templateService';
 import type { TemplateItem } from '../domain/types';
 import { useI18n } from '../i18n/I18nProvider';
@@ -13,9 +14,6 @@ function toTexts(items: TemplateItem[]): Texts {
   for (const p of PERIODS) texts[p] = items.filter((i) => i.period === p).map((i) => i.text).join('\n');
   return texts;
 }
-
-/** thứ hiển thị bắt đầu từ thứ Hai; giá trị theo getDay() (0 = CN) */
-export const WEEK_ORDER = [1, 2, 3, 4, 5, 6, 0];
 
 export function TemplateForm({ initialName = '', initialItems = [], initialWeekdays = [], onSave, onCancel }: {
   initialName?: string;
@@ -61,23 +59,7 @@ export function TemplateForm({ initialName = '', initialItems = [], initialWeekd
       ))}
       <div className="tpl-form__days-wrap">
         <p id={`${id}-days`} className="tpl-form__label">{t.templateForm.weekdays}</p>
-        <div role="group" aria-labelledby={`${id}-days`} className="tpl-form__days">
-          {WEEK_ORDER.map((d) => {
-            const on = weekdays.includes(d);
-            return (
-              <button
-                key={d}
-                type="button"
-                className={`tpl-form__day${on ? ' is-on' : ''}`}
-                aria-pressed={on}
-                aria-label={t.templateForm.dayLong[d]}
-                onClick={() => setWeekdays((prev) => (prev.includes(d) ? prev.filter((x) => x !== d) : [...prev, d]))}
-              >
-                {t.templateForm.dayShort[d]}
-              </button>
-            );
-          })}
-        </div>
+        <WeekdayPicker value={weekdays} onChange={setWeekdays} labelledBy={`${id}-days`} />
         <small className="muted">{t.templateForm.weekdaysHint}</small>
       </div>
       {error && <p role="alert" className="error">{error}</p>}

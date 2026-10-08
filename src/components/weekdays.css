@@ -1,0 +1,9 @@
+.weekday-picker { display: flex; gap: 6px; }
+/* nút tròn: padding 0 để Safari không nở thành bầu dục */
+.weekday-picker__day {
+  flex: 1 1 0; min-width: 0; max-width: 44px; aspect-ratio: 1; padding: 0; border-radius: 50%; cursor: pointer;
+  border: 2px dashed var(--cocoa-soft); background: var(--white); color: var(--cocoa-soft);
+  font-family: var(--font-display); font-size: 0.85rem; font-weight: 700; line-height: 1;
+}
+.weekday-picker__day.is-on { border: 2px solid var(--cocoa); background: var(--peach); color: var(--cocoa); box-shadow: var(--shadow-pop); }
+.weekday-picker__day:active { transform: scale(0.94); }
