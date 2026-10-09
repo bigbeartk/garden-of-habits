@@ -1017,6 +1017,13 @@ test('Cài đặt: chọn icon nút menu cạnh hình nền lịch; Theo hình n
   const menu = page.getByRole('button', { name: 'Mở menu' });
   await expect(menu.locator('[data-icon="menu-dog"]')).toHaveCount(1);
 
+  // trái tim: chỉ chọn riêng được (không gắn với hình nền nào)
+  await iconBtn.click();
+  await group.getByRole('radio', { name: /Trái tim/ }).click();
+  await expect(group).toHaveCount(0);
+  await expect(menu.locator('[data-icon="menu-heart"]')).toHaveCount(1);
+  await menu.screenshot({ path: 'test-results/menu-icon-heart.png' });
+
   // quay về "Theo hình nền" rồi chọn nền Mèo: icon thành chân mèo
   await iconBtn.click();
   await group.getByRole('radio', { name: /Theo hình nền/ }).click();

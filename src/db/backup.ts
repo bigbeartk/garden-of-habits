@@ -98,7 +98,7 @@ const BackupSchema = z.object({
   gardenView: z.enum(['plants', 'habits']).optional(), // file cũ chưa có
   calendarBg: z.object({ mime: z.string(), base64: z.string().regex(/^[A-Za-z0-9+/]*={0,2}$/) }).nullable(),
   calendarTheme: z.enum(['default', 'cat', 'dog', 'grass', 'rain', 'gamer', 'photo']).optional(), // file cũ chưa có
-  menuIcon: z.enum(['auto', 'flower', 'cat', 'dog', 'grass', 'rain', 'gamer']).optional(), // icon nút menu; file cũ chưa có
+  menuIcon: z.enum(['auto', 'flower', 'cat', 'dog', 'grass', 'rain', 'gamer', 'heart']).optional(), // icon nút menu; file cũ chưa có
   // các công tắc bật/tắt (BOOLEAN_SETTINGS); file cũ có thể chưa có
   showCalendarBgButton: z.boolean().optional(),
   showNoteDot: z.boolean().optional(),

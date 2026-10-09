@@ -10,5 +10,6 @@ describe('resolveMenuIcon', () => {
   it('đã chọn riêng thì dùng icon đó, bất kể nền', () => {
     expect(resolveMenuIcon('rain', 'dog')).toBe('rain');
     expect(resolveMenuIcon('flower', 'cat')).toBe('flower');
+    expect(resolveMenuIcon('heart', 'photo')).toBe('heart');
   });
 });

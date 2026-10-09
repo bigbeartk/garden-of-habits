@@ -109,7 +109,7 @@ export function GearIcon({ size }: { size?: number }) {
 
 /**
  * Nút mở menu: bông hoa 4 cánh (`data-icon="menu"`), hoặc icon theo chủ đề hình nền
- * (`data-icon="menu-<kind>"`): chân mèo, chân cún, cỏ ba lá, mây mưa, tay cầm game.
+ * (`data-icon="menu-<kind>"`): chân mèo, chân cún, cỏ ba lá, mây mưa, tay cầm game; trái tim chỉ chọn riêng.
  */
 export function MenuIcon({ size, kind = 'flower' }: { size?: number; kind?: MenuIconKind }) {
   if (kind === 'cat') {
@@ -191,6 +191,20 @@ export function MenuIcon({ size, kind = 'flower' }: { size?: number; kind?: Menu
         <g shapeRendering="crispEdges">
           {px.map(([x, y, w, h, c], i) => <rect key={i} x={x} y={y} width={w} height={h} fill={c} />)}
         </g>
+      </Svg>
+    );
+  }
+  if (kind === 'heart') {
+    // trái tim chibi mũm mĩm: mắt cười cong, má hồng, vệt bóng và ánh lấp lánh
+    return (
+      <Svg name="menu-heart" size={size}>
+        <path d="M16 28 C 9 23.5 3 18.5 3 11.8 C 3 7.4 6.3 4.5 10 4.5 C 12.8 4.5 14.8 6 16 8.2 C 17.2 6 19.2 4.5 22 4.5 C 25.7 4.5 29 7.4 29 11.8 C 29 18.5 23 23.5 16 28 Z" fill="#FF8FA8" {...STROKE} />
+        <path d="M7.2 11.4 C 7.2 9.4 8.4 8 10.2 7.8" fill="none" stroke="#FFE3EA" strokeWidth={1.8} strokeLinecap="round" />
+        <path d="M10.6 14.6 q1.5 -1.6 3 0 M18.4 14.6 q1.5 -1.6 3 0" fill="none" {...STROKE} strokeWidth={1.5} />
+        <path d="M14.6 17.6 q1.4 1.4 2.8 0" fill="none" {...STROKE} strokeWidth={1.4} />
+        <ellipse cx={9.8} cy={17.6} rx={1.7} ry={1.05} fill="#FF5F86" />
+        <ellipse cx={22.2} cy={17.6} rx={1.7} ry={1.05} fill="#FF5F86" />
+        <path d="M26.5 2 L27.2 3.8 L29 4.5 L27.2 5.2 L26.5 7 L25.8 5.2 L24 4.5 L25.8 3.8 Z" fill="#FFE58A" stroke={INK} strokeWidth={0.9} strokeLinejoin="round" />
       </Svg>
     );
   }

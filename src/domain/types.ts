@@ -108,7 +108,7 @@ export type GardenView = 'plants' | 'habits';
 export type CalendarTheme = 'default' | 'cat' | 'dog' | 'grass' | 'rain' | 'gamer' | 'photo';
 
 /** Icon vẽ trên nút menu nổi. */
-export type MenuIconKind = 'flower' | 'cat' | 'dog' | 'grass' | 'rain' | 'gamer';
+export type MenuIconKind = 'flower' | 'cat' | 'dog' | 'grass' | 'rain' | 'gamer' | 'heart';
 /** Lựa chọn icon nút menu trong Cài đặt: 'auto' = theo hình nền lịch. */
 export type MenuIconChoice = 'auto' | MenuIconKind;
 

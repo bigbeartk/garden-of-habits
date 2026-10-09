@@ -73,7 +73,7 @@ describe('TabBar: icon nút menu', () => {
     expect(toggleIcon()).toBe('menu');
   });
 
-  it.each(['cat', 'dog', 'grass', 'rain', 'gamer'] as const)('icon %s', (icon) => {
+  it.each(['cat', 'dog', 'grass', 'rain', 'gamer', 'heart'] as const)('icon %s', (icon) => {
     render(<TabBar current="calendar" onChange={() => {}} icon={icon} />);
     expect(toggleIcon()).toBe(`menu-${icon}`);
   });

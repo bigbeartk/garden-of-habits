@@ -145,7 +145,7 @@ export const vi = {
     processingImage: 'Đang xử lý ảnh…',
   },
   menuIcon: {
-    options: { auto: 'Theo hình nền', flower: 'Bông hoa', cat: 'Chân mèo', dog: 'Chân cún', grass: 'Cỏ ba lá', rain: 'Mây mưa', gamer: 'Tay cầm game' } as Record<MenuIconChoice, string>,
+    options: { auto: 'Theo hình nền', flower: 'Bông hoa', cat: 'Chân mèo', dog: 'Chân cún', grass: 'Cỏ ba lá', rain: 'Mây mưa', gamer: 'Tay cầm game', heart: 'Trái tim' } as Record<MenuIconChoice, string>,
     toggle: (name: string) => `Đổi icon nút menu (đang dùng: ${name})`,
     title: 'Icon nút menu',
   },

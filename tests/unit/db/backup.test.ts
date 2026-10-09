@@ -467,12 +467,12 @@ describe('language trong sao lưu', () => {
 describe('sao lưu icon nút menu', () => {
   it('giữ menuIcon khi khôi phục; gộp chỉ lấy khi máy chưa chọn', async () => {
     const src = makeDb();
-    await setSetting(src, 'menuIcon', 'dog');
+    await setSetting(src, 'menuIcon', 'heart');
     const r = parseBackup(serializeBackup(await createBackup(src, 1)));
     if (!r.ok) throw new Error(r.error);
     const dst = makeDb();
     await restoreBackup(dst, r.backup, 'replace');
-    expect(await getSetting(dst, 'menuIcon')).toBe('dog');
+    expect(await getSetting(dst, 'menuIcon')).toBe('heart');
     const mine = makeDb();
     await setSetting(mine, 'menuIcon', 'cat');
     await restoreBackup(mine, r.backup, 'merge');

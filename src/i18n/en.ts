@@ -137,7 +137,7 @@ export const en: Messages = {
     processingImage: 'Processing image…',
   },
   menuIcon: {
-    options: { auto: 'Match background', flower: 'Flower', cat: 'Kitty paw', dog: 'Puppy paw', grass: 'Clover', rain: 'Rain cloud', gamer: 'Game pad' },
+    options: { auto: 'Match background', flower: 'Flower', cat: 'Kitty paw', dog: 'Puppy paw', grass: 'Clover', rain: 'Rain cloud', gamer: 'Game pad', heart: 'Heart' },
     toggle: (name) => `Change menu button icon (current: ${name})`,
     title: 'Menu button icon',
   },
