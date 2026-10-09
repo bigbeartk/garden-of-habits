@@ -112,51 +112,35 @@ function Bloomlet({ x, y, c = '#FFC9DA', r = 3.2 }: { x: number; y: number; c?: 
     </g>
   );
 }
-/** Điểm trên đường cong bậc hai (để rải bông dọc cành) */
-const qpt = (a: number[], c: number[], b: number[], t: number) => [
-  (1 - t) ** 2 * a[0] + 2 * (1 - t) * t * c[0] + t ** 2 * b[0],
-  (1 - t) ** 2 * a[1] + 2 * (1 - t) * t * c[1] + t ** 2 * b[1],
-];
-
-// Rủ: thân cao thẳng, cành vồng ra rồi rủ xuống như đài phun nước
-const WEEP: { c: number[]; b: number[] }[] = [
-  { c: [56, 30], b: [40, 128] },
-  { c: [144, 30], b: [160, 128] },
-  { c: [72, 40], b: [62, 138] },
-  { c: [128, 40], b: [138, 138] },
-  { c: [86, 44], b: [82, 118] },
-  { c: [114, 44], b: [118, 118] },
-];
-function WeepingTree({ flower }: { flower: boolean }) {
-  const top = [100, 56];
+// Bụi (id vẫn là 'weeping', tên cũ Rủ, để giữ dáng đã mở trong dữ liệu cũ; bản Rủ cũ lưu ở src/dev/sketch/cherry.tsx):
+// bụi lá tròn thấp điểm hoa trắng hồng, ra hoa thì chùm cherry đôi quanh chân bụi; mặt giữa bụi
+const BUSH: [number, number, number][] = [[100, 112, 34], [68, 128, 24], [132, 128, 24], [84, 100, 20], [116, 100, 20]];
+const BUSH_FLOWERS: [number, number][] = [[62, 120], [76, 98], [124, 98], [140, 122], [102, 88]];
+function Bush({ ripe }: { ripe: boolean }) {
+  const fill = ripe ? '#9ED68E' : '#B5E3A8';
   return (
     <g>
-      <path d="M95 160 Q98 110 98 60 L102 60 Q102 110 105 160 Z" fill={BARK} stroke={INK} strokeWidth={2} strokeLinejoin="round" />
-      {WEEP.map(({ c, b }) => (
-        <path key={b.join()} d={`M${top[0]} ${top[1]} Q${c[0]} ${c[1]} ${b[0]} ${b[1]}`} fill="none" stroke={flower ? '#7A4E33' : '#7BBF6A'} strokeWidth={2.2} strokeLinecap="round" />
-      ))}
-      {WEEP.flatMap(({ c, b }) =>
-        [0.3, 0.45, 0.6, 0.75, 0.9].map((t) => {
-          const [x, y] = qpt(top, c, b, t);
-          return flower
-            ? <Bloomlet key={`${b.join()}-${t}`} x={x} y={y} c={t > 0.6 ? '#FFB3C8' : '#FFC9DA'} />
-            : <ellipse key={`${b.join()}-${t}`} cx={x} cy={y} rx={2.6} ry={4} fill="#B5E3A8" stroke={INK} strokeWidth={0.9} />;
-        }),
-      )}
-      <circle cx={100} cy={52} r={17} fill={flower ? '#FFC9DA' : '#B5E3A8'} stroke={INK} strokeWidth={2.4} />
+      {BUSH.map(([x, y, r]) => <circle key={`o${x}-${y}`} cx={x} cy={y} r={r} fill={fill} stroke={INK} strokeWidth={4} />)}
+      {BUSH.map(([x, y, r]) => <circle key={`i${x}-${y}`} cx={x} cy={y} r={r} fill={fill} />)}
+      {BUSH_FLOWERS.map(([x, y]) => <Bloomlet key={`${x}-${y}`} x={x} y={y} c={ripe ? '#FFE0EA' : '#FFE9F0'} r={3.4} />)}
     </g>
   );
 }
+/** cherry đôi thu nhỏ quanh tâm (x, y) */
+function SmallPair({ x, y, s }: { x: number; y: number; s: number }) {
+  return <g transform={`translate(${x} ${y}) scale(${s}) translate(${-x} ${-y})`}><CherryPair x={x} y={y} /></g>;
+}
 function CherryWeepingBud() {
-  return <WeepingTree flower={false} />;
+  return <Bush ripe={false} />;
 }
 function CherryWeepingBloom() {
   return (
     <g>
-      <WeepingTree flower />
-      <CherryPair x={40} y={142} />
-      <CherryPair x={160} y={142} />
-      <Petals />
+      <Bush ripe />
+      <SmallPair x={58} y={138} s={0.9} />
+      <SmallPair x={142} y={138} s={0.9} />
+      <SmallPair x={80} y={152} s={0.8} />
+      <SmallPair x={122} y={150} s={0.8} />
     </g>
   );
 }
@@ -234,10 +218,10 @@ export const cherry: PlantSpecies = {
   styles: [
     {
       id: 'weeping',
-      name: { vi: 'Rủ', en: 'Weeping' },
+      name: { vi: 'Bụi', en: 'Bush' },
       unlockAt: 10,
       stages: { bud: { svg: CherryWeepingBud }, bloom: { svg: CherryWeepingBloom } },
-      faceAnchor: { bud: { x: 100, y: 53, scale: 0.42 }, bloom: { x: 100, y: 53, scale: 0.42 } },
+      faceAnchor: { bud: { x: 100, y: 118, scale: 0.55 }, bloom: { x: 100, y: 118, scale: 0.6 } },
     },
     {
       id: 'lantern',

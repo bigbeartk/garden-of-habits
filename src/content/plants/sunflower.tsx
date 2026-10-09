@@ -1,4 +1,3 @@
-import type { ReactNode } from 'react';
 import { INK } from '../Face';
 import type { PlantSpecies } from '../types';
 import { LeafyStem, Seed, Sprout } from './parts';
@@ -35,19 +34,6 @@ function SunflowerBloom() {
   );
 }
 
-/** Một bông hướng dương: n cánh xoè quanh nhị tròn (dùng cho các dáng mở khoá). */
-function Flower({ x, y, r, n, pw, ph, petal, core, rot = 0 }: { x: number; y: number; r: number; n: number; pw: number; ph: number; petal: string; core: string; rot?: number }) {
-  return (
-    <g transform={`rotate(${rot} ${x} ${y})`}>
-      {Array.from({ length: n }, (_, i) => (i * 360) / n).map((a) => (
-        <ellipse key={a} cx={x} cy={y - r - ph * 0.5} rx={pw} ry={ph} fill={petal} stroke={INK} strokeWidth={1.5} transform={`rotate(${a} ${x} ${y})`} />
-      ))}
-      <circle cx={x} cy={y} r={r} fill={core} stroke={INK} strokeWidth={2} />
-      <circle cx={x - r * 0.35} cy={y - r * 0.35} r={r * 0.18} fill="#fff" opacity={0.35} />
-    </g>
-  );
-}
-
 /** Lá to bản ở gốc, nghiêng theo góc r (độ) */
 function BigLeaf({ x, y, r, s = 1 }: { x: number; y: number; r: number; s?: number }) {
   return (
@@ -58,83 +44,102 @@ function BigLeaf({ x, y, r, s = 1 }: { x: number; y: number; r: number; s?: numb
   );
 }
 
-// Dáng Mini: bụi thấp phân nhánh, 5 bông nhỏ cam đỏ xoè quạt, bông giữa to nhất mang mặt
-const MINI_PETAL = '#FF9A5C';
-const MINI_CORE = '#8A5A3C';
-const MINI_HEADS = [
-  { x: 52, y: 112, r: 8 },
-  { x: 72, y: 90, r: 9 },
-  { x: 128, y: 90, r: 9 },
-  { x: 148, y: 112, r: 8 },
-];
-const MINI_CENTER = { x: 100, y: 78, r: 13 };
+// Dáng Mặt trời nhỏ, dáng 3 (20 ngày; id vẫn là 'mini', tên cũ Mini, để giữ dáng đã mở trong dữ liệu cũ):
+// thân ngắn mập, hai lá to xoè sát đất, đầu to tròn hai vòng cánh (cam sau, vàng trước), lòng vàng nghệ trơn mang mặt
+const SUN_PETAL = '#FFD93B';
+const SUN_PETAL_BACK = '#F5A623';
+const SUN_DISC = '#F0B04A';
+const SUN_DISC_RIM = '#D98B2B';
+const SUN_LEAF = '#8FD07F';
+const SUN_STEM = '#6CB85A';
 
-function MiniBush({ children }: { children: ReactNode }) {
+/** lá to bản sát đất, gốc ở (100, 158), xoè sang `side` */
+function GroundLeaf({ side, r, s = 1 }: { side: 1 | -1; r: number; s?: number }) {
   return (
-    <g>
-      {[...MINI_HEADS, MINI_CENTER].map((h) => (
-        <path key={`${h.x}-${h.y}`} d={`M100 160 Q${(100 + h.x) / 2} ${(160 + h.y) / 2 + 12} ${h.x} ${h.y}`} stroke={STEM} strokeWidth={5} fill="none" strokeLinecap="round" />
-      ))}
-      <BigLeaf x={98} y={152} r={180} s={0.9} />
-      <BigLeaf x={102} y={150} r={-8} s={0.9} />
-      <BigLeaf x={86} y={132} r={200} s={0.65} />
-      <BigLeaf x={114} y={130} r={-25} s={0.65} />
-      {children}
+    <g transform={`translate(100 158) scale(${side * s} ${s}) rotate(${r})`}>
+      <path d="M0 0 C10 -18 38 -22 54 -8 C40 4 16 8 0 0 Z" fill={SUN_LEAF} stroke={INK} strokeWidth={2} strokeLinejoin="round" />
+      <path d="M4 -2 C18 -8 34 -10 48 -8" stroke="#5FA64F" strokeWidth={1.6} fill="none" strokeLinecap="round" />
     </g>
   );
 }
+function ShortStem({ top, w }: { top: number; w: number }) {
+  const mid = (158 + top) / 2;
+  return <path d={`M100 158 C94 ${mid + 8} 106 ${mid - 8} 100 ${top}`} stroke={SUN_STEM} strokeWidth={w} fill="none" strokeLinecap="round" />;
+}
 function SunflowerMiniBud() {
+  const [x, y, r] = [100, 92, 20];
   return (
-    <MiniBush>
-      {MINI_HEADS.map((h) => (
-        <g key={`${h.x}-${h.y}`}>
-          <Flower x={h.x} y={h.y} r={6} n={6} pw={2.5} ph={4} petal={MINI_PETAL} core="#B7E3A1" />
-        </g>
+    <g>
+      <GroundLeaf side={-1} r={-6} s={0.85} />
+      <GroundLeaf side={1} r={-6} s={0.85} />
+      <ShortStem top={100} w={7} />
+      {Array.from({ length: 10 }, (_, i) => i * 36).map((a) => (
+        <ellipse key={a} cx={x} cy={y - r - 3} rx={5} ry={7} fill={SUN_PETAL} stroke={INK} strokeWidth={1.4} transform={`rotate(${a} ${x} ${y})`} />
       ))}
-      <Flower x={MINI_CENTER.x} y={MINI_CENTER.y} r={13} n={8} pw={3.5} ph={5} petal={MINI_PETAL} core="#B7E3A1" />
-    </MiniBush>
+      {[-40, 0, 40].map((a) => (
+        <path key={a} d={`M${x} ${y + r - 4} q-6 8 0 14 q6 -6 0 -14 Z`} fill={SUN_LEAF} stroke={INK} strokeWidth={1.3} transform={`rotate(${a} ${x} ${y})`} />
+      ))}
+      <circle cx={x} cy={y} r={r} fill="#A9DD8E" stroke={INK} strokeWidth={2.2} />
+    </g>
   );
 }
 function SunflowerMiniBloom() {
+  const [x, y, r, n] = [100, 80, 28, 14];
+  const ring = (off: number, fill: string, len: number) =>
+    Array.from({ length: n }, (_, i) => (i * 360) / n + off).map((a) => (
+      <ellipse key={`${fill}-${a}`} cx={x} cy={y - r - len * 0.55} rx={len * 0.55} ry={len} fill={fill} stroke={INK} strokeWidth={1.6} transform={`rotate(${a} ${x} ${y})`} />
+    ));
   return (
-    <MiniBush>
-      {MINI_HEADS.map((h) => (
-        <Flower key={`${h.x}-${h.y}`} x={h.x} y={h.y} r={h.r} n={10} pw={4.5} ph={8} petal={MINI_PETAL} core={MINI_CORE} />
-      ))}
-      <Flower x={MINI_CENTER.x} y={MINI_CENTER.y} r={MINI_CENTER.r} n={12} pw={6} ph={11} petal={MINI_PETAL} core={MINI_CORE} />
-    </MiniBush>
+    <g>
+      <GroundLeaf side={-1} r={-8} />
+      <GroundLeaf side={1} r={-8} />
+      <ShortStem top={96} w={8} />
+      {ring(180 / n, SUN_PETAL_BACK, r * 0.5)}
+      {ring(0, SUN_PETAL, r * 0.42)}
+      <circle cx={x} cy={y} r={r + 1.5} fill={SUN_DISC_RIM} stroke={INK} strokeWidth={2.2} />
+      <circle cx={x} cy={y + 1} r={r - 2} fill={SUN_DISC} />
+      <ellipse cx={x - r * 0.4} cy={y - r * 0.45} rx={r * 0.22} ry={r * 0.14} fill="#fff" opacity={0.45} />
+    </g>
   );
 }
 
-// Dáng Khổng lồ: thân rất cao cong như dấu hỏi, bông to cúi chào bên phải
+// Dáng Khổng lồ, dáng 2 (10 ngày): thân cao vồng nhẹ (không cuộn tròn), bông to gật đầu bên phải, ba lá to so le
 function GiantStem() {
   return (
     <g>
-      <path d="M92 160 C86 112 66 52 94 26 C116 6 148 18 146 56" stroke={STEM} strokeWidth={9} fill="none" strokeLinecap="round" />
-      <BigLeaf x={90} y={140} r={195} s={1.15} />
-      <BigLeaf x={86} y={116} r={-20} s={1.05} />
-      <BigLeaf x={77} y={82} r={210} s={0.8} />
+      <path d="M96 160 C88 112 90 58 116 42 C132 34 142 42 142 54" stroke={STEM} strokeWidth={8} fill="none" strokeLinecap="round" />
+      <BigLeaf x={93} y={138} r={195} s={1.1} />
+      <BigLeaf x={91} y={112} r={-25} s={1} />
+      <BigLeaf x={93} y={82} r={205} s={0.8} />
     </g>
   );
 }
 function SunflowerGiantBud() {
+  const [x, y, r] = [142, 70, 18];
   return (
     <g>
       <GiantStem />
-      <g transform="rotate(160 146 74)">
+      <g transform={`rotate(160 ${x} ${y})`}>
         {[-50, -25, 0, 25, 50].map((a) => (
-          <path key={a} d="M146 50 q7 10 0 16 q-7 -6 0 -16 z" fill="#FFD86B" stroke={INK} strokeWidth={1.5} transform={`rotate(${a} 146 74)`} />
+          <path key={a} d={`M${x} ${y - r - 4} q${r * 0.35} ${r * 0.5} 0 ${r * 0.8} q${-r * 0.35} ${-r * 0.3} 0 ${-r * 0.8} z`} fill="#FFD86B" stroke={INK} strokeWidth={1.4} transform={`rotate(${a} ${x} ${y})`} />
         ))}
+        <circle cx={x} cy={y} r={r} fill="#B7E3A1" stroke={INK} strokeWidth={2} />
       </g>
-      <circle cx={146} cy={74} r={20} fill="#B7E3A1" stroke={INK} strokeWidth={2} />
     </g>
   );
 }
 function SunflowerGiantBloom() {
+  const [x, y, r] = [142, 82, 25];
   return (
     <g>
       <GiantStem />
-      <Flower x={146} y={94} r={24} n={16} pw={7} ph={14} petal="#FFD86B" core="#B5835A" rot={25} />
+      <g transform={`rotate(20 ${x} ${y})`}>
+        {Array.from({ length: 16 }, (_, i) => i * 22.5).map((a) => (
+          <ellipse key={a} cx={x} cy={y - r * 1.55} rx={r * 0.32} ry={r * 0.62} fill="#FFD86B" stroke={INK} strokeWidth={1.5} transform={`rotate(${a} ${x} ${y})`} />
+        ))}
+        <circle cx={x} cy={y} r={r} fill="#B5835A" stroke={INK} strokeWidth={2} />
+        <circle cx={x - r * 0.35} cy={y - r * 0.35} r={r * 0.18} fill="#fff" opacity={0.35} />
+      </g>
     </g>
   );
 }
@@ -169,18 +174,18 @@ export const sunflower: PlantSpecies = {
   },
   styles: [
     {
-      id: 'mini',
-      name: { vi: 'Mini', en: 'Mini' },
-      unlockAt: 10,
-      stages: { bud: { svg: SunflowerMiniBud }, bloom: { svg: SunflowerMiniBloom } },
-      faceAnchor: { bud: { x: 100, y: 79, scale: 0.38 }, bloom: { x: 100, y: 79, scale: 0.45 } },
-    },
-    {
       id: 'giant',
       name: { vi: 'Khổng lồ', en: 'Giant' },
-      unlockAt: 20,
+      unlockAt: 10,
       stages: { bud: { svg: SunflowerGiantBud }, bloom: { svg: SunflowerGiantBloom } },
-      faceAnchor: { bud: { x: 146, y: 76, scale: 0.55 }, bloom: { x: 146, y: 95, scale: 0.8 } },
+      faceAnchor: { bud: { x: 142, y: 70, scale: 0.55 }, bloom: { x: 142, y: 82, scale: 0.85 } },
+    },
+    {
+      id: 'mini',
+      name: { vi: 'Mặt trời nhỏ', en: 'Little Sun' },
+      unlockAt: 20,
+      stages: { bud: { svg: SunflowerMiniBud }, bloom: { svg: SunflowerMiniBloom } },
+      faceAnchor: { bud: { x: 100, y: 94, scale: 0.67 }, bloom: { x: 100, y: 82, scale: 0.93 } },
     },
   ],
 };

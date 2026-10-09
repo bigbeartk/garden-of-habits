@@ -111,19 +111,19 @@ describe('PlantPotSheet: dáng cây', () => {
     expect(await screen.findByRole('dialog', { name: 'Dáng của Hướng dương' })).toBeInTheDocument();
     expect(await screen.findByText('Đã ra hoa 12 ngày', {}, LIVE)).toBeInTheDocument();
     expect(screen.getByText('12/20')).toBeInTheDocument();
-    const locked = screen.getByTestId('style-giant');
+    const locked = screen.getByTestId('style-mini');
     expect(locked).toHaveAttribute('aria-disabled', 'true');
     expect(within(locked).queryByTestId('picker-scene')).toBeNull();
     expect(within(locked).getByTestId('locked-style-art')).toBeInTheDocument();
     expect(locked).toHaveTextContent('Dáng bí ẩn');
     expect(locked).toHaveTextContent('Ra hoa 20 ngày để mở');
-    expect(locked).not.toHaveTextContent('Khổng lồ');
+    expect(locked).not.toHaveTextContent('Mặt trời nhỏ');
     await user.click(locked);
     expect(onPick).not.toHaveBeenCalled();
-    const mini = screen.getByTestId('style-mini');
-    expect(within(mini).getByTestId('picker-scene')).toHaveAttribute('data-style', 'mini');
-    await user.click(mini);
-    expect(onPick).toHaveBeenCalledWith('sunflower', null, 'mini');
+    const giant = screen.getByTestId('style-giant');
+    expect(within(giant).getByTestId('picker-scene')).toHaveAttribute('data-style', 'giant');
+    await user.click(giant);
+    expect(onPick).toHaveBeenCalledWith('sunflower', null, 'giant');
   });
 
   it('nút Quay lại chọn cây và nút Back của Android về lưới loài', async () => {

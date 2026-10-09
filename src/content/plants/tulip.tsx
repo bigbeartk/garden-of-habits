@@ -72,135 +72,39 @@ function TulipSeed() {
 function TulipSprout() {
   return <Sprout leaf={LEAF} stem={STEM} />;
 }
-function TulipBud() {
+function TulipBud({ p = RED_PALETTE }: { p?: typeof RED_PALETTE }) {
   return (
     <g>
       <Stalk top={100} />
       <BroadLeaf side={-1} tipX={60} tipY={104} />
       <BroadLeaf side={1} tipX={142} tipY={110} />
       <g transform="translate(100 82)">
-        <ClosedBud />
+        <ClosedBud p={p} />
       </g>
     </g>
   );
 }
-function TulipBloom() {
+function TulipBloom({ p = RED_PALETTE }: { p?: typeof RED_PALETTE }) {
   return (
     <g>
       <Stalk top={104} />
       <BroadLeaf side={-1} tipX={48} tipY={100} />
       <BroadLeaf side={1} tipX={154} tipY={108} />
       <g transform="translate(100 76) scale(1.15)">
-        <Cup />
+        <Cup p={p} />
       </g>
     </g>
   );
 }
 
-// ---- Dáng mở khoá ----
-
-// Vẹt: bông nở bung rộng, cánh viền xoăn tua rua, vàng sọc lửa đỏ
-const PARROT = { main: '#FFD45C', deep: '#FFB84D', flame: '#F0525A' };
-/** Viền xoăn tua rua từ (x0, y) tới (x1, y): răng cưa nhấp nhô */
-function ruffle(x0: number, x1: number, y: number, n: number, h: number) {
-  let d = '';
-  for (let i = 1; i <= n; i++) {
-    const x = x0 + ((x1 - x0) * i) / n;
-    d += ` L${(x - (x1 - x0) / n / 2).toFixed(1)} ${y - h} L${x.toFixed(1)} ${y}`;
-  }
-  return d;
-}
-/** Bông vẹt: chén tulip loe miệng rộng, viền xoăn, cánh sau ló lên; sọc lửa chỉ ở hai bên để chừa mặt */
-function ParrotBloomHead() {
-  return (
-    <g strokeLinejoin="round" stroke={INK}>
-      <path d={`M-30 -24 C-34 -40 -20 -52 -12 -48${ruffle(-12, 12, -50, 4, 7)} C20 -52 34 -40 30 -24 Z`} fill={PARROT.deep} strokeWidth={1.8} />
-      <path d={`M-12 28 C-30 22 -42 0 -46 -30${ruffle(-46, 46, -30, 9, 9)} C42 0 30 22 12 28 C6 31 -6 31 -12 28 Z`} fill={PARROT.main} strokeWidth={2.2} />
-      <g fill="none" stroke={PARROT.flame} strokeWidth={2.6} strokeLinecap="round">
-        <path d="M-26 18 C-32 6 -36 -10 -38 -26 M-20 22 C-24 10 -26 -6 -26 -24" />
-        <path d="M26 18 C32 6 36 -10 38 -26 M20 22 C24 10 26 -6 26 -24" />
-      </g>
-      <ellipse cx={-30} cy={-6} rx={3} ry={7} fill="#fff" stroke="none" opacity={0.55} transform="rotate(20 -30 -6)" />
-    </g>
-  );
-}
-function TulipParrotBud() {
-  return (
-    <g>
-      <Stalk top={100} />
-      <BroadLeaf side={-1} tipX={58} tipY={108} />
-      <BroadLeaf side={1} tipX={144} tipY={112} />
-      <g transform="translate(100 82)">
-        <ClosedBud p={{ main: PARROT.main, deep: PARROT.deep, light: '#FFF0A8' }} />
-        <path d="M-10 -20 l4 -10 l3 7 l4 -9 l3 8 l4 -8 l2 10" fill="none" stroke={PARROT.flame} strokeWidth={2.2} strokeLinejoin="round" strokeLinecap="round" />
-      </g>
-    </g>
-  );
-}
-function TulipParrotBloom() {
-  return (
-    <g>
-      <Stalk top={108} />
-      <BroadLeaf side={-1} tipX={46} tipY={104} />
-      <BroadLeaf side={1} tipX={156} tipY={110} />
-      <g transform="translate(100 82) scale(1.2)">
-        <ParrotBloomHead />
-      </g>
-    </g>
-  );
-}
-
-// Bó hoa: ba bông tulip cao thấp (hồng, vàng, đỏ) buộc nơ
+// ---- Dáng mở khoá: cùng dáng Gốc, chỉ khác màu (theo ý chủ repo; ngoại lệ của quy tắc "khác dáng") ----
+// id giữ 'parrot' / 'bouquet' (tên cũ Vẹt / Bó hoa) để dáng đã mở trong dữ liệu cũ vẫn khớp; bản Bó hoa lưu ở src/dev/sketch/tulip.tsx
 const PINK_T = { main: '#FF9DB5', deep: '#F2789A', light: '#FFC4D3' };
 const YELLOW_T = { main: '#FFD45C', deep: '#F5B83D', light: '#FFF0A8' };
-const BOUQUET = [
-  { x: 72, y: 82, s: 0.62, r: -18, p: PINK_T },
-  { x: 128, y: 82, s: 0.62, r: 18, p: YELLOW_T },
-  { x: 100, y: 62, s: 0.8, r: 0, p: RED_PALETTE },
-];
-function BouquetBow() {
-  return (
-    <g stroke={INK} strokeWidth={1.6} strokeLinejoin="round" transform="translate(100 134)">
-      <path d="M-3 2 L-10 18 L-5 15 L-3 20 Z M3 2 L10 18 L5 15 L3 20 Z" fill="#9AD1F5" />
-      <path d="M-3 0 C-12 -11 -23 -9 -21 0 C-23 9 -12 11 -3 0 Z" fill="#9AD1F5" />
-      <path d="M3 0 C12 -11 23 -9 21 0 C23 9 12 11 3 0 Z" fill="#9AD1F5" />
-      <rect x={-5} y={-5} width={10} height={10} rx={3.5} fill="#6FB8E8" />
-    </g>
-  );
-}
-function BouquetStems() {
-  return (
-    <g stroke={STEM} strokeWidth={5} fill="none" strokeLinecap="round">
-      {BOUQUET.map((f) => <path key={f.x} d={`M100 158 Q${(100 + f.x) / 2} 120 ${f.x} ${f.y + 22 * f.s}`} />)}
-    </g>
-  );
-}
-function TulipBouquetBud() {
-  return (
-    <g>
-      <BroadLeaf side={-1} tipX={60} tipY={116} />
-      <BroadLeaf side={1} tipX={140} tipY={116} />
-      <BouquetStems />
-      {BOUQUET.map((f) => (
-        <g key={f.x} transform={`translate(${f.x} ${f.y}) rotate(${f.r}) scale(${f.s * 0.9})`}><ClosedBud p={f.p} /></g>
-      ))}
-      <BouquetBow />
-    </g>
-  );
-}
-function TulipBouquetBloom() {
-  return (
-    <g>
-      <BroadLeaf side={-1} tipX={52} tipY={112} />
-      <BroadLeaf side={1} tipX={148} tipY={112} />
-      <BouquetStems />
-      {BOUQUET.map((f) => (
-        <g key={f.x} transform={`translate(${f.x} ${f.y}) rotate(${f.r}) scale(${f.s})`}><Cup p={f.p} /></g>
-      ))}
-      <BouquetBow />
-    </g>
-  );
-}
+const TulipPinkBud = () => <TulipBud p={PINK_T} />;
+const TulipPinkBloom = () => <TulipBloom p={PINK_T} />;
+const TulipYellowBud = () => <TulipBud p={YELLOW_T} />;
+const TulipYellowBloom = () => <TulipBloom p={YELLOW_T} />;
 
 /** id giữ là 'hydrangea' (trước đây là Cẩm tú cầu) để ngày cũ, sao lưu và cây đặc biệt đã mở khoá vẫn khớp. */
 export const tulip: PlantSpecies = {
@@ -234,17 +138,17 @@ export const tulip: PlantSpecies = {
   styles: [
     {
       id: 'parrot',
-      name: { vi: 'Vẹt', en: 'Parrot' },
+      name: { vi: 'Hồng', en: 'Pink' },
       unlockAt: 10,
-      stages: { bud: { svg: TulipParrotBud }, bloom: { svg: TulipParrotBloom } },
-      faceAnchor: { bud: { x: 100, y: 78, scale: 0.6 }, bloom: { x: 100, y: 88, scale: 0.9 } },
+      stages: { bud: { svg: TulipPinkBud }, bloom: { svg: TulipPinkBloom } },
+      faceAnchor: { bud: { x: 100, y: 78, scale: 0.6 }, bloom: { x: 100, y: 90, scale: 1 } },
     },
     {
       id: 'bouquet',
-      name: { vi: 'Bó hoa', en: 'Bouquet' },
+      name: { vi: 'Vàng', en: 'Yellow' },
       unlockAt: 20,
-      stages: { bud: { svg: TulipBouquetBud }, bloom: { svg: TulipBouquetBloom } },
-      faceAnchor: { bud: { x: 100, y: 59, scale: 0.42 }, bloom: { x: 100, y: 73, scale: 0.75 } },
+      stages: { bud: { svg: TulipYellowBud }, bloom: { svg: TulipYellowBloom } },
+      faceAnchor: { bud: { x: 100, y: 78, scale: 0.6 }, bloom: { x: 100, y: 90, scale: 1 } },
     },
   ],
 };

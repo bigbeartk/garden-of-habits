@@ -89,15 +89,15 @@ Quy tắc CLAUDE.md vẫn áp dụng: mỗi dáng **khác dáng mọi loài khá
 
 | Loài | Dáng 2 (10 ngày) | Dáng 3 (20 ngày) |
 |---|---|---|
-| Hướng dương | `mini` **Mini**: bụi thấp phân nhánh, 5 bông nhỏ cam đỏ xoè quạt | `giant` **Khổng lồ**: thân rất cao cong như dấu hỏi, bông to cúi chào |
+| Hướng dương | `giant` **Khổng lồ**: thân cao vồng nhẹ, bông to gật đầu bên phải | `mini` **Mặt trời nhỏ** (trước là Mini): thân ngắn, hai lá sát đất, đầu to tròn hai vòng cánh, lòng vàng nghệ mang mặt |
 | Ngô | `popcorn` **Bỏng ngô**: thân ngắn, bắp nổ bung thành đám mây bỏng ngô lổn nhổn | `rainbow` **Cầu vồng**: ba bắp bóc vỏ, hạt nhiều màu, xoè như bó hoa |
 | Xương rồng | `bunny` **Tai thỏ**: lá dẹt hình bầu dục chồng lên nhau như tai thỏ, chấm gai | `barrel` **Cầu vàng**: khối cầu thấp có sống dọc, gai vàng, vương miện hoa |
 | Monstera | `pole` **Leo cột**: cột rêu thẳng đứng, lá ôm cột leo lên | `trailing` **Rủ**: lá thả rủ tràn qua mép chậu xuống hai bên |
 | Cây cam | `kumquat` **Quất Tết**: tán tỉa tròn nhiều tầng, quả nhỏ dày, treo bao lì xì | `bonsai` **Bonsai**: thân xoắn nghiêng, 2–3 tầng tán mây dẹt, vài quả cam |
-| Cherry | `weeping` **Rủ**: cành rủ hình đài phun nước, quả lấp ló | `lantern` **Cần câu**: thân cong một bên như cần câu, treo một chùm cherry to |
-| Hoa hồng | `arch` **Cổng vòm**: cổng vòm phủ hồng nhỏ, mặt ở bông giữa đỉnh vòm | `dome` **Chuông kính**: một bông hồng xanh đêm lơ lửng trong chuông kính lấp lánh |
+| Cherry | `weeping` **Bụi** (trước là Rủ): bụi lá tròn thấp, chùm cherry đôi quanh chân, mặt giữa bụi | `lantern` **Cần câu**: thân cong một bên như cần câu, treo một chùm cherry to |
+| Hoa hồng | `arch` **Cành ba bông** (trước là Cổng vòm): một cành chẻ hai nhánh, ba bông hồng nhìn từ trên, bông đỉnh mang mặt | `dome` **Hồng bắp cải** (trước là Chuông kính): một bông cầu nhiều lớp cánh tròn, lòng trơn mang mặt |
 | Dưa hấu | `square` **Vuông**: quả dưa khối vuông ngồi trên lá | `trellis` **Giàn leo**: giàn thẳng đứng treo nhiều dưa tí hon trong túi lưới |
-| Tulip | `parrot` **Vẹt**: cánh xoăn tua rua xoè rộng, sọc đỏ vàng | `bouquet` **Bó hoa**: ba bông cao thấp buộc nơ |
+| Tulip | `parrot` **Hồng** (trước là Vẹt): cùng dáng Gốc, tulip hồng | `bouquet` **Vàng** (trước là Bó hoa): cùng dáng Gốc, tulip vàng |
 
 Soát hình: một trang dev (mở rộng `src/dev/ArtGallery.tsx`, ô cỡ cố định) vẽ đủ 27 dáng × `bud`/`bloom`. Chụp WebKit khổ iPhone 13 và đặt cạnh nhau.
 

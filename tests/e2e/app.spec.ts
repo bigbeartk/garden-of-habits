@@ -866,13 +866,13 @@ test('dáng cây: đủ 10 ngày ra hoa mở dáng 2; dáng 3 khoá và không l
   const bar = page.getByRole('progressbar', { name: 'Tiến độ mở dáng' });
   await expect(bar).toContainText('12/20');
   expect((await bar.boundingBox())!.width).toBeGreaterThan(150);
-  const locked = page.getByTestId('style-giant');
+  const locked = page.getByTestId('style-mini');
   await expect(locked).toContainText('Dáng bí ẩn');
   await expect(locked.getByTestId('picker-scene')).toHaveCount(0);
-  await page.getByTestId('style-mini').click();
+  await page.getByTestId('style-giant').click();
   await expect(page.getByRole('dialog')).toHaveCount(0);
   const scene = page.getByTestId('plant-scene').first();
-  await expect(scene).toHaveAttribute('data-style', 'mini');
+  await expect(scene).toHaveAttribute('data-style', 'giant');
   await expect(scene).toHaveAttribute('data-plant', 'sunflower');
 });
 
@@ -903,7 +903,7 @@ test('dáng cây: ra hoa lần thứ 10 thì hiện khung mừng mở dáng mớ
   await addTodo(page, 'Tưới cây');
   await closeDraft(page);
   await page.getByRole('checkbox', { name: 'Hoàn thành: Tưới cây' }).click();
-  await expect(page.getByTestId('style-unlock')).toContainText('Mở khoá dáng mới: Hướng dương · Mini!');
+  await expect(page.getByTestId('style-unlock')).toContainText('Mở khoá dáng mới: Hướng dương · Khổng lồ!');
 });
 
 test('Nhắc việc: bật Hôm nay thì việc vào buổi Sáng, chưa xong thì hôm sau lại có, tick xong thì xuống mục đã hoàn thành', async ({ page }) => {

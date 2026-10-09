@@ -1,4 +1,3 @@
-import type { ReactNode } from 'react';
 import { INK } from '../Face';
 import type { PlantSpecies } from '../types';
 import { SOIL_Y, Seed, Sprout } from './parts';
@@ -61,17 +60,17 @@ function Tiara({ x, y, s = 1 }: { x: number; y: number; s?: number }) {
 }
 
 /** Bông hồng nở nhiều lớp; cánh trước trơn để mang mặt. Tâm (0,0), bán kính ~26 */
-const PINK_PALETTE = { petal: PETAL, deep: PETAL_DEEP, inner: PETAL_IN, curl: '#D94C6E', line: '#F28AA6' };
-function RoseHead({ x, y, s = 1, p = PINK_PALETTE }: { x: number; y: number; s?: number; p?: typeof PINK_PALETTE }) {
+const PAL = { petal: PETAL, deep: PETAL_DEEP, inner: PETAL_IN, curl: '#D94C6E', line: '#F28AA6' };
+function RoseHead({ x, y, s = 1 }: { x: number; y: number; s?: number }) {
   return (
     <g transform={`translate(${x} ${y}) scale(${s})`} stroke={INK} strokeLinejoin="round">
       {[-160, -120, -60, -20].map((a) => (
-        <ellipse key={a} cx={0} cy={-20} rx={12} ry={11} fill={p.deep} strokeWidth={1.6} transform={`rotate(${a + 90})`} />
+        <ellipse key={a} cx={0} cy={-20} rx={12} ry={11} fill={PAL.deep} strokeWidth={1.6} transform={`rotate(${a + 90})`} />
       ))}
-      <ellipse cx={0} cy={-6} rx={22} ry={14} fill={p.inner} strokeWidth={1.8} />
-      <path d="M-8 -8 C-6 -16 8 -16 8 -8 C8 -2 -2 -2 -2 -7 C-2 -10 3 -10 3 -7" fill="none" stroke={p.curl} strokeWidth={1.8} strokeLinecap="round" />
-      <path d="M-26 -4 C-28 16 -14 26 0 26 C14 26 28 16 26 -4 C18 2 8 0 0 4 C-8 0 -18 2 -26 -4 Z" fill={p.petal} strokeWidth={2} />
-      <path d="M-22 4 C-20 12 -14 18 -8 20 M22 4 C20 12 14 18 8 20" fill="none" stroke={p.line} strokeWidth={1.4} strokeLinecap="round" />
+      <ellipse cx={0} cy={-6} rx={22} ry={14} fill={PAL.inner} strokeWidth={1.8} />
+      <path d="M-8 -8 C-6 -16 8 -16 8 -8 C8 -2 -2 -2 -2 -7 C-2 -10 3 -10 3 -7" fill="none" stroke={PAL.curl} strokeWidth={1.8} strokeLinecap="round" />
+      <path d="M-26 -4 C-28 16 -14 26 0 26 C14 26 28 16 26 -4 C18 2 8 0 0 4 C-8 0 -18 2 -26 -4 Z" fill={PAL.petal} strokeWidth={2} />
+      <path d="M-22 4 C-20 12 -14 18 -8 20 M22 4 C20 12 14 18 8 20" fill="none" stroke={PAL.line} strokeWidth={1.4} strokeLinecap="round" />
     </g>
   );
 }
@@ -124,93 +123,104 @@ function MiniBud({ x, y, c = PETAL }: { x: number; y: number; c?: string }) {
   );
 }
 
-// Cổng vòm: vòm dây leo phủ hồng nhỏ, bông giữa đỉnh vòm mang mặt + vương miện
-const ARCH = 'M44 160 L44 100 C44 52 72 34 100 34 C128 34 156 52 156 100 L156 160';
-/** điểm dọc vòm (t 0..1 từ chân trái qua đỉnh tới chân phải) */
-const archPt = (t: number): [number, number] => {
-  const a = Math.PI * (1 - t);
-  return [100 + 56 * Math.cos(a), 100 - 64 * Math.sin(a) * (t > 0.08 && t < 0.92 ? 1 : 0.7)];
-};
-function Arch({ children }: { children: ReactNode }) {
+// Cành ba bông (id vẫn là 'arch', tên cũ Cổng vòm, để giữ dáng đã mở trong dữ liệu cũ):
+// một cành cao chẻ hai nhánh, ba bông hồng nhìn từ trên, bông đỉnh to mang mặt; không phụ kiện
+
+/** Hồng nhìn từ trên: viền vỏ sò, cánh cuộn ở nửa trên, nửa dưới trơn mang mặt (mặt ở (x, y + 7s), cỡ 0.5s) */
+function TopRose({ x, y, s }: { x: number; y: number; s: number }) {
   return (
-    <g>
-      <path d={ARCH} fill="none" stroke={INK} strokeWidth={8} strokeLinecap="round" />
-      <path d={ARCH} fill="none" stroke="#C99A6B" strokeWidth={4.5} strokeLinecap="round" />
-      <path d="M44 120 C52 112 40 104 46 96 C54 86 44 76 52 66 C60 56 66 50 76 44 M156 120 C148 112 160 104 154 96 C146 86 156 76 148 66 C140 56 134 50 124 44" fill="none" stroke={STEM} strokeWidth={2.4} strokeLinecap="round" />
-      {[0.05, 0.16, 0.27, 0.38, 0.62, 0.73, 0.84, 0.95].map((t, i) => {
-        const [x, y] = archPt(t);
-        const side = i % 2 ? 1 : -1;
-        return (
-          <path key={t} d={`M${x} ${y} q${side * 6} -9 ${side * 14} -6 q${-side * 5} 8 ${-side * 14} 6 Z`} fill={LEAF} stroke={INK} strokeWidth={1.4} strokeLinejoin="round" />
-        );
+    <g transform={`translate(${x} ${y}) scale(${s})`} stroke={INK} strokeLinejoin="round">
+      {Array.from({ length: 7 }, (_, i) => {
+        const a = (i / 7) * Math.PI * 2 - Math.PI / 2;
+        return <circle key={i} cx={15 * Math.cos(a)} cy={15 * Math.sin(a)} r={11} fill={PETAL_DEEP} strokeWidth={1.7} />;
       })}
-      {children}
+      <circle r={19} fill={PETAL} strokeWidth={1.7} />
+      <path d="M-14 -6 C-12 -16 -4 -18 2 -18 C10 -18 14 -12 14 -6" fill="none" stroke="#D94C6E" strokeWidth={1.5} strokeLinecap="round" />
+      <path d="M-8 -9 C-7 -15 5 -16 8 -10 C4 -12 -3 -12 -8 -9 Z" fill="#FFC4D3" stroke="#D94C6E" strokeWidth={1.4} />
+      <path d="M-2 -12 C-1 -15 4 -15 4 -12" fill="none" stroke="#D94C6E" strokeWidth={1.3} strokeLinecap="round" />
     </g>
   );
 }
-function RoseArchBud() {
+/** Lá rời gắn vào cành ở (x, y), xoay r độ */
+function SprayLeaf({ x, y, r }: { x: number; y: number; r: number }) {
   return (
-    <Arch>
-      {[0.15, 0.3, 0.42, 0.58, 0.7, 0.85].map((t) => {
-        const [x, y] = archPt(t);
-        return <MiniBud key={t} x={x} y={y} />;
-      })}
-      <MiniBud x={100} y={36} c={PETAL_DEEP} />
-      <Tiara x={98} y={26} s={0.55} />
-    </Arch>
+    <g transform={`translate(${x} ${y}) rotate(${r})`}>
+      <path d="M0 0 C6 -10 20 -10 26 -4 C20 4 6 6 0 0 Z" fill={LEAF} stroke={INK} strokeWidth={1.6} strokeLinejoin="round" />
+      <path d="M2 -1 C10 -4 18 -4 23 -4" stroke={VEIN} strokeWidth={1.1} fill="none" strokeLinecap="round" />
+    </g>
   );
 }
-function RoseArchBloom() {
+function RoseSprayBud() {
   return (
-    <Arch>
-      {[0.1, 0.22, 0.34, 0.66, 0.78, 0.9].map((t) => {
-        const [x, y] = archPt(t);
-        return <RoseHead key={t} x={x} y={y} s={0.36} />;
-      })}
-      <RoseHead x={100} y={38} s={0.62} />
-      <Tiara x={96} y={18} s={0.7} />
-    </Arch>
+    <g>
+      <path d="M100 160 C96 136 104 112 100 92" stroke={STEM} strokeWidth={5} fill="none" strokeLinecap="round" />
+      <path d="M100 132 C90 126 80 122 72 112 M101 116 C110 110 120 108 128 98" stroke={STEM} strokeWidth={4} fill="none" strokeLinecap="round" />
+      {([[99, 150, 200], [101, 142, -20], [86, 126, 190], [114, 110, -30]] as const).map(([x, y, r]) => <SprayLeaf key={`${x}-${y}`} x={x} y={y} r={r} />)}
+      <g transform="translate(70 110) scale(1.3) translate(-70 -110)"><MiniBud x={70} y={108} /></g>
+      <g transform="translate(130 96) scale(1.3) translate(-130 -96)"><MiniBud x={130} y={94} /></g>
+      <g stroke={INK} strokeLinejoin="round" transform="translate(100 78) scale(0.72) translate(-100 -78)">
+        <path d="M100 96 C84 92 82 72 88 62 C92 56 96 52 100 48 C104 52 108 56 112 62 C118 72 116 92 100 96 Z" fill={PETAL} strokeWidth={2.4} />
+        <path d="M100 48 C96 58 98 66 106 70" fill="none" stroke="#F28AA6" strokeWidth={1.8} strokeLinecap="round" />
+        <path d="M100 96 L86 88 L92 100 Z M100 96 L114 88 L108 100 Z" fill={LEAF} strokeWidth={1.8} />
+      </g>
+    </g>
+  );
+}
+function RoseSprayBloom() {
+  return (
+    <g>
+      <path d="M100 160 C96 130 104 100 100 72" stroke={STEM} strokeWidth={5} fill="none" strokeLinecap="round" />
+      <path d="M100 124 C88 116 74 112 64 100 M101 106 C112 100 126 96 136 84" stroke={STEM} strokeWidth={4} fill="none" strokeLinecap="round" />
+      {([[99, 148, 200], [101, 138, -20], [82, 116, 190], [118, 98, -30], [99, 90, 210]] as const).map(([x, y, r]) => <SprayLeaf key={`${x}-${y}`} x={x} y={y} r={r} />)}
+      <TopRose x={62} y={96} s={0.55} />
+      <TopRose x={138} y={80} s={0.58} />
+      <TopRose x={100} y={57} s={1.05} />
+    </g>
   );
 }
 
-// Chuông kính: một bông hồng xanh đêm lơ lửng trong chuông kính lấp lánh
-const NIGHT = { petal: '#7FA6E8', deep: '#4E6FC4', inner: '#5F86D6', curl: '#2F4B99', line: '#A9C4F2' };
-const DOME = 'M60 160 L60 86 C60 44 80 28 100 28 C120 28 140 44 140 86 L140 160';
-function Dome({ children }: { children: ReactNode }) {
+// Hồng bắp cải (id vẫn là 'dome', tên cũ Chuông kính, để giữ dáng đã mở trong dữ liệu cũ):
+// một bông cầu nhiều lớp cánh tròn trên cành cao, lòng trơn mang mặt; không phụ kiện
+
+/** Bông cầu: hai vòng cánh tròn xếp chồng + lòng trơn bán kính 13 (mặt ở tâm) */
+function CabbageHead({ x, y, s }: { x: number; y: number; s: number }) {
+  const ring = (n: number, rr: number, r: number, fill: string, off = 0) =>
+    Array.from({ length: n }, (_, i) => {
+      const a = (i / n) * Math.PI * 2 + off;
+      return <circle key={`${rr}-${i}`} cx={rr * Math.cos(a)} cy={rr * Math.sin(a)} r={r} fill={fill} strokeWidth={1.6} />;
+    });
   return (
-    <g>
-      <path d={DOME + ' Z'} fill="#E3F4FF" opacity={0.45} />
-      {children}
-      <path d={DOME} fill="none" stroke={INK} strokeWidth={2.6} strokeLinejoin="round" />
-      <path d="M68 140 L68 88 C68 62 76 46 88 38" fill="none" stroke="#fff" strokeWidth={4} strokeLinecap="round" opacity={0.85} />
-      <ellipse cx={100} cy={160} rx={42} ry={4} fill="#C7E6F7" stroke={INK} strokeWidth={2} />
-      <circle cx={100} cy={22} r={6} fill="#E3F4FF" stroke={INK} strokeWidth={2} />
-      {[[124, 58], [80, 118], [128, 124]].map(([x, y]) => (
-        <path key={`${x}-${y}`} d={`M${x} ${y - 5} L${x + 1.5} ${y - 1.5} L${x + 5} ${y} L${x + 1.5} ${y + 1.5} L${x} ${y + 5} L${x - 1.5} ${y + 1.5} L${x - 5} ${y} L${x - 1.5} ${y - 1.5} Z`} fill="#FFF3B0" stroke={INK} strokeWidth={0.8} />
-      ))}
+    <g transform={`translate(${x} ${y}) scale(${s})`} stroke={INK} strokeLinejoin="round">
+      {ring(11, 20, 9, PETAL_DEEP)}
+      {ring(9, 13, 8, PETAL, 0.3)}
+      <circle r={13} fill="#FFC4D3" strokeWidth={1.6} />
+      <path d="M-9 -6 q4 -5 9 -3 M2 -9 q5 0 7 4" fill="none" stroke="#D94C6E" strokeWidth={1.3} strokeLinecap="round" />
     </g>
   );
 }
-function RoseDomeBud() {
+function RoseCabbageBud() {
   return (
-    <Dome>
-      <path d="M100 158 C96 136 104 118 100 98" stroke={STEM} strokeWidth={4} fill="none" strokeLinecap="round" />
-      <Leaf y={132} side={-1} r={-20} />
-      <g transform="translate(100 90) scale(2.2) translate(-100 -90)"><MiniBud x={100} y={90} c={NIGHT.petal} /></g>
-    </Dome>
+    <g>
+      <path d="M100 160 C96 140 104 124 100 108" stroke={STEM} strokeWidth={5} fill="none" strokeLinecap="round" />
+      <Leaf y={142} side={-1} r={-14} />
+      <Leaf y={128} side={1} r={-18} />
+      <g transform="translate(100 92)" stroke={INK} strokeLinejoin="round">
+        <path d="M0 16 L-14 10 L-8 20 Z M0 16 L14 10 L8 20 Z M0 18 L-4 26 L4 26 Z" fill={LEAF} strokeWidth={1.6} />
+        <circle r={19} fill={PETAL_DEEP} strokeWidth={2} />
+        <path d="M-17 -2 C-12 -14 12 -14 17 -2 C10 -6 -10 -6 -17 -2 Z" fill={PETAL} strokeWidth={1.6} />
+        <path d="M-9 -10 C-5 -18 5 -18 9 -10" fill="none" stroke="#D94C6E" strokeWidth={1.5} strokeLinecap="round" />
+      </g>
+    </g>
   );
 }
-function RoseDomeBloom() {
+function RoseCabbageBloom() {
   return (
-    <Dome>
-      <path d="M100 158 C94 138 106 118 100 100" stroke={STEM} strokeWidth={4} fill="none" strokeLinecap="round" />
-      <Leaf y={136} side={-1} r={-20} />
-      <Leaf y={120} side={1} r={-20} />
-      <RoseHead x={100} y={78} s={1} p={NIGHT} />
-      {[[86, 126], [114, 140]].map(([x, y]) => (
-        <path key={`${x}-${y}`} d={`M${x} ${y} q4 -6 8 0 q-4 5 -8 0 Z`} fill={NIGHT.petal} stroke={INK} strokeWidth={1} />
-      ))}
-    </Dome>
+    <g>
+      <path d="M100 160 C96 140 104 120 100 100" stroke={STEM} strokeWidth={5} fill="none" strokeLinecap="round" />
+      <Leaf y={142} side={1} r={-14} />
+      <Leaf y={130} side={-1} r={-14} />
+      <CabbageHead x={100} y={84} s={1.5} />
+    </g>
   );
 }
 
@@ -246,17 +256,17 @@ export const rose: PlantSpecies = {
   styles: [
     {
       id: 'arch',
-      name: { vi: 'Cổng vòm', en: 'Arch' },
+      name: { vi: 'Cành ba bông', en: 'Triple bloom' },
       unlockAt: 10,
-      stages: { bud: { svg: RoseArchBud }, bloom: { svg: RoseArchBloom } },
-      faceAnchor: { bud: { x: 100, y: 37, scale: 0.22 }, bloom: { x: 100, y: 49, scale: 0.42 } },
+      stages: { bud: { svg: RoseSprayBud }, bloom: { svg: RoseSprayBloom } },
+      faceAnchor: { bud: { x: 100, y: 78, scale: 0.36 }, bloom: { x: 100, y: 64, scale: 0.52 } },
     },
     {
       id: 'dome',
-      name: { vi: 'Chuông kính', en: 'Glass dome' },
+      name: { vi: 'Hồng bắp cải', en: 'Cabbage rose' },
       unlockAt: 20,
-      stages: { bud: { svg: RoseDomeBud }, bloom: { svg: RoseDomeBloom } },
-      faceAnchor: { bud: { x: 100, y: 92, scale: 0.4 }, bloom: { x: 100, y: 93, scale: 0.66 } },
+      stages: { bud: { svg: RoseCabbageBud }, bloom: { svg: RoseCabbageBloom } },
+      faceAnchor: { bud: { x: 100, y: 99, scale: 0.34 }, bloom: { x: 100, y: 86, scale: 0.42 } },
     },
   ],
 };
