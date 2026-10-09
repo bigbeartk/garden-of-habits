@@ -75,3 +75,17 @@ describe('PlantScene hiệu ứng đổi màu cây dùng bộ lọc SVG (Safari 
     expect(container.querySelector('filter')).toBeNull();
   });
 });
+
+describe('PlantScene côn trùng thói quen', () => {
+  it('bugId thì vẽ côn trùng có data-bug; không có thì không vẽ', () => {
+    const { rerender } = render(<PlantScene plantId="corn" potId="rattan" stage="bloom" specialId={null} mood="smile" bugId="bee" />);
+    expect(screen.getByTestId('habit-bug')).toHaveAttribute('data-bug', 'bee');
+    rerender(<PlantScene plantId="corn" potId="rattan" stage="bloom" specialId={null} mood="smile" />);
+    expect(screen.queryByTestId('habit-bug')).not.toBeInTheDocument();
+  });
+
+  it('cây ngủ (ngày nghỉ) hoặc héo thì không có côn trùng', () => {
+    render(<PlantScene plantId="corn" potId="rattan" stage="seed" specialId={null} mood="sleep" mode="sleeping" bugId="bee" />);
+    expect(screen.queryByTestId('habit-bug')).not.toBeInTheDocument();
+  });
+});

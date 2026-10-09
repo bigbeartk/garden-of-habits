@@ -2,6 +2,7 @@ import { BottomSheet } from './BottomSheet';
 import { MiniPlant } from './MiniPlant';
 import { getSpecies } from '../content/plants/registry';
 import { getSpecial } from '../content/specials/registry';
+import { getBug } from '../content/bugs';
 import type { CellStatus } from '../domain/calendar';
 import { PERIODS } from '../domain/period';
 import { PeriodIcon } from './icons';
@@ -10,23 +11,25 @@ import { useI18n } from '../i18n/I18nProvider';
 import { longDate } from '../i18n/fmt';
 
 /** Chi tiết một ngày đã qua: chỉ để xem (việc theo buổi, ghi chú), không sửa được gì. */
-export function DayDetailSheet({ dateKey, status, record, onClose }: {
-  dateKey: string | null; status: CellStatus | null; record?: DayRecord; onClose: () => void;
+export function DayDetailSheet({ dateKey, status, record, bugId, onClose }: {
+  dateKey: string | null; status: CellStatus | null; record?: DayRecord; bugId?: string | null; onClose: () => void;
 }) {
   const { t, lang, tr } = useI18n();
   const open = dateKey !== null && status !== null;
   const special = record && !record.isRestDay ? getSpecial(record.specialId) : null;
+  const bug = status === 'plant' ? getBug(bugId) : null;
 
   return (
     <BottomSheet open={open} title={dateKey ? longDate(lang, dateKey) : ''} onClose={onClose} tall>
       {open && (
         <div className="detail">
           {record?.title && <h3 className="detail__title">{record.title}</h3>}
-          <div className="detail__scene"><MiniPlant status={status!} record={record} /></div>
+          <div className="detail__scene"><MiniPlant status={status!} record={record} bugId={bug?.id} /></div>
           {status === 'plant' && record && (
             <p className="detail__line">{tr(getSpecies(record.plantId).name)} · {t.stage[record.finalStage]}</p>
           )}
           {special && <p className="detail__line">{t.detail.special(tr(special.name))}</p>}
+          {bug && <p className="detail__line">{t.detail.bug(tr(bug.name))}</p>}
           {status === 'rest' && <p className="detail__line">{t.detail.rest}</p>}
           {status === 'missed' && <p className="detail__line muted">{t.detail.missed}</p>}
           {record && !record.isRestDay && record.todos.length > 0 && (

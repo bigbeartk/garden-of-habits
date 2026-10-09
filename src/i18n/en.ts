@@ -80,6 +80,7 @@ export const en: Messages = {
   detail: {
     special: (name) => `✨ Special plant: ${name}`,
     rest: '💤 Rest day',
+    bug: (name) => `${name} dropped by: every habit done!`,
     missed: 'Nobody tended the plant that day 🥀',
     done: 'Done',
     notDone: 'Not done',

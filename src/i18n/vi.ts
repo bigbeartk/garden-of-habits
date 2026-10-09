@@ -87,6 +87,7 @@ export const vi = {
   detail: {
     special: (name: string) => `✨ Cây đặc biệt: ${name}`,
     rest: '💤 Ngày tiết kiệm năng lượng',
+    bug: (name: string) => `${name} ghé thăm vì bạn làm đủ mọi thói quen`,
     missed: 'Hôm đó cây chưa được chăm sóc 🥀',
     done: 'Đã xong',
     notDone: 'Chưa xong',

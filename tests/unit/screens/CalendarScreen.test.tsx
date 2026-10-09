@@ -6,6 +6,7 @@ import { CATALOG } from '../../../src/content/catalog';
 import { makeDay, makeDeps, renderWithDeps } from '../helpers';
 import { setSetting } from '../../../src/db/settings';
 import { addPlanned, getPlannedGoal } from '../../../src/domain/plannedService';
+import { bugFor } from '../../../src/content/bugs';
 
 
 async function setup() {
@@ -305,4 +306,21 @@ it('Lịch bằng English', async () => {
   expect(await screen.findByRole('heading', { name: 'October 2026' })).toBeInTheDocument();
   expect(screen.getByText('Mon')).toBeInTheDocument();
   expect(screen.getByRole('button', { name: 'Previous month' })).toBeInTheDocument();
+});
+
+describe('Lịch: côn trùng thói quen', () => {
+  it('ngày đã qua làm đủ thói quen: ô lịch và bảng chi tiết có côn trùng', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 15, 10, 0), CATALOG);
+    await deps.db.days.bulkPut([makeDay({ date: '2026-10-02' }), makeDay({ date: '2026-10-03' })]);
+    await deps.db.habits.put({ id: 'h', name: 'Uống nước', icon: '💧', color: 'sky', weekdays: [0, 1, 2, 3, 4, 5, 6], order: 0, startDate: '2026-10-01', createdAt: 0, updatedAt: 0 });
+    await deps.db.habitChecks.put({ habitId: 'h', date: '2026-10-02', at: 1 });
+    const user = userEvent.setup();
+    renderWithDeps(<CalendarScreen />, deps, vi.fn());
+    const cell = await screen.findByTestId('day-2026-10-02');
+    await waitFor(() => expect(within(cell).getByTestId('habit-bug')).toHaveAttribute('data-bug', bugFor('2026-10-02').id));
+    expect(within(screen.getByTestId('day-2026-10-03')).queryByTestId('habit-bug')).not.toBeInTheDocument();
+    await user.click(cell);
+    const name = bugFor('2026-10-02').name.vi;
+    expect(await screen.findByText(`${name} ghé thăm vì bạn làm đủ mọi thói quen`)).toBeInTheDocument();
+  });
 });

@@ -12,6 +12,8 @@ import { makeDay, makeDeps, renderWithDeps } from '../helpers';
 import { addReminder, setReminderAutoToday } from '../../../src/domain/reminderService';
 import { getSetting, setSetting } from '../../../src/db/settings';
 import { ensureToday } from '../../../src/domain/dayService';
+import { addHabit } from '../../../src/domain/habitService';
+import { bugFor } from '../../../src/content/bugs';
 
 /** Bấm ＋ ở hàng tiêu đề của buổi rồi gõ vào dòng việc trống vừa hiện. */
 async function addTodoInline(user: ReturnType<typeof userEvent.setup>, text: string, period: 'Sáng' | 'Chiều' | 'Tối' = 'Sáng') {
@@ -541,5 +543,23 @@ describe('TodayScreen: lối vào Nhắc việc', () => {
     await user.click(await screen.findByRole('button', { name: 'Ngày tiết kiệm năng lượng' }));
     await screen.findByTestId('rest-message');
     expect(screen.getByRole('button', { name: 'Nhắc việc' })).toBeEnabled();
+  });
+
+  it('tick đủ mọi thói quen hôm nay thì có côn trùng ghé cây; bỏ tick thì bay đi', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
+    await deps.db.days.put(makeDay({ date: '2026-10-02', greetedAt: 1, speech: '' }));
+    await addHabit(deps, { name: 'Uống nước', icon: '💧', color: 'sky', weekdays: [5] });
+    await addHabit(deps, { name: 'Yoga', icon: '🧘', color: 'mint', weekdays: [5] });
+    const user = userEvent.setup();
+    renderWithDeps(<TodayScreen />, deps);
+    await user.click(await screen.findByRole('switch', { name: 'Thói quen: Uống nước' }));
+    await waitFor(async () => expect((await deps.db.habitChecks.count())).toBe(1));
+    expect(screen.queryByTestId('habit-bug')).not.toBeInTheDocument();
+    await user.click(screen.getByRole('switch', { name: 'Thói quen: Yoga' }));
+    const bug = await screen.findByTestId('habit-bug');
+    expect(bug).toHaveAttribute('data-bug', bugFor('2026-10-02').id);
+    expect(screen.getByTestId('plant-scene')).toContainElement(bug);
+    await user.click(screen.getByRole('switch', { name: 'Thói quen: Yoga' }));
+    await waitFor(() => expect(screen.queryByTestId('habit-bug')).not.toBeInTheDocument());
   });
 });

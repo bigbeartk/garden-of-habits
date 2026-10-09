@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { makeDay, makeDeps } from '../helpers';
 import {
-  addHabit, checksOn, deleteHabit, editHabit, habitsForDay, isStopped, listHabits, resumeHabit, stopHabit, toggleHabit, HABIT_NAME_MAX,
+  addHabit, checksOn, deleteHabit, editHabit, habitsForDay, isStopped, listHabits, perfectHabitDays, resumeHabit, stopHabit, toggleHabit, HABIT_NAME_MAX,
 } from '../../../src/domain/habitService';
 import { isScheduled } from '../../../src/domain/habitReport';
 import type { HabitInput } from '../../../src/domain/habitService';
@@ -134,5 +134,20 @@ describe('habitService', () => {
     await stopHabit(deps, h.id);
     await editHabit(deps, h.id, input({ name: 'Nước' }));
     expect(isStopped((await listHabits(deps.db))[0])).toBe(true);
+  });
+
+  it('perfectHabitDays: ngày mọi thói quen có lịch đều xong (bỏ ngày nghỉ, ngày thiếu, ngày không có lịch)', async () => {
+    const { deps, clock } = makeDeps(new Date(2026, 9, 5, 10)); // T2 05/10
+    const a = await addHabit(deps, input());
+    const b = await addHabit(deps, input({ name: 'Yoga', weekdays: [1, 3] })); // T2, T4
+    const tick = (habitId: string, date: string) => deps.db.habitChecks.put({ habitId, date, at: 1 });
+    await tick(a.id, '2026-10-05'); await tick(b.id, '2026-10-05'); // T2 đủ
+    await tick(a.id, '2026-10-06');                                  // T3 chỉ a có lịch → đủ
+    await tick(a.id, '2026-10-07');                                  // T4 thiếu b
+    await deps.db.days.put(makeDay({ date: '2026-10-08', isRestDay: true })); // T5 nghỉ
+    clock.current = new Date(2026, 9, 9, 10); // hôm nay T6, chưa tick
+    expect(await perfectHabitDays(deps, '2026-10-05', '2026-10-11')).toEqual(new Set(['2026-10-05', '2026-10-06']));
+    await toggleHabit(deps, a.id);
+    expect(await perfectHabitDays(deps, '2026-10-09', '2026-10-09')).toEqual(new Set(['2026-10-09']));
   });
 });

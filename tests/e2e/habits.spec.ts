@@ -167,3 +167,40 @@ test('dừng thói quen: rời Hôm nay, xuống mục Đã dừng, lịch sử 
   await expect(stopped).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Dừng: Uống nước' })).toBeVisible();
 });
+
+test('làm đủ mọi thói quen: côn trùng ghé cây ở Hôm nay, hôm sau còn trên ô Lịch', async ({ page }) => {
+  await page.clock.setFixedTime(at('2026-10-08T10:00:00'));
+  await page.goto('/');
+  await openToday(page);
+  await closeMenu(page);
+  await page.getByRole('button', { name: 'Thêm thói quen' }).click();
+  await createHabit(page, 'Uống nước', { formOpen: true });
+  await page.getByRole('button', { name: '＋ Thói quen mới' }).click();
+  await createHabit(page, 'Đọc sách', { formOpen: true });
+  await page.getByRole('button', { name: 'Quay lại Hôm nay' }).click();
+
+  const scene = page.getByTestId('plant-scene');
+  await page.getByRole('switch', { name: 'Thói quen: Uống nước' }).click();
+  await expect(page.getByRole('switch', { name: 'Thói quen: Uống nước' })).toHaveAttribute('aria-checked', 'true');
+  await expect(scene.getByTestId('habit-bug')).toHaveCount(0);
+  await page.getByRole('switch', { name: 'Thói quen: Đọc sách' }).click();
+  const bug = scene.getByTestId('habit-bug');
+  await expect(bug).toHaveCount(1);
+  // nằm trong khung cây, không tràn ra ngoài
+  await page.waitForTimeout(1500); // chờ bay vào xong
+  const s = (await scene.boundingBox())!;
+  const b = (await bug.boundingBox())!;
+  expect(b.x).toBeGreaterThanOrEqual(s.x);
+  expect(b.x + b.width).toBeLessThanOrEqual(s.x + s.width);
+  expect(b.y).toBeGreaterThanOrEqual(s.y);
+  await page.screenshot({ path: 'test-results/habit-bug-today.png' });
+
+  await page.clock.setFixedTime(at('2026-10-09T10:00:00'));
+  await page.reload();
+  await goTab(page, 'Lịch');
+  const cell = page.getByTestId('day-2026-10-08');
+  await expect(cell.getByTestId('habit-bug')).toHaveCount(1);
+  await cell.screenshot({ path: 'test-results/habit-bug-cell.png' });
+  await cell.click();
+  await expect(page.getByText(/ghé thăm vì bạn làm đủ mọi thói quen/)).toBeVisible();
+});

@@ -2,7 +2,7 @@ import type { PlantDB } from '../db/db';
 import { dayKey } from './dayKey';
 import type { DayDeps } from './dayService';
 import { AppError } from './errors';
-import { isScheduled, stoppedSince } from './habitReport';
+import { habitReport, isScheduled, stoppedSince } from './habitReport';
 import { newId } from './id';
 import { cleanWeekdays } from './templateService';
 import type { Habit, HabitColor } from './types';
@@ -90,6 +90,19 @@ export async function resumeHabit(deps: DayDeps, id: string): Promise<void> {
     if (last.from < today) pauses.push({ from: last.from, to: today }); // dừng rồi tiếp tục trong ngày: bỏ khoảng rỗng
     await deps.db.habits.update(id, { pauses, updatedAt: deps.now().getTime() });
   });
+}
+
+/**
+ * Ngày làm đủ thói quen trong [from, to]: có ≥ 1 thói quen có lịch và mọi thói quen có lịch đều đã tick
+ * (cùng định nghĩa "Ngày trọn vẹn" của báo cáo; ngày nghỉ không có lịch nên không tính). Côn trùng ghé cây những ngày này.
+ */
+export async function perfectHabitDays(deps: DayDeps, from: string, to: string): Promise<Set<string>> {
+  const { db } = deps;
+  const habits = await listHabits(db);
+  if (habits.length === 0) return new Set();
+  const checks = await db.habitChecks.where('date').between(from, to, true, true).toArray();
+  const rest = new Set((await db.days.where('date').between(from, to, true, true).toArray()).filter((d) => d.isRestDay).map((d) => d.date));
+  return new Set(habitReport(habits, checks, rest, from, to, dayKey(deps.now())).perfectDays);
 }
 
 /** Đảo trạng thái đã làm của hôm nay; trả về true khi vừa tick. */

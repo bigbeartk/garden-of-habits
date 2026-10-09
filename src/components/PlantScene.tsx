@@ -1,6 +1,7 @@
 import { useId, type ReactNode } from 'react';
 import { motion } from 'motion/react';
 import { ArtView } from '../content/ArtView';
+import { BUG_SCALE, bugSpot, getBug } from '../content/bugs';
 import { Face, type Mood } from '../content/Face';
 import { SleepingSeed } from '../content/common/SleepingSeed';
 import { WiltedPlant } from '../content/common/WiltedPlant';
@@ -29,11 +30,15 @@ export interface PlantSceneProps {
   className?: string;
   title?: string;
   testId?: string;
+  /** côn trùng ghé cây (ngày làm đủ thói quen); chỉ vẽ khi cây đang thức */
+  bugId?: string | null;
+  /** côn trùng bay vào từ góc trời (màn Hôm nay, lúc vừa làm đủ) */
+  bugEntrance?: boolean;
   children?: ReactNode;
 }
 
 export function PlantScene({
-  plantId, potId, stage, specialId, styleId, mood, mode = 'plant', bounceKey = 0, className, title, testId, children,
+  plantId, potId, stage, specialId, styleId, mood, mode = 'plant', bounceKey = 0, className, title, testId, bugId, bugEntrance = false, children,
 }: PlantSceneProps) {
   const { tr } = useI18n();
   const species = getSpecies(plantId);
@@ -46,6 +51,8 @@ export function PlantScene({
   const filterId = `plant-filter-${useId().replace(/[^\w-]/g, '')}`;
   const reducedMotion = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true;
   const Overlay = special?.Overlay;
+  const bug = mode === 'plant' ? getBug(bugId) : null;
+  const spot = bugSpot(look.faceAnchor);
   return (
     <svg
       viewBox="0 0 200 240"
@@ -81,6 +88,21 @@ export function PlantScene({
         </g>
       )}
       {Overlay && <Overlay />}
+      {bug && (
+        // vị trí đặt ở <g> ngoài, chuyển động (bay vào, lượn) ở <g> trong để transform không đè nhau
+        <g data-testid="habit-bug" data-bug={bug.id} transform={`translate(${spot.x} ${spot.y}) scale(${BUG_SCALE})`}>
+          <motion.g
+            initial={bugEntrance && !reducedMotion ? { x: 60, y: -50, opacity: 0, scale: 0.6 } : false}
+            animate={{ x: 0, y: 0, opacity: 1, scale: 1 }}
+            transition={{ duration: 1.2, ease: 'easeOut' }}
+          >
+            <g>
+              <bug.Art animate={!reducedMotion} />
+              {!reducedMotion && <animateTransform attributeName="transform" type="translate" values="0 0;1.5 -3;0 0" dur="2.4s" repeatCount="indefinite" />}
+            </g>
+          </motion.g>
+        </g>
+      )}
       {children}
     </svg>
   );

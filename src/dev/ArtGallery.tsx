@@ -1,3 +1,5 @@
+import { BUGS } from '../content/bugs';
+import { PlantScene } from '../components/PlantScene';
 import { ArtView } from '../content/ArtView';
 import { Face } from '../content/Face';
 import { PLANTS } from '../content/plants/registry';
@@ -37,6 +39,29 @@ export function ArtGallery() {
           <ArtView art={pot.art} />
         </svg>
       ))}
+    </div>
+  );
+}
+
+/** Xem trước côn trùng thói quen: 5 con phóng to, rồi mỗi loài cây (Gốc + 2 dáng, ra hoa) có một con đậu đúng chỗ. */
+export function BugGallery() {
+  const cell = { width: 120, height: 144 };
+  return (
+    <div style={{ padding: 6, background: '#D4ECFF' }}>
+      <div style={{ display: 'flex', gap: 6 }}>
+        {BUGS.map((b) => (
+          <svg key={b.id} viewBox="-16 -16 32 32" width={72} height={72} style={{ background: '#fff', borderRadius: 12 }}>
+            <b.Art animate={false} />
+          </svg>
+        ))}
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: `repeat(3, ${cell.width}px)`, gap: 6, marginTop: 6 }}>
+        {PLANTS.flatMap((p, i) => ['base', ...(p.styles ?? []).map((s) => s.id)].map((styleId, j) => (
+          <div key={`${p.id}-${styleId}`} style={cell}>
+            <PlantScene plantId={p.id} potId={p.defaultPotId} stage="bloom" styleId={styleId} specialId={null} mood="smile" bugId={BUGS[(i + j) % BUGS.length].id} />
+          </div>
+        )))}
+      </div>
     </div>
   );
 }

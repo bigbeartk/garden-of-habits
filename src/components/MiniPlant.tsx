@@ -4,7 +4,8 @@ import type { CellStatus } from '../domain/calendar';
 import type { DayRecord } from '../domain/types';
 import { useI18n } from '../i18n/I18nProvider';
 
-export function MiniPlant({ status, record }: { status: CellStatus; record?: DayRecord }) {
+/** `bugId`: côn trùng ghé cây ngày làm đủ thói quen (chỉ cây thường đang thức). */
+export function MiniPlant({ status, record, bugId }: { status: CellStatus; record?: DayRecord; bugId?: string | null }) {
   const { t } = useI18n();
   if (status === 'plant' && record) {
     return (
@@ -17,6 +18,7 @@ export function MiniPlant({ status, record }: { status: CellStatus; record?: Day
         specialId={record.specialId}
         styleId={record.styleId}
         mood={record.finalStage === 'bloom' ? 'smile' : 'normal'}
+        bugId={bugId}
       />
     );
   }

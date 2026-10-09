@@ -16,6 +16,7 @@ import { SpeechBubble, type SpeechKind } from '../components/SpeechBubble';
 import { StageBurst } from '../components/StageBurst';
 import { TodoList } from '../components/TodoList';
 import { WateringCan } from '../components/WateringCan';
+import { bugFor } from '../content/bugs';
 import type { Mood } from '../content/Face';
 import { pickPraise } from '../content/praises';
 import { pickSaying } from '../content/sayings';
@@ -28,6 +29,7 @@ import {
   toggleTodo,
 } from '../domain/dayService';
 import { stageIndex } from '../domain/growth';
+import { perfectHabitDays } from '../domain/habitService';
 import { listUnlockedStyles } from '../domain/styleUnlocks';
 import { periodOf } from '../domain/period';
 import { timeOfDay } from '../domain/timeOfDay';
@@ -66,6 +68,12 @@ export function TodayScreen() {
   const greetedFor = useRef<string | null>(null);
   const pickedFor = useRef<string | null>(null);
   // undefined = chưa đọc xong setting: chưa hiện bong bóng, để lúc đang ẩn không bị nháy lên
+  // làm đủ mọi thói quen hôm nay → côn trùng ghé cây
+  const dayDate = day?.date;
+  const perfectToday = useLiveQuery(
+    async () => (dayDate ? (await perfectHabitDays(deps, dayDate, dayDate)).has(dayDate) : false),
+    [deps, dayDate],
+  );
   const showSpeechSaved = useLiveQuery(async () => (await getSetting(deps.db, 'showPlantSpeech')) ?? true, [deps.db]);
   /** giữ cục bộ để bấm nhanh hai lần không bị đọc lại giá trị cũ từ DB */
   const [showSpeechLocal, setShowSpeechLocal] = useState<boolean | null>(null);
@@ -216,6 +224,8 @@ export function TodayScreen() {
             mood={mood}
             mode={day.isRestDay ? 'sleeping' : 'plant'}
             bounceKey={waterKey + tapKey}
+            bugId={perfectToday ? bugFor(day.date).id : null}
+            bugEntrance
           >
             {!day.isRestDay && <WateringCan playKey={waterKey} />}
             <StageBurst playKey={burstKey} />

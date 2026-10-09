@@ -26,6 +26,8 @@ import { useNow } from '../hooks/useNow';
 import { useI18n } from '../i18n/I18nProvider';
 import { monthLabel } from '../i18n/fmt';
 import { DogWagScene } from '../components/backgrounds/DogWagScene';
+import { bugFor } from '../content/bugs';
+import { perfectHabitDays } from '../domain/habitService';
 import './calendar.css';
 
 export function CalendarScreen() {
@@ -44,6 +46,9 @@ export function CalendarScreen() {
   const from = formatDate(new Date(view.year, view.month, 1));
   const to = formatDate(new Date(view.year, view.month + 1, 0));
   const days = useLiveQuery(() => listDaysInRange(deps.db, from, to), [deps.db, from, to]) ?? [];
+  // ngày làm đủ thói quen → côn trùng ghé cây ở ô lịch
+  const bugDays = useLiveQuery(() => perfectHabitDays(deps, from, to), [deps, from, to]);
+  const bugOf = (key: string) => (bugDays?.has(key) ? bugFor(key).id : null);
   const plannedCounts = useLiveQuery(() => plannedCountsInRange(deps.db, from, to), [deps.db, from, to]) ?? {};
   const firstKey = useLiveQuery(() => firstDayKey(deps.db), [deps.db]) ?? null;
   const userBg = useCalendarBg();
@@ -138,6 +143,7 @@ export function CalendarScreen() {
                 plannedCount={plannedCounts[key] ?? 0}
                 isToday={key === todayKey}
                 showNoteDot={showNoteDot}
+                bugId={bugOf(key)}
                 onSelect={() => selectDay(key)}
               />
             ) : (
@@ -155,6 +161,7 @@ export function CalendarScreen() {
         dateKey={selected}
         status={selectedStatus}
         record={selected ? byKey.get(selected) : undefined}
+        bugId={selected ? bugOf(selected) : null}
         onClose={() => setSelected(null)}
       />
     </section>
