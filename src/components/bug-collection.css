@@ -1,0 +1,22 @@
+.bug-collection { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; background: rgba(255, 253, 251, 0.95); }
+.bug-collection__head { display: flex; align-items: center; gap: 8px; }
+.bug-collection__title { margin: 0; font-size: 1.05rem; }
+.bug-collection__grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; margin: 0; padding: 0; list-style: none; }
+.bug-collection__item { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 0; text-align: center; }
+.bug-collection__disc {
+  position: relative; display: grid; place-items: center; width: 52px; height: 52px; border-radius: 50%;
+  border: 2px solid var(--cocoa); background: var(--sky); box-shadow: var(--shadow-pop);
+}
+.bug-collection__disc svg { width: 42px; height: 42px; display: block; }
+.bug-collection__item.is-rare .bug-collection__disc { background: var(--lavender); }
+.bug-collection__item.is-epic .bug-collection__disc { background: var(--butter); border-color: #E0A800; box-shadow: 0 3px 0 #E0A800; }
+.bug-collection__item.is-locked .bug-collection__disc { background: var(--white); border-style: dashed; box-shadow: none; }
+.bug-collection__mystery { font-family: 'Baloo 2', sans-serif; font-weight: 800; font-size: 1.4rem; color: var(--cocoa-soft); }
+.bug-collection__count {
+  position: absolute; right: -6px; bottom: -4px; min-width: 22px; padding: 0 4px; border-radius: 999px;
+  border: 2px solid var(--cocoa); background: var(--white); font-size: 0.68rem; font-weight: 800; line-height: 16px;
+}
+.bug-collection__name { margin-top: 4px; max-width: 100%; font-size: 0.72rem; font-weight: 700; line-height: 1.15; overflow-wrap: anywhere; }
+.bug-collection__rarity { font-size: 0.62rem; font-weight: 700; color: var(--cocoa-soft); line-height: 1.1; }
+.bug-collection__item.is-epic .bug-collection__rarity { color: #B07D00; }
+.bug-collection__hint { margin: 0; font-size: 0.8rem; color: var(--cocoa-soft); }

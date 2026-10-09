@@ -5,6 +5,7 @@ import { useDeps } from '../app/deps';
 import { type HabitManagerMode, peekHabitManagerOrigin, peekHabitManagerRequest, takeHabitManagerRequest } from '../app/habitIntent';
 import { useNav } from '../app/nav';
 import { BackButton } from '../components/BackButton';
+import { BugCollection } from '../components/BugCollection';
 import { HabitReport } from '../components/HabitReport';
 import { HabitsIcon, OptionsIcon } from '../components/icons';
 import { PlantScene } from '../components/PlantScene';
@@ -119,7 +120,10 @@ export function GardenScreen() {
         ))}
       </div>
       {view === null ? null : view === 'habits' ? (
-        <HabitReport onManage={() => setManaging('add')} />
+        <>
+          <HabitReport onManage={() => setManaging('add')} />
+          <BugCollection />
+        </>
       ) : (
         <>
           <div className="garden__range card">

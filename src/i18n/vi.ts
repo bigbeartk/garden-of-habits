@@ -1,4 +1,5 @@
 import type { CalendarTheme, MenuIconChoice } from '../domain/types';
+import type { BugRarity } from '../content/bugs';
 import type { TimeOfDay } from '../domain/timeOfDay';
 import type { CellStatus } from '../domain/calendar';
 import type { ErrorParams } from '../domain/errors';
@@ -94,6 +95,15 @@ export const vi = {
     note: 'Ghi chú',
   },
   mini: { sleeping: 'Ngủ ngon', wilted: 'Cây héo' },
+  bugs: {
+    title: 'Côn trùng đã gặp',
+    hint: 'Làm đủ mọi thói quen trong ngày để một bạn côn trùng ghé cây.',
+    rarity: { common: 'Thường gặp', rare: 'Hiếm', epic: 'Rất hiếm' } as Record<BugRarity, string>,
+    mystery: 'Côn trùng bí ẩn',
+    times: (n: number) => `×${n}`,
+    item: (name: string, rarity: string, n: number) => `${name} · ${rarity} · đã gặp ${n} lần`,
+    mysteryItem: (rarity: string) => `Côn trùng bí ẩn · ${rarity}`,
+  },
   note: {
     title: 'Ghi chú hôm nay',
     label: 'Nội dung ghi chú',

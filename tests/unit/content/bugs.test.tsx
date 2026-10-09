@@ -1,5 +1,6 @@
 import { render } from '@testing-library/react';
-import { BUGS, bugFor, bugSpot } from '../../../src/content/bugs';
+import { BUGS, bugFor, bugSpot, countBugs } from '../../../src/content/bugs';
+import { addDays } from '../../../src/domain/dayKey';
 
 describe('côn trùng thưởng ngày làm đủ thói quen', () => {
   it('đủ 5 loài, id không trùng, có tên Việt + Anh, vẽ được', () => {
@@ -10,6 +11,25 @@ describe('côn trùng thưởng ngày làm đủ thói quen', () => {
       const { container } = render(<svg><b.Art animate={false} /></svg>);
       expect(container.querySelector('svg')!.children.length).toBeGreaterThan(0);
     }
+  });
+
+  it('độ hiếm: bọ rùa/bướm/ong thường gặp, đom đóm hiếm, chuồn chuồn rất hiếm', () => {
+    expect(BUGS.map((b) => [b.id, b.weight, b.rarity])).toEqual([
+      ['ladybug', 5, 'common'], ['butterfly', 4, 'common'], ['bee', 4, 'common'], ['firefly', 2, 'rare'], ['dragonfly', 1, 'epic'],
+    ]);
+  });
+
+  it('qua 4 năm, số ngày mỗi loài gần đúng tỉ lệ trọng số', () => {
+    const days: string[] = [];
+    for (let k = '2026-01-01'; k < '2030-01-01'; k = addDays(k, 1)) days.push(k);
+    const counts = countBugs(days);
+    const total = BUGS.reduce((n, b) => n + b.weight, 0);
+    for (const b of BUGS) {
+      const share = (counts.get(b.id) ?? 0) / days.length;
+      expect(Math.abs(share - b.weight / total)).toBeLessThan(0.04);
+    }
+    expect(counts.get('dragonfly')!).toBeLessThan(counts.get('firefly')!);
+    expect(counts.get('firefly')!).toBeLessThan(counts.get('bee')!);
   });
 
   it('bugFor cố định theo ngày và đủ mọi loài qua nhiều ngày', () => {

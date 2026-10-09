@@ -8,7 +8,9 @@ import type { Localized } from '../i18n/lang';
  * Mỗi con vẽ quanh gốc (0, 0), rộng khoảng 26 đơn vị của khung cây 200×240; cánh vỗ bằng `<animateTransform>` của SVG,
  * tắt khi `animate = false` (giảm chuyển động).
  */
-export interface HabitBug { id: string; name: Localized<string>; Art: FC<{ animate: boolean }> }
+export type BugRarity = 'common' | 'rare' | 'epic';
+/** `weight`: trọng số khi chọn con của ngày (càng nhỏ càng hiếm); `rarity`: nhãn hiện ở thẻ "Côn trùng đã gặp". */
+export interface HabitBug { id: string; name: Localized<string>; weight: number; rarity: BugRarity; Art: FC<{ animate: boolean }> }
 
 const LINE = { stroke: INK, strokeWidth: 1.3, strokeLinecap: 'round', strokeLinejoin: 'round' } as const;
 
@@ -143,18 +145,41 @@ const Dragonfly: FC<{ animate: boolean }> = ({ animate }) => (
 );
 
 export const BUGS: HabitBug[] = [
-  { id: 'ladybug', name: { vi: 'Bọ rùa', en: 'A ladybug' }, Art: Ladybug },
-  { id: 'butterfly', name: { vi: 'Bướm', en: 'A butterfly' }, Art: Butterfly },
-  { id: 'bee', name: { vi: 'Ong', en: 'A bee' }, Art: Bee },
-  { id: 'firefly', name: { vi: 'Đom đóm', en: 'A firefly' }, Art: Firefly },
-  { id: 'dragonfly', name: { vi: 'Chuồn chuồn', en: 'A dragonfly' }, Art: Dragonfly },
+  { id: 'ladybug', name: { vi: 'Bọ rùa', en: 'Ladybug' }, weight: 5, rarity: 'common', Art: Ladybug },
+  { id: 'butterfly', name: { vi: 'Bướm', en: 'Butterfly' }, weight: 4, rarity: 'common', Art: Butterfly },
+  { id: 'bee', name: { vi: 'Ong', en: 'Bee' }, weight: 4, rarity: 'common', Art: Bee },
+  { id: 'firefly', name: { vi: 'Đom đóm', en: 'Firefly' }, weight: 2, rarity: 'rare', Art: Firefly },
+  { id: 'dragonfly', name: { vi: 'Chuồn chuồn', en: 'Dragonfly' }, weight: 1, rarity: 'epic', Art: Dragonfly },
 ];
 
-/** Côn trùng của một ngày: cố định theo khoá ngày (không cần lưu), đổi theo từng ngày. */
+/** Băm khoá ngày ra số trong [0, 1): FNV-1a rồi trộn bit (murmur3 fmix32) để các ngày liền nhau rải đều. */
+function hashUnit(key: string): number {
+  let h = 0x811c9dc5;
+  for (const c of key) h = Math.imul(h ^ c.charCodeAt(0), 0x01000193);
+  h ^= h >>> 16; h = Math.imul(h, 0x85ebca6b);
+  h ^= h >>> 13; h = Math.imul(h, 0xc2b2ae35);
+  h ^= h >>> 16;
+  return (h >>> 0) / 2 ** 32;
+}
+
+/** Côn trùng của một ngày: chọn theo trọng số, cố định theo khoá ngày (không cần lưu DB, máy nào cũng như nhau). */
 export function bugFor(date: string): HabitBug {
-  let h = 0;
-  for (const c of date) h = (h * 31 + c.charCodeAt(0)) >>> 0;
-  return BUGS[h % BUGS.length];
+  let r = hashUnit(date) * BUGS.reduce((n, b) => n + b.weight, 0);
+  for (const b of BUGS) {
+    r -= b.weight;
+    if (r < 0) return b;
+  }
+  return BUGS[BUGS.length - 1];
+}
+
+/** Số ngày gặp từng loài trong các ngày đã làm đủ thói quen. */
+export function countBugs(days: Iterable<string>): Map<string, number> {
+  const out = new Map<string, number>();
+  for (const d of days) {
+    const id = bugFor(d).id;
+    out.set(id, (out.get(id) ?? 0) + 1);
+  }
+  return out;
 }
 
 export const getBug = (id: string | null | undefined): HabitBug | null => BUGS.find((b) => b.id === id) ?? null;

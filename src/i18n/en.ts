@@ -80,13 +80,22 @@ export const en: Messages = {
   detail: {
     special: (name) => `✨ Special plant: ${name}`,
     rest: '💤 Rest day',
-    bug: (name) => `${name} dropped by: every habit done!`,
+    bug: (name) => `A little ${name.toLowerCase()} dropped by: every habit done!`,
     missed: 'Nobody tended the plant that day 🥀',
     done: 'Done',
     notDone: 'Not done',
     note: 'Note',
   },
   mini: { sleeping: 'Sleeping', wilted: 'Wilted' },
+  bugs: {
+    title: 'Bug friends met',
+    hint: 'Finish every habit in a day and a little bug comes to visit your plant.',
+    rarity: { common: 'Common', rare: 'Rare', epic: 'Super rare' },
+    mystery: 'Mystery bug',
+    times: (n) => `×${n}`,
+    item: (name, rarity, n) => `${name} · ${rarity} · met ${n} ${n === 1 ? 'time' : 'times'}`,
+    mysteryItem: (rarity) => `Mystery bug · ${rarity}`,
+  },
   note: {
     title: "Today's note",
     label: 'Note text',

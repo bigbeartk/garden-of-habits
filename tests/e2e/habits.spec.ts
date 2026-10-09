@@ -203,4 +203,18 @@ test('làm đủ mọi thói quen: côn trùng ghé cây ở Hôm nay, hôm sau 
   await cell.screenshot({ path: 'test-results/habit-bug-cell.png' });
   await cell.click();
   await expect(page.getByText(/ghé thăm vì bạn làm đủ mọi thói quen/)).toBeVisible();
+  await page.getByRole('button', { name: 'Đóng' }).click();
+
+  // Khu vườn → Thói quen: thẻ côn trùng đã gặp 1/5, các ô khác bí ẩn; không tràn ngang
+  await goTab(page, 'Khu vườn');
+  await page.getByRole('tab', { name: 'Thói quen' }).click();
+  const coll = page.getByTestId('bug-collection');
+  await expect(coll.getByText('1/5')).toBeVisible();
+  await expect(coll.locator('[data-met="true"]')).toHaveCount(1);
+  // sau đồng hồ giả + reload, animation thu menu của WebKit có thể đứng: chạm ra ngoài thay vì closeMenu
+  await coll.getByRole('heading', { name: 'Côn trùng đã gặp' }).click();
+  await page.evaluate(() => document.querySelectorAll('*').forEach((el) => { if (el.scrollHeight > el.clientHeight) el.scrollTop = el.scrollHeight; }));
+  await page.waitForTimeout(1000);
+  await page.screenshot({ path: 'test-results/bug-collection.png' });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
 });
