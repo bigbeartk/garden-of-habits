@@ -226,6 +226,51 @@ export function CloseIcon({ size }: { size?: number }) {
   );
 }
 
+/** Sửa: bút chì vàng bơ nằm chéo, đầu tẩy hồng */
+export function PencilIcon({ size }: { size?: number }) {
+  return (
+    <Svg name="pencil" size={size}>
+      <g transform="rotate(45 16 16)">
+        <path d="M12.5 6 H19.5 V22 L16 28 L12.5 22 Z" fill="#FFE58A" {...STROKE} />
+        <path d="M12.5 22 L16 28 L19.5 22 Z" fill="#F5D7B5" {...STROKE} />
+        <path d="M15 26.3 L16 28 L17 26.3 Z" fill={INK} />
+        <path d="M12.5 6 V4.5 Q12.5 2.5 14.5 2.5 H17.5 Q19.5 2.5 19.5 4.5 V6 Z" fill="#FF9FB2" {...STROKE} />
+        <path d="M12.5 8.2 H19.5" {...STROKE} strokeWidth={1.5} />
+        <path d="M16 9.5 V21" stroke="#F2C94C" strokeWidth={1.4} strokeLinecap="round" />
+      </g>
+    </Svg>
+  );
+}
+
+/** Dừng: hai vạch bo tròn ‖ */
+export function PauseIcon({ size }: { size?: number }) {
+  return (
+    <Svg name="pause" size={size}>
+      <rect x={8} y={7} width={5.6} height={18} rx={2.6} fill="#E3D9FF" {...STROKE} />
+      <rect x={18.4} y={7} width={5.6} height={18} rx={2.6} fill="#E3D9FF" {...STROKE} />
+    </Svg>
+  );
+}
+
+/** Tiếp tục: tam giác ▶ bo góc */
+export function PlayIcon({ size }: { size?: number }) {
+  return (
+    <Svg name="play" size={size}>
+      <path d="M11 7.5 Q11 5.6 12.7 6.6 L24.6 14.3 Q26 15.3 24.6 16.3 L12.7 24.4 Q11 25.4 11 23.5 Z" fill="#CDEFE3" {...STROKE} />
+    </Svg>
+  );
+}
+
+/** Xoá: dấu X nét dày bo tròn, lõi hồng */
+export function RemoveIcon({ size }: { size?: number }) {
+  return (
+    <Svg name="remove" size={size}>
+      <path d="M10 10 L22 22 M22 10 L10 22" stroke={INK} strokeWidth={6} strokeLinecap="round" />
+      <path d="M10 10 L22 22 M22 10 L10 22" stroke="#FF8FA8" strokeWidth={2.6} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
 /** Đổi cây: mầm cây trong vòng mũi tên xoay */
 export function PlantSwapIcon({ size }: { size?: number }) {
   return (

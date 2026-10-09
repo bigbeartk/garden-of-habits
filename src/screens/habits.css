@@ -10,7 +10,7 @@
   flex: none; width: 44px; height: 44px; border-radius: 50%; border: 2px solid var(--cocoa);
   display: grid; place-items: center; font-size: 1.4rem; box-shadow: var(--shadow-pop);
 }
-.habit-card__text { flex: 1 1 150px; min-width: 0; } /* chật thì hàng nút xuống dòng, tên không bị bóp */
+.habit-card__text { flex: 1 1 0; min-width: 0; } /* nút chỉ có icon nên luôn cùng hàng với chữ; tên dài tự xuống dòng */
 .habit-card__name { margin: 0; font-size: 1.05rem; overflow-wrap: anywhere; }
 .habit-card__days { margin: 2px 0 0; font-size: 0.85rem; color: var(--cocoa-soft); font-weight: 700; }
 .habit-card__actions { display: flex; gap: 6px; margin-left: auto; }
@@ -33,3 +33,13 @@
 .habits__stopped-hint { margin: 0 4px 10px; font-size: 0.85rem; color: var(--cocoa-soft); }
 .habit-card.is-stopped { border-style: dashed; box-shadow: none; }
 .habit-card.is-stopped .habit-card__icon { filter: grayscale(0.6); opacity: 0.7; }
+
+/* nút tròn chỉ có icon trên thẻ thói quen: Sửa / Dừng / Xoá / Tiếp tục (padding 0: Safari làm nút tròn thành bầu dục) */
+.habit-card__actions { align-items: center; }
+.habit-card__btn {
+  display: grid; place-items: center; width: 36px; height: 36px; padding: 0; flex: none;
+  border-radius: 50%; border: 2px solid var(--cocoa); background: var(--white); box-shadow: var(--shadow-pop); cursor: pointer;
+}
+.habit-card__btn:active { transform: translateY(2px) scale(0.95); box-shadow: none; }
+/* đang hỏi xác nhận xoá: hai nút chữ rộng, cho xuống hàng riêng để khỏi bóp tên */
+.habit-card__actions:has(.confirm) { flex-basis: 100%; justify-content: flex-end; }

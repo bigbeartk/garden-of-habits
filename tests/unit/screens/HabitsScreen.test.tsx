@@ -49,11 +49,16 @@ describe('HabitsScreen', () => {
     renderWithDeps(<HabitsScreen onBack={() => {}} />, deps);
     expect(await screen.findByText('T2 · T4')).toBeInTheDocument();
     expect(screen.getByText('Mỗi ngày')).toBeInTheDocument();
-    fireEvent.click(screen.getAllByRole('button', { name: 'Sửa' })[0]);
+    for (const [name, icon] of [['Sửa: Đi bộ', 'pencil'], ['Dừng: Đi bộ', 'pause'], ['Xoá: Đi bộ', 'remove']]) {
+      const btn = screen.getByRole('button', { name });
+      expect(btn.querySelector(`svg[data-icon="${icon}"]`)).not.toBeNull();
+      expect(btn.textContent).toBe(''); // chỉ có icon
+    }
+    fireEvent.click(screen.getByRole('button', { name: 'Sửa: Đi bộ' }));
     fireEvent.change(screen.getByLabelText('Tên thói quen'), { target: { value: 'Đi bộ 30 phút' } });
     fireEvent.click(screen.getByRole('button', { name: 'Lưu thói quen' }));
     expect(await screen.findByText('Đi bộ 30 phút')).toBeInTheDocument();
-    fireEvent.click(screen.getAllByRole('button', { name: 'Xoá' })[0]);
+    fireEvent.click(screen.getByRole('button', { name: 'Xoá: Đi bộ 30 phút' }));
     fireEvent.click(screen.getByRole('button', { name: 'Xoá cả lịch sử' }));
     await waitFor(async () => expect(await listHabits(deps.db)).toHaveLength(1));
   });
@@ -75,7 +80,9 @@ describe('HabitsScreen', () => {
     const stopped = await screen.findByTestId('habits-stopped');
     expect(within(stopped).getByText('Yoga')).toBeInTheDocument();
     expect(within(stopped).getByText('Đã dừng từ 05/10')).toBeInTheDocument();
-    expect(within(stopped).queryByRole('button', { name: 'Sửa' })).not.toBeInTheDocument();
+    expect(within(stopped).queryByRole('button', { name: 'Sửa: Yoga' })).not.toBeInTheDocument();
+    expect(within(stopped).getByRole('button', { name: 'Tiếp tục: Yoga' }).querySelector('svg[data-icon="play"]')).not.toBeNull();
+    expect(within(stopped).getByRole('button', { name: 'Xoá: Yoga' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Dừng: Yoga' })).not.toBeInTheDocument();
     expect(isStopped((await listHabits(deps.db))[0])).toBe(true);
 

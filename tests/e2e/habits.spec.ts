@@ -129,7 +129,7 @@ test('dừng thói quen: rời Hôm nay, xuống mục Đã dừng, lịch sử 
   await page.getByRole('button', { name: 'Thêm thói quen' }).click();
   await createHabit(page, 'Uống nước', { formOpen: true });
   await page.getByRole('button', { name: '＋ Thói quen mới' }).click();
-  await createHabit(page, 'Đọc sách', { formOpen: true });
+  await createHabit(page, 'Đọc sách 20 trang mỗi tối trước khi ngủ', { formOpen: true });
   await page.getByRole('button', { name: 'Quay lại Hôm nay' }).click();
   const chip = page.getByRole('switch', { name: 'Thói quen: Uống nước' });
   await chip.click();
@@ -140,11 +140,23 @@ test('dừng thói quen: rời Hôm nay, xuống mục Đã dừng, lịch sử 
   const stopped = page.getByTestId('habits-stopped');
   await expect(stopped.getByText('Đã dừng từ 08/10')).toBeVisible();
   await page.screenshot({ path: 'test-results/habits-stopped.png' });
+  // nút chỉ có icon, nằm cùng hàng với tên (kể cả tên dài) và vẫn tròn
+  for (const [btnName, text] of [['Xoá: Đọc sách 20 trang mỗi tối trước khi ngủ', 'Đọc sách 20 trang mỗi tối trước khi ngủ'], ['Tiếp tục: Uống nước', 'Uống nước']]) {
+    const btn = (await page.getByRole('button', { name: btnName }).boundingBox())!;
+    const name = (await page.getByText(text, { exact: true }).boundingBox())!;
+    expect(btn.x).toBeGreaterThan(name.x + name.width);
+    expect(btn.y).toBeLessThan(name.y + name.height + 40);
+    expect(Math.abs(btn.width - btn.height)).toBeLessThan(1);
+  }
+  await page.getByRole('button', { name: 'Xoá: Uống nước' }).click();
+  await expect(page.getByRole('button', { name: 'Xoá cả lịch sử' })).toBeVisible();
+  await page.screenshot({ path: 'test-results/habits-delete-confirm.png' });
+  await page.getByRole('button', { name: 'Thôi' }).click();
   const width = await page.evaluate(() => document.documentElement.scrollWidth);
   expect(width).toBeLessThanOrEqual(390);
 
   await page.getByRole('button', { name: 'Quay lại Hôm nay' }).click();
-  await expect(page.getByRole('switch', { name: 'Thói quen: Đọc sách' })).toBeVisible();
+  await expect(page.getByRole('switch', { name: 'Thói quen: Đọc sách 20 trang mỗi tối trước khi ngủ' })).toBeVisible();
   await expect(chip).toHaveCount(0);
 
   await goTab(page, 'Khu vườn');

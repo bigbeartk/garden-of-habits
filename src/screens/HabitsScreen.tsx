@@ -5,6 +5,7 @@ import { useDeps } from '../app/deps';
 import { BackButton } from '../components/BackButton';
 import { ConfirmButton } from '../components/ConfirmButton';
 import { HabitForm } from '../components/HabitForm';
+import { PauseIcon, PencilIcon, PlayIcon, RemoveIcon } from '../components/icons';
 import { WEEK_ORDER } from '../components/WeekdayPicker';
 import { HABIT_COLORS } from '../content/habits';
 import { addHabit, deleteHabit, editHabit, listHabits, resumeHabit, stopHabit } from '../domain/habitService';
@@ -46,8 +47,8 @@ export function HabitsScreen({ onBack, startAdding = false, backLabel }: { onBac
   );
   const del = (h: Habit) => (
     <ConfirmButton
-      label={t.habits.delete} confirmLabel={t.habits.deleteConfirm} className="tpl__mini"
-      onConfirm={() => deleteHabit(deps, h.id).catch(fail)}
+      label={t.habits.delete(h.name)} confirmLabel={t.habits.deleteConfirm} className="habit-card__btn habit-card__btn--delete"
+      icon={<RemoveIcon size={22} />} onConfirm={() => deleteHabit(deps, h.id).catch(fail)}
     />
   );
 
@@ -87,9 +88,11 @@ export function HabitsScreen({ onBack, startAdding = false, backLabel }: { onBac
               <>
                 {head(h, scheduleLabel(h.weekdays, t))}
                 <div className="habit-card__actions">
-                  <button type="button" className="tpl__mini" onClick={() => setEditing(h.id)}>{t.habits.edit}</button>
-                  <button type="button" className="tpl__mini" aria-label={t.habits.stop(h.name)} onClick={() => stopHabit(deps, h.id).catch(fail)}>
-                    {t.habits.stopShort}
+                  <button type="button" className="habit-card__btn habit-card__btn--edit" aria-label={t.habits.edit(h.name)} title={t.habits.edit(h.name)} onClick={() => setEditing(h.id)}>
+                    <PencilIcon size={22} />
+                  </button>
+                  <button type="button" className="habit-card__btn habit-card__btn--pause" aria-label={t.habits.stop(h.name)} title={t.habits.stop(h.name)} onClick={() => stopHabit(deps, h.id).catch(fail)}>
+                    <PauseIcon size={22} />
                   </button>
                   {del(h)}
                 </div>
@@ -107,8 +110,8 @@ export function HabitsScreen({ onBack, startAdding = false, backLabel }: { onBac
               <li key={h.id} className="card habit-card is-stopped" data-testid={`habit-${h.id}`}>
                 {head(h, t.habits.stoppedSince(shortDate(lang, stoppedSince(h)!)))}
                 <div className="habit-card__actions">
-                  <button type="button" className="tpl__mini" aria-label={t.habits.resume(h.name)} onClick={() => resumeHabit(deps, h.id).catch(fail)}>
-                    {t.habits.resumeShort}
+                  <button type="button" className="habit-card__btn habit-card__btn--resume" aria-label={t.habits.resume(h.name)} title={t.habits.resume(h.name)} onClick={() => resumeHabit(deps, h.id).catch(fail)}>
+                    <PlayIcon size={22} />
                   </button>
                   {del(h)}
                 </div>
