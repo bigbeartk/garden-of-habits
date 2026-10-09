@@ -7,3 +7,6 @@ playwright-report
 gallery-tmp.html
 shot-tmp.mjs
 assets
+
+# ảnh chụp sổ phác thảo (npm run sketch:shot)
+sketch-*.png

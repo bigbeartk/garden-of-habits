@@ -14,6 +14,7 @@
     "e2e": "playwright test",
     "icons": "pwa-assets-generator",
     "icons:android": "node scripts/android-assets.mjs",
+    "sketch:shot": "node scripts/sketch-shot.mjs",
     "test:watch": "vitest"
   },
   "keywords": [],
