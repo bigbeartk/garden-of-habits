@@ -80,7 +80,7 @@ export const en: Messages = {
   detail: {
     special: (name) => `✨ Special plant: ${name}`,
     rest: '💤 Rest day',
-    bug: (name) => `A little ${name.toLowerCase()} dropped by: every habit done!`,
+    bug: (name, rarity) => `A little ${name.toLowerCase()}${rarity ? ` (${rarity.toLowerCase()})` : ''} dropped by: every habit done!`,
     missed: 'Nobody tended the plant that day 🥀',
     done: 'Done',
     notDone: 'Not done',
@@ -182,6 +182,12 @@ export const en: Messages = {
     goalPlaceholder: 'Set a goal for today…',
     styleUnlocked: (plant, style) => `New style unlocked: ${plant} · ${style}!`,
     styleUnlockedHint: 'Try it in Plant & pot',
+    bugVisit: {
+      new: (name, rarity) => `New friend: ${name}${rarity ? ` (${rarity.toLowerCase()})` : ''}!`,
+      rare: (name) => `A rare ${name.toLowerCase()} dropped by!`,
+      epic: (name) => `A super rare ${name.toLowerCase()} dropped by!`,
+      hint: 'See your collection in Garden → Habits',
+    },
   },
   future: {
     seeYou: (weekday) => `See you on ${weekday}! 🌱`,

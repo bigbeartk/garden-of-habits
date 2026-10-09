@@ -16,7 +16,7 @@ import { SpeechBubble, type SpeechKind } from '../components/SpeechBubble';
 import { StageBurst } from '../components/StageBurst';
 import { TodoList } from '../components/TodoList';
 import { WateringCan } from '../components/WateringCan';
-import { bugFor } from '../content/bugs';
+import { bugFor, bugVisitKind, countBugs, type BugVisitKind } from '../content/bugs';
 import type { Mood } from '../content/Face';
 import { pickPraise } from '../content/praises';
 import { pickSaying } from '../content/sayings';
@@ -29,7 +29,8 @@ import {
   toggleTodo,
 } from '../domain/dayService';
 import { stageIndex } from '../domain/growth';
-import { perfectHabitDays } from '../domain/habitService';
+import { listHabits, perfectHabitDays } from '../domain/habitService';
+import { addDays } from '../domain/dayKey';
 import { listUnlockedStyles } from '../domain/styleUnlocks';
 import { periodOf } from '../domain/period';
 import { timeOfDay } from '../domain/timeOfDay';
@@ -67,13 +68,35 @@ export function TodayScreen() {
   const [error, setError] = useState<string | null>(null);
   const greetedFor = useRef<string | null>(null);
   const pickedFor = useRef<string | null>(null);
-  // undefined = chưa đọc xong setting: chưa hiện bong bóng, để lúc đang ẩn không bị nháy lên
-  // làm đủ mọi thói quen hôm nay → côn trùng ghé cây
+  // làm đủ mọi thói quen hôm nay → côn trùng ghé cây; `metBefore`: loài của hôm nay đã từng ghé ngày nào trước đó chưa
   const dayDate = day?.date;
-  const perfectToday = useLiveQuery(
-    async () => (dayDate ? (await perfectHabitDays(deps, dayDate, dayDate)).has(dayDate) : false),
-    [deps, dayDate],
-  );
+  const bugToday = useLiveQuery(async () => {
+    if (!dayDate) return undefined;
+    const perfect = (await perfectHabitDays(deps, dayDate, dayDate)).has(dayDate);
+    const habits = await listHabits(deps.db);
+    const first = habits.reduce<string | null>((m, h) => (m === null || h.startDate < m ? h.startDate : m), null);
+    const before = first !== null && first < dayDate ? await perfectHabitDays(deps, first, addDays(dayDate, -1)) : new Set<string>();
+    return { date: dayDate, perfect, metBefore: countBugs(before).has(bugFor(dayDate).id) };
+  }, [deps, dayDate]);
+  const perfectToday = bugToday?.perfect === true;
+  /** khung báo khi côn trùng vừa ghé trong lúc màn đang mở (lần nạp đầu không tính) */
+  const seenPerfect = useRef<{ date: string; perfect: boolean } | null>(null);
+  const [bugVisit, setBugVisit] = useState<BugVisitKind | null>(null);
+  useEffect(() => {
+    if (!bugToday) return;
+    const prev = seenPerfect.current;
+    if (prev && prev.date === bugToday.date && !prev.perfect && bugToday.perfect) {
+      setBugVisit(bugVisitKind(bugFor(bugToday.date), bugToday.metBefore));
+    }
+    if (!bugToday.perfect) setBugVisit(null);
+    seenPerfect.current = { date: bugToday.date, perfect: bugToday.perfect };
+  }, [bugToday]);
+  useEffect(() => {
+    if (!bugVisit) return;
+    const t = setTimeout(() => setBugVisit(null), 5000);
+    return () => clearTimeout(t);
+  }, [bugVisit]);
+  // undefined = chưa đọc xong setting: chưa hiện bong bóng, để lúc đang ẩn không bị nháy lên
   const showSpeechSaved = useLiveQuery(async () => (await getSetting(deps.db, 'showPlantSpeech')) ?? true, [deps.db]);
   /** giữ cục bộ để bấm nhanh hai lần không bị đọc lại giá trị cũ từ DB */
   const [showSpeechLocal, setShowSpeechLocal] = useState<boolean | null>(null);
@@ -152,7 +175,8 @@ export function TodayScreen() {
   };
   // câu khen/chạm hiện tạm; ngoài lúc đó cây nói lời của ngày (nếu không bị ẩn)
   const daily = !day.isRestDay && showSpeech === true && day.speech !== undefined ? { text: day.speech, kind: 'daily' as const } : null;
-  const said: { text: string; kind: SpeechKind } | null = editingSpeech ? daily : speech ?? daily;
+  // khung báo côn trùng nằm đúng chỗ bong bóng (để không che cây và chính con côn trùng): tạm ẩn bong bóng ~5 giây
+  const said: { text: string; kind: SpeechKind } | null = editingSpeech ? daily : bugVisit ? null : speech ?? daily;
   const mood: Mood = day.isRestDay ? 'sleep' : celebrating || speech?.kind === 'tap' ? 'smile' : said?.text ? 'talk' : 'normal';
   const currentPeriod = periodOf(now);
   const doneCount = day.todos.filter((t) => t.done).length;
@@ -198,6 +222,7 @@ export function TodayScreen() {
             </div>
           )}
           {newStyles.length > 0 && <StyleUnlock keys={newStyles} below={intro && !!special} />}
+          {bugVisit && !newStyles.length && <BugVisit kind={bugVisit} date={day.date} below={intro && !!special} />}
           <SpeechBubble
             text={said?.text ?? null}
             kind={said?.kind}
@@ -308,6 +333,27 @@ export function TodayScreen() {
         onSave={(note) => run(setNote(deps, day.date, note))}
       />
     </section>
+  );
+}
+
+/** Khung báo côn trùng vừa ghé (~5 giây): loài mới gặp lần đầu, hoặc con hiếm / rất hiếm. */
+function BugVisit({ kind, date, below }: { kind: BugVisitKind; date: string; below: boolean }) {
+  const { t, tr } = useI18n();
+  const bug = bugFor(date);
+  const name = tr(bug.name);
+  const text = kind === 'new'
+    ? t.today.bugVisit.new(name, bug.rarity === 'common' ? null : t.bugs.rarity[bug.rarity])
+    : t.today.bugVisit[kind](name);
+  const deco = bug.rarity === 'epic' ? '🌟 ✨ 🌟' : bug.rarity === 'rare' ? '✨ 💜 ✨' : '🎉 ✨ 🎉';
+  return (
+    <div
+      className={`special-intro style-unlock bug-visit bug-visit--${bug.rarity}${below ? ' style-unlock--below' : ''}`}
+      data-testid="bug-visit" data-kind={kind} role="status"
+    >
+      <span className="special-intro__sparkles" aria-hidden="true">{deco}</span>
+      {text}
+      {kind === 'new' && <span className="style-unlock__hint">{t.today.bugVisit.hint}</span>}
+    </div>
   );
 }
 

@@ -1,4 +1,4 @@
-import { BUGS } from '../content/bugs';
+import { BUGS, BugAura } from '../content/bugs';
 import { PlantScene } from '../components/PlantScene';
 import { ArtView } from '../content/ArtView';
 import { Face } from '../content/Face';
@@ -48,9 +48,10 @@ export function BugGallery() {
   const cell = { width: 120, height: 144 };
   return (
     <div style={{ padding: 6, background: '#D4ECFF' }}>
-      <div style={{ display: 'flex', gap: 6 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 72px)', gap: 6 }}>
         {BUGS.map((b) => (
-          <svg key={b.id} viewBox="-16 -16 32 32" width={72} height={72} style={{ background: '#fff', borderRadius: 12 }}>
+          <svg key={b.id} viewBox="-20 -24 40 44" width={72} height={79} style={{ background: '#fff', borderRadius: 12 }}>
+            <BugAura rarity={b.rarity} animate={false} />
             <b.Art animate={false} />
           </svg>
         ))}

@@ -88,4 +88,17 @@ describe('PlantScene côn trùng thói quen', () => {
     render(<PlantScene plantId="corn" potId="rattan" stage="seed" specialId={null} mood="sleep" mode="sleeping" bugId="bee" />);
     expect(screen.queryByTestId('habit-bug')).not.toBeInTheDocument();
   });
+
+  it('con hiếm có quầng sáng; rất hiếm thêm sao lấp lánh; con thường không có gì', () => {
+    const { rerender } = render(<PlantScene plantId="corn" potId="rattan" stage="bloom" specialId={null} mood="smile" bugId="bee" />);
+    expect(screen.queryByTestId('bug-aura')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('bug-sparkles')).not.toBeInTheDocument();
+    rerender(<PlantScene plantId="corn" potId="rattan" stage="bloom" specialId={null} mood="smile" bugId="firefly" />);
+    expect(screen.getByTestId('bug-aura')).toHaveAttribute('data-rarity', 'rare');
+    expect(screen.queryByTestId('bug-sparkles')).not.toBeInTheDocument();
+    rerender(<PlantScene plantId="corn" potId="rattan" stage="bloom" specialId={null} mood="smile" bugId="luna-moth" />);
+    expect(screen.getByTestId('bug-aura')).toHaveAttribute('data-rarity', 'epic');
+    expect(screen.getByTestId('bug-sparkles')).toBeInTheDocument();
+  });
 });
+

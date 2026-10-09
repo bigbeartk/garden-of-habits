@@ -1,10 +1,10 @@
 import { render } from '@testing-library/react';
-import { BUGS, bugFor, bugSpot, countBugs } from '../../../src/content/bugs';
+import { BUGS, bugFor, bugSpot, bugVisitKind, countBugs, getBug } from '../../../src/content/bugs';
 import { addDays } from '../../../src/domain/dayKey';
 
 describe('côn trùng thưởng ngày làm đủ thói quen', () => {
-  it('đủ 5 loài, id không trùng, có tên Việt + Anh, vẽ được', () => {
-    expect(BUGS.map((b) => b.id)).toEqual(['ladybug', 'butterfly', 'bee', 'firefly', 'dragonfly']);
+  it('đủ 10 loài, id không trùng, có tên Việt + Anh, vẽ được', () => {
+    expect(BUGS.map((b) => b.id)).toEqual(['ladybug', 'butterfly', 'bee', 'caterpillar', 'ant', 'firefly', 'beetle', 'cricket', 'dragonfly', 'luna-moth']);
     for (const b of BUGS) {
       expect(b.name.vi.length).toBeGreaterThan(0);
       expect(b.name.en.length).toBeGreaterThan(0);
@@ -13,10 +13,20 @@ describe('côn trùng thưởng ngày làm đủ thói quen', () => {
     }
   });
 
-  it('độ hiếm: bọ rùa/bướm/ong thường gặp, đom đóm hiếm, chuồn chuồn rất hiếm', () => {
+  it('độ hiếm: 5 thường gặp, 3 hiếm, 2 rất hiếm', () => {
     expect(BUGS.map((b) => [b.id, b.weight, b.rarity])).toEqual([
-      ['ladybug', 5, 'common'], ['butterfly', 4, 'common'], ['bee', 4, 'common'], ['firefly', 2, 'rare'], ['dragonfly', 1, 'epic'],
+      ['ladybug', 5, 'common'], ['butterfly', 4, 'common'], ['bee', 4, 'common'], ['caterpillar', 4, 'common'], ['ant', 4, 'common'],
+      ['firefly', 2, 'rare'], ['beetle', 2, 'rare'], ['cricket', 2, 'rare'],
+      ['dragonfly', 1, 'epic'], ['luna-moth', 1, 'epic'],
     ]);
+  });
+
+  it('bugVisitKind: gặp lần đầu → new; không thì hiếm → rare, rất hiếm → epic, thường → null', () => {
+    expect(bugVisitKind(getBug('ladybug')!, false)).toBe('new');
+    expect(bugVisitKind(getBug('dragonfly')!, false)).toBe('new');
+    expect(bugVisitKind(getBug('ladybug')!, true)).toBeNull();
+    expect(bugVisitKind(getBug('firefly')!, true)).toBe('rare');
+    expect(bugVisitKind(getBug('luna-moth')!, true)).toBe('epic');
   });
 
   it('qua 4 năm, số ngày mỗi loài gần đúng tỉ lệ trọng số', () => {
@@ -29,13 +39,14 @@ describe('côn trùng thưởng ngày làm đủ thói quen', () => {
       expect(Math.abs(share - b.weight / total)).toBeLessThan(0.04);
     }
     expect(counts.get('dragonfly')!).toBeLessThan(counts.get('firefly')!);
+    expect(counts.get('luna-moth')!).toBeLessThan(counts.get('cricket')!);
     expect(counts.get('firefly')!).toBeLessThan(counts.get('bee')!);
   });
 
   it('bugFor cố định theo ngày và đủ mọi loài qua nhiều ngày', () => {
     expect(bugFor('2026-10-08').id).toBe(bugFor('2026-10-08').id);
     const seen = new Set<string>();
-    for (let d = 1; d <= 28; d++) seen.add(bugFor(`2026-02-${String(d).padStart(2, '0')}`).id);
+    for (let k = '2026-01-01'; k < '2027-01-01'; k = addDays(k, 1)) seen.add(bugFor(k).id);
     expect(seen.size).toBe(BUGS.length);
   });
 

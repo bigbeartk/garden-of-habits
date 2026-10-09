@@ -29,7 +29,7 @@ export function DayDetailSheet({ dateKey, status, record, bugId, onClose }: {
             <p className="detail__line">{tr(getSpecies(record.plantId).name)} · {t.stage[record.finalStage]}</p>
           )}
           {special && <p className="detail__line">{t.detail.special(tr(special.name))}</p>}
-          {bug && <p className="detail__line">{t.detail.bug(tr(bug.name))}</p>}
+          {bug && <p className="detail__line">{t.detail.bug(tr(bug.name), bug.rarity === 'common' ? null : t.bugs.rarity[bug.rarity])}</p>}
           {status === 'rest' && <p className="detail__line">{t.detail.rest}</p>}
           {status === 'missed' && <p className="detail__line muted">{t.detail.missed}</p>}
           {record && !record.isRestDay && record.todos.length > 0 && (

@@ -169,6 +169,7 @@ test('dừng thói quen: rời Hôm nay, xuống mục Đã dừng, lịch sử 
 });
 
 test('làm đủ mọi thói quen: côn trùng ghé cây ở Hôm nay, hôm sau còn trên ô Lịch', async ({ page }) => {
+  test.setTimeout(60_000); // có chờ khung báo tự tắt ~5 giây
   await page.clock.setFixedTime(at('2026-10-08T10:00:00'));
   await page.goto('/');
   await openToday(page);
@@ -186,6 +187,9 @@ test('làm đủ mọi thói quen: côn trùng ghé cây ở Hôm nay, hôm sau 
   await page.getByRole('switch', { name: 'Thói quen: Đọc sách' }).click();
   const bug = scene.getByTestId('habit-bug');
   await expect(bug).toHaveCount(1);
+  // lần đầu gặp loài này → khung "Gặp bạn mới"
+  await expect(page.getByTestId('bug-visit')).toHaveAttribute('data-kind', 'new');
+  await expect(page.getByTestId('bug-visit')).toContainText('Gặp bạn mới:');
   // nằm trong khung cây, không tràn ra ngoài
   await page.waitForTimeout(1500); // chờ bay vào xong
   const s = (await scene.boundingBox())!;
@@ -194,6 +198,8 @@ test('làm đủ mọi thói quen: côn trùng ghé cây ở Hôm nay, hôm sau 
   expect(b.x + b.width).toBeLessThanOrEqual(s.x + s.width);
   expect(b.y).toBeGreaterThanOrEqual(s.y);
   await page.screenshot({ path: 'test-results/habit-bug-today.png' });
+  // khung báo tự tắt sau ~5 giây
+  await expect(page.getByTestId('bug-visit')).toHaveCount(0, { timeout: 8000 });
 
   await page.clock.setFixedTime(at('2026-10-09T10:00:00'));
   await page.reload();
@@ -209,7 +215,7 @@ test('làm đủ mọi thói quen: côn trùng ghé cây ở Hôm nay, hôm sau 
   await goTab(page, 'Khu vườn');
   await page.getByRole('tab', { name: 'Thói quen' }).click();
   const coll = page.getByTestId('bug-collection');
-  await expect(coll.getByText('1/5')).toBeVisible();
+  await expect(coll.getByText('1/10')).toBeVisible();
   await expect(coll.locator('[data-met="true"]')).toHaveCount(1);
   // sau đồng hồ giả + reload, animation thu menu của WebKit có thể đứng: chạm ra ngoài thay vì closeMenu
   await coll.getByRole('heading', { name: 'Côn trùng đã gặp' }).click();

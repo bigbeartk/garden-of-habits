@@ -88,7 +88,8 @@ export const vi = {
   detail: {
     special: (name: string) => `✨ Cây đặc biệt: ${name}`,
     rest: '💤 Ngày tiết kiệm năng lượng',
-    bug: (name: string) => `${name} ghé thăm vì bạn làm đủ mọi thói quen`,
+    /** `rarity`: chữ độ hiếm (chỉ con hiếm / rất hiếm), null = con thường */
+    bug: (name: string, rarity: string | null) => `${name}${rarity ? ` (${rarity.toLowerCase()})` : ''} ghé thăm vì bạn làm đủ mọi thói quen`,
     missed: 'Hôm đó cây chưa được chăm sóc 🥀',
     done: 'Đã xong',
     notDone: 'Chưa xong',
@@ -191,6 +192,13 @@ export const vi = {
     goalPlaceholder: 'Đặt mục tiêu cho hôm nay…',
     styleUnlocked: (plant: string, style: string) => `Mở khoá dáng mới: ${plant} · ${style}!`,
     styleUnlockedHint: 'Vào Đổi cây & chậu để thử nha',
+    /** khung báo khi côn trùng vừa ghé (làm đủ thói quen): lần đầu gặp loài / con hiếm / rất hiếm */
+    bugVisit: {
+      new: (name: string, rarity: string | null) => `Gặp bạn mới: ${name}${rarity ? ` (${rarity.toLowerCase()})` : ''}!`,
+      rare: (name: string) => `${name} hiếm ghé thăm!`,
+      epic: (name: string) => `${name} rất hiếm ghé thăm!`,
+      hint: 'Xem bộ sưu tập ở Khu vườn → Thói quen',
+    },
   },
   future: {
     seeYou: (weekday: string) => `Hẹn gặp bạn vào ${weekday} nha! 🌱`,

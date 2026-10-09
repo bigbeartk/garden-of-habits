@@ -13,7 +13,8 @@ import { addReminder, setReminderAutoToday } from '../../../src/domain/reminderS
 import { getSetting, setSetting } from '../../../src/db/settings';
 import { ensureToday } from '../../../src/domain/dayService';
 import { addHabit } from '../../../src/domain/habitService';
-import { bugFor } from '../../../src/content/bugs';
+import { bugFor, bugVisitKind } from '../../../src/content/bugs';
+import { addDays } from '../../../src/domain/dayKey';
 
 /** Bấm ＋ ở hàng tiêu đề của buổi rồi gõ vào dòng việc trống vừa hiện. */
 async function addTodoInline(user: ReturnType<typeof userEvent.setup>, text: string, period: 'Sáng' | 'Chiều' | 'Tối' = 'Sáng') {
@@ -559,7 +560,32 @@ describe('TodayScreen: lối vào Nhắc việc', () => {
     const bug = await screen.findByTestId('habit-bug');
     expect(bug).toHaveAttribute('data-bug', bugFor('2026-10-02').id);
     expect(screen.getByTestId('plant-scene')).toContainElement(bug);
+    // chưa từng gặp loài này → khung "Gặp bạn mới"
+    const visit = await screen.findByTestId('bug-visit');
+    expect(visit).toHaveAttribute('data-kind', 'new');
+    expect(visit).toHaveTextContent(`Gặp bạn mới: ${bugFor('2026-10-02').name.vi}`);
     await user.click(screen.getByRole('switch', { name: 'Thói quen: Yoga' }));
     await waitFor(() => expect(screen.queryByTestId('habit-bug')).not.toBeInTheDocument());
   });
+
+  it('loài đã gặp ngày trước: không báo "bạn mới"; con thường thì không báo, hiếm thì báo theo độ hiếm', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
+    const today = '2026-10-02';
+    let past = addDays(today, -1);
+    while (bugFor(past).id !== bugFor(today).id) past = addDays(past, -1);
+    await deps.db.days.put(makeDay({ date: today, greetedAt: 1, speech: '' }));
+    await deps.db.habits.put({ id: 'h', name: 'Uống nước', icon: '💧', color: 'sky', weekdays: [0, 1, 2, 3, 4, 5, 6], order: 0, startDate: past, createdAt: 0, updatedAt: 0 });
+    await deps.db.habitChecks.put({ habitId: 'h', date: past, at: 1 });
+    const user = userEvent.setup();
+    renderWithDeps(<TodayScreen />, deps);
+    await user.click(await screen.findByRole('switch', { name: 'Thói quen: Uống nước' }));
+    await screen.findByTestId('habit-bug');
+    const kind = bugVisitKind(bugFor(today), true);
+    if (kind) expect(await screen.findByTestId('bug-visit')).toHaveAttribute('data-kind', kind);
+    else {
+      await new Promise((r) => setTimeout(r, 100));
+      expect(screen.queryByTestId('bug-visit')).not.toBeInTheDocument();
+    }
+  });
 });
+

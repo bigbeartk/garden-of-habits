@@ -79,6 +79,11 @@
 .style-unlock { white-space: normal; text-align: center; width: max-content; max-width: 92%; border-radius: var(--radius-md); }
 .style-unlock--below { top: 150px; }
 .style-unlock__hint { display: block; font-size: 0.75rem; font-weight: 600; }
+/* khung báo côn trùng ghé: màu theo độ hiếm */
+.bug-visit, .bug-visit.style-unlock--below { top: 14px; max-width: calc(100% - 120px); }
+.bug-visit--common { background: var(--mint); }
+.bug-visit--rare { background: var(--lavender); }
+.bug-visit--epic { background: var(--butter); border-color: #E0A800; box-shadow: 0 3px 0 #E0A800; }
 @keyframes special-intro-pop { from { opacity: 0; scale: 0.4; } to { opacity: 1; scale: 1; } }
 @keyframes special-intro-twinkle { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
 .day-title__input {

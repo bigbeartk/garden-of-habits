@@ -1,7 +1,7 @@
 import { useId, type ReactNode } from 'react';
 import { motion } from 'motion/react';
 import { ArtView } from '../content/ArtView';
-import { BUG_SCALE, bugSpot, getBug } from '../content/bugs';
+import { BUG_SCALE, BugAura, bugSpot, getBug, star } from '../content/bugs';
 import { Face, type Mood } from '../content/Face';
 import { SleepingSeed } from '../content/common/SleepingSeed';
 import { WiltedPlant } from '../content/common/WiltedPlant';
@@ -97,10 +97,26 @@ export function PlantScene({
             transition={{ duration: 1.2, ease: 'easeOut' }}
           >
             <g>
+              <BugAura rarity={bug.rarity} animate={!reducedMotion} />
               <bug.Art animate={!reducedMotion} />
               {!reducedMotion && <animateTransform attributeName="transform" type="translate" values="0 0;1.5 -3;0 0" dur="2.4s" repeatCount="indefinite" />}
             </g>
           </motion.g>
+          {/* con rất hiếm bay vào để lại vệt kim tuyến dọc đường bay, mờ dần */}
+          {bugEntrance && bug.rarity === 'epic' && !reducedMotion && (
+            <g data-testid="bug-trail" aria-hidden="true">
+              {[0.85, 0.65, 0.45, 0.25].map((f, i) => (
+                <motion.path
+                  key={f}
+                  d={star(60 * f, -50 * f, 2.4)}
+                  fill="#FFD84A" stroke="#C99A1E" strokeWidth={0.4}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: [0, 1, 0] }}
+                  transition={{ duration: 1.1, delay: 0.15 + i * 0.22, ease: 'easeOut' }}
+                />
+              ))}
+            </g>
+          )}
         </g>
       )}
       {children}

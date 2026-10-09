@@ -320,7 +320,8 @@ describe('Lịch: côn trùng thói quen', () => {
     await waitFor(() => expect(within(cell).getByTestId('habit-bug')).toHaveAttribute('data-bug', bugFor('2026-10-02').id));
     expect(within(screen.getByTestId('day-2026-10-03')).queryByTestId('habit-bug')).not.toBeInTheDocument();
     await user.click(cell);
-    const name = bugFor('2026-10-02').name.vi;
-    expect(await screen.findByText(`${name} ghé thăm vì bạn làm đủ mọi thói quen`)).toBeInTheDocument();
+    const bug = bugFor('2026-10-02');
+    const rarity = { common: '', rare: ' (hiếm)', epic: ' (rất hiếm)' }[bug.rarity];
+    expect(await screen.findByText(`${bug.name.vi}${rarity} ghé thăm vì bạn làm đủ mọi thói quen`)).toBeInTheDocument();
   });
 });
