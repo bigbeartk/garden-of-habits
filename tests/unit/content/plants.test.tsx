@@ -48,21 +48,6 @@ describe('plants', () => {
     }
   });
 
-  it('dáng 2 vẽ kiểu Pixel, dáng 3 kiểu Đất sét (mọi loài)', () => {
-    for (const p of PLANTS) {
-      const [two, three] = p.styles!;
-      expect([p.id, two.render, two.name, two.unlockAt]).toEqual([p.id, 'pixel', { vi: 'Pixel', en: 'Pixel' }, 10]);
-      expect([p.id, three.render, three.name, three.unlockAt]).toEqual([p.id, 'clay', { vi: 'Đất sét', en: 'Clay' }, 20]);
-    }
-  });
-
-  it('mỗi chậu có màu (tint) để vẽ chậu Pixel / Đất sét cùng màu', () => {
-    for (const pot of POTS) {
-      expect(pot.tint.body).toMatch(/^#[0-9A-Fa-f]{6}$/);
-      expect(pot.tint.rim).toMatch(/^#[0-9A-Fa-f]{6}$/);
-    }
-  });
-
   it('dáng của từng loài theo thứ tự', () => {
     expect(Object.fromEntries(PLANTS.filter((p) => p.styles).map((p) => [p.id, p.styles!.map((s) => s.id)]))).toEqual({
       sunflower: ['mini', 'giant'],

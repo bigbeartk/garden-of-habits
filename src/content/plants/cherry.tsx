@@ -1,7 +1,6 @@
 import { INK } from '../Face';
 import type { PlantSpecies } from '../types';
 import { Seed, Sprout } from './parts';
-import { STYLED } from './styled';
 
 /**
  * Cây cherry: dáng "cây dù" rộng và thấp — thân chẻ đôi lộ cành, tán là chuỗi bông xếp thành vòm cong,
@@ -102,6 +101,108 @@ function CherryBloom() {
   );
 }
 
+// ---- Dáng mở khoá ----
+
+/** Một bông nhỏ 5 cánh */
+function Bloomlet({ x, y, c = '#FFC9DA', r = 3.2 }: { x: number; y: number; c?: string; r?: number }) {
+  return (
+    <g transform={`translate(${x} ${y})`}>
+      {[0, 72, 144, 216, 288].map((a) => <circle key={a} cx={0} cy={-r * 0.9} r={r * 0.75} fill={c} stroke={INK} strokeWidth={0.9} transform={`rotate(${a})`} />)}
+      <circle r={r * 0.45} fill="#FFF6B0" />
+    </g>
+  );
+}
+/** Điểm trên đường cong bậc hai (để rải bông dọc cành) */
+const qpt = (a: number[], c: number[], b: number[], t: number) => [
+  (1 - t) ** 2 * a[0] + 2 * (1 - t) * t * c[0] + t ** 2 * b[0],
+  (1 - t) ** 2 * a[1] + 2 * (1 - t) * t * c[1] + t ** 2 * b[1],
+];
+
+// Rủ: thân cao thẳng, cành vồng ra rồi rủ xuống như đài phun nước
+const WEEP: { c: number[]; b: number[] }[] = [
+  { c: [56, 30], b: [40, 128] },
+  { c: [144, 30], b: [160, 128] },
+  { c: [72, 40], b: [62, 138] },
+  { c: [128, 40], b: [138, 138] },
+  { c: [86, 44], b: [82, 118] },
+  { c: [114, 44], b: [118, 118] },
+];
+function WeepingTree({ flower }: { flower: boolean }) {
+  const top = [100, 56];
+  return (
+    <g>
+      <path d="M95 160 Q98 110 98 60 L102 60 Q102 110 105 160 Z" fill={BARK} stroke={INK} strokeWidth={2} strokeLinejoin="round" />
+      {WEEP.map(({ c, b }) => (
+        <path key={b.join()} d={`M${top[0]} ${top[1]} Q${c[0]} ${c[1]} ${b[0]} ${b[1]}`} fill="none" stroke={flower ? '#7A4E33' : '#7BBF6A'} strokeWidth={2.2} strokeLinecap="round" />
+      ))}
+      {WEEP.flatMap(({ c, b }) =>
+        [0.3, 0.45, 0.6, 0.75, 0.9].map((t) => {
+          const [x, y] = qpt(top, c, b, t);
+          return flower
+            ? <Bloomlet key={`${b.join()}-${t}`} x={x} y={y} c={t > 0.6 ? '#FFB3C8' : '#FFC9DA'} />
+            : <ellipse key={`${b.join()}-${t}`} cx={x} cy={y} rx={2.6} ry={4} fill="#B5E3A8" stroke={INK} strokeWidth={0.9} />;
+        }),
+      )}
+      <circle cx={100} cy={52} r={17} fill={flower ? '#FFC9DA' : '#B5E3A8'} stroke={INK} strokeWidth={2.4} />
+    </g>
+  );
+}
+function CherryWeepingBud() {
+  return <WeepingTree flower={false} />;
+}
+function CherryWeepingBloom() {
+  return (
+    <g>
+      <WeepingTree flower />
+      <CherryPair x={40} y={142} />
+      <CherryPair x={160} y={142} />
+      <Petals />
+    </g>
+  );
+}
+
+// Cần câu: thân mảnh chéo lên như cần câu, đầu cần thả dây treo một chùm cherry to
+const BUNCH: [number, number, number][] = [
+  [134, 100, 9], [166, 100, 9], [130, 124, 9], [170, 124, 9], [140, 140, 9], [160, 140, 9], [150, 118, 17],
+];
+function Rod() {
+  return (
+    <g fill="none" strokeLinecap="round">
+      <path d="M86 160 Q84 92 150 40" stroke={INK} strokeWidth={8} />
+      <path d="M86 160 Q84 92 150 40" stroke={BARK} strokeWidth={4.5} />
+      {[[90, 120, -40], [100, 84, 30], [122, 60, -20]].map(([x, y, r]) => (
+        <path key={`${x}-${y}`} d={`M${x} ${y} q9 -7 16 -2 q-8 7 -16 2 Z`} fill="#7CC36E" stroke={INK} strokeWidth={1.3} transform={`rotate(${r} ${x} ${y})`} />
+      ))}
+      <Bloomlet x={150} y={40} c="#FFB3C8" r={4} />
+    </g>
+  );
+}
+function CherryLanternBud() {
+  return (
+    <g>
+      <Rod />
+      <path d="M150 42 L150 92" stroke="#5E9E4F" strokeWidth={1.8} />
+      {([[138, 100, 8], [162, 100, 8], [150, 108, 12]] as const).map(([x, y, r]) => <circle key={`${x}-${y}`} cx={x} cy={y} r={r} fill="#B5E3A8" stroke={INK} strokeWidth={1.6} />)}
+    </g>
+  );
+}
+function CherryLanternBloom() {
+  return (
+    <g>
+      <Rod />
+      <path d="M150 42 L150 90 M150 90 L134 100 M150 90 L166 100 M150 90 L130 124 M150 90 L170 124" stroke="#5E9E4F" strokeWidth={1.8} fill="none" strokeLinecap="round" />
+      <path d="M150 90 q7 -6 13 -2 q-7 5 -13 2 Z" fill="#7CC36E" stroke={INK} strokeWidth={1.2} />
+      {BUNCH.map(([x, y, r]) => (
+        <g key={`${x}-${y}`}>
+          <circle cx={x} cy={y} r={r} fill="#E8354F" stroke={INK} strokeWidth={1.8} />
+          <circle cx={x - r * 0.35} cy={y - r * 0.4} r={r * 0.25} fill="#fff" />
+        </g>
+      ))}
+      <Petals />
+    </g>
+  );
+}
+
 export const cherry: PlantSpecies = {
   id: 'cherry',
   name: { vi: 'Cherry', en: 'Cherry' },
@@ -130,5 +231,20 @@ export const cherry: PlantSpecies = {
     vi: ['Một cặp cherry tặng bạn 🍒', 'Bạn ngọt như cherry vậy đó 🍒'],
     en: ['A pair of cherries, just for you 🍒', 'You\'re as sweet as a cherry 🍒'],
   },
-  styles: STYLED.cherry,
+  styles: [
+    {
+      id: 'weeping',
+      name: { vi: 'Rủ', en: 'Weeping' },
+      unlockAt: 10,
+      stages: { bud: { svg: CherryWeepingBud }, bloom: { svg: CherryWeepingBloom } },
+      faceAnchor: { bud: { x: 100, y: 53, scale: 0.42 }, bloom: { x: 100, y: 53, scale: 0.42 } },
+    },
+    {
+      id: 'lantern',
+      name: { vi: 'Cần câu', en: 'Fishing rod' },
+      unlockAt: 20,
+      stages: { bud: { svg: CherryLanternBud }, bloom: { svg: CherryLanternBloom } },
+      faceAnchor: { bud: { x: 150, y: 109, scale: 0.32 }, bloom: { x: 150, y: 120, scale: 0.46 } },
+    },
+  ],
 };

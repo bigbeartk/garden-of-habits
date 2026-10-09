@@ -5,7 +5,7 @@ import { BASE_STYLE_ID, type Catalog } from './types';
 
 type Deps = { db: PlantDB; catalog: Catalog; now: () => Date };
 
-/** Một dáng cụ thể của một loài (vd. Hướng dương · Đất sét). */
+/** Một dáng cụ thể của một loài (vd. Hướng dương · Khổng lồ). */
 export interface StylePair {
   plantId: string;
   styleId: string;

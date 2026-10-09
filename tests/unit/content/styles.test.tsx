@@ -8,8 +8,8 @@ const SPECIES: PlantSpecies = {
   stages: { seed: art('seed'), sprout: art('sprout'), bud: art('bud'), bloom: art('bloom') },
   faceAnchor: { seed: anchor(1), sprout: anchor(2), bud: anchor(3), bloom: anchor(4) },
   styles: [
-    { id: 'tall', name: { vi: 'Cao', en: 'Tall' }, unlockAt: 10, render: 'pixel', stages: { bud: art('tall-bud'), bloom: art('tall-bloom') }, faceAnchor: { bud: anchor(30), bloom: anchor(40) } },
-    { id: 'lady', name: { vi: 'Quý cô', en: 'Lady' }, unlockAt: 20, render: 'clay', faceStyle: 'lady', stages: { bud: art('lady-bud'), bloom: art('lady-bloom') }, faceAnchor: { bud: anchor(31), bloom: anchor(41) } },
+    { id: 'tall', name: { vi: 'Cao', en: 'Tall' }, unlockAt: 10, stages: { bud: art('tall-bud'), bloom: art('tall-bloom') }, faceAnchor: { bud: anchor(30), bloom: anchor(40) } },
+    { id: 'lady', name: { vi: 'Quý cô', en: 'Lady' }, unlockAt: 20, faceStyle: 'lady', stages: { bud: art('lady-bud'), bloom: art('lady-bloom') }, faceAnchor: { bud: anchor(31), bloom: anchor(41) } },
   ],
 };
 
@@ -21,7 +21,7 @@ describe('getStageArt', () => {
   });
 
   it('dáng mới chỉ đổi bud/bloom; seed/sprout luôn là gốc', () => {
-    expect(getStageArt(SPECIES, 'tall', 'bud')).toEqual({ art: art('tall-bud'), faceAnchor: anchor(30), faceStyle: 'cool', render: 'pixel' });
+    expect(getStageArt(SPECIES, 'tall', 'bud')).toEqual({ art: art('tall-bud'), faceAnchor: anchor(30), faceStyle: 'cool' });
     expect(getStageArt(SPECIES, 'tall', 'bloom').art).toEqual(art('tall-bloom'));
     expect(getStageArt(SPECIES, 'tall', 'seed').art).toEqual(art('seed'));
     expect(getStageArt(SPECIES, 'tall', 'sprout').faceAnchor).toEqual(anchor(2));
