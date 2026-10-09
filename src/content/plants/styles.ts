@@ -1,5 +1,5 @@
 import type { FaceStyle } from '../Face';
-import type { Art, FaceAnchor, PlantSpecies, PlantStyle } from '../types';
+import type { Art, FaceAnchor, PlantSpecies, PlantStyle, StyleRender } from '../types';
 import type { GrowthStage } from '../../domain/growth';
 
 /** Dáng có id này của loài; Gốc hoặc id lạ → null. */
@@ -12,10 +12,10 @@ export function getStageArt(
   species: PlantSpecies,
   styleId: string | null | undefined,
   stage: GrowthStage,
-): { art: Art; faceAnchor: FaceAnchor; faceStyle?: FaceStyle } {
+): { art: Art; faceAnchor: FaceAnchor; faceStyle?: FaceStyle; render?: StyleRender } {
   const style = stage === 'bud' || stage === 'bloom' ? getStyle(species, styleId) : null;
   if (!style || (stage !== 'bud' && stage !== 'bloom')) {
     return { art: species.stages[stage], faceAnchor: species.faceAnchor[stage], faceStyle: species.faceStyle };
   }
-  return { art: style.stages[stage], faceAnchor: style.faceAnchor[stage], faceStyle: style.faceStyle ?? species.faceStyle };
+  return { art: style.stages[stage], faceAnchor: style.faceAnchor[stage], faceStyle: style.faceStyle ?? species.faceStyle, render: style.render };
 }

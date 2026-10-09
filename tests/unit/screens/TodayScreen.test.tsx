@@ -41,7 +41,7 @@ describe('TodayScreen', () => {
     renderWithDeps(<TodayScreen />, deps);
     await addTodoInline(user, 'Uống nước');
     await user.click(await screen.findByRole('checkbox', { name: 'Hoàn thành: Uống nước' }));
-    expect(await screen.findByTestId('style-unlock')).toHaveTextContent('Mở khoá dáng mới: Hướng dương · Mini!');
+    expect(await screen.findByTestId('style-unlock')).toHaveTextContent('Mở khoá dáng mới: Hướng dương · Pixel!');
   });
 
   it('dáng đã đủ mốc từ lịch sử thì không mừng', async () => {

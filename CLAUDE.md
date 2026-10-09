@@ -173,6 +173,7 @@ interface PlantStyle {                               // chỉ vẽ lại bud/blo
   stages: Record<'bud'|'bloom', Art>;
   faceAnchor: Record<'bud'|'bloom', FaceAnchor>;
   faceStyle?: FaceStyle;                             // không có = theo loài
+  render: 'pixel' | 'clay';                         // chất liệu vẽ: dáng 2 Pixel, dáng 3 Đất sét (mặt + chậu vẽ theo)
 }
 ```
 **Thêm cây mới** gồm 3 bước:
@@ -199,27 +200,20 @@ Các loài hiện có:
 | `watermelon` | Dưa hấu | `tin-bucket` | dây bò lá tim xoè ngang + quả dưa giữa |
 | `hydrangea` | Tulip (trước là Cẩm tú cầu; giữ id `hydrangea` để không mất dữ liệu cũ) | `blue-ceramic` | một bông tulip đỏ to mũm mĩm hình chén, mọi cánh bo tròn không mũi nhọn (mặt trên cánh trước), thân mập, hai lá to bản mũi nhọn xoè ở gốc |
 
-**Dáng mở khoá** (thêm vào `styles` của loài; mỗi dáng phải khác mọi loài khác và 2 dáng còn lại của chính loài, nhưng vẫn nhận ra loài; soát bằng `src/dev/ArtGallery.tsx` — ô cố định, có cả dáng — chụp WebKit). `tests/unit/content/plants.test.tsx` kiểm mọi loài có `styles`: đúng 2 dáng, mốc 10 rồi 20, đủ bud/bloom.
-
-| Loài | Dáng 2 (10 ngày) | Dáng 3 (20 ngày) |
-|---|---|---|
-| `sunflower` | `mini` Mini: bụi thấp phân nhánh, 5 bông nhỏ cam đỏ xoè quạt, bông giữa mang mặt | `giant` Khổng lồ: thân rất cao cong dấu hỏi, bông to cúi chào bên phải |
-| `corn` | `popcorn` Bỏng ngô: bắp bóc vỏ (mang mặt), đám bỏng ngô trắng bung hình quạt chữ V | `rainbow` Cầu vồng: ba bắp hạt nhiều màu xoè như bó hoa, bắp giữa chừa vùng mặt |
-| `cactus` | `bunny` Tai thỏ: lá dẹt bầu dục to mang mặt + hai lá dẹt dựng như tai thỏ có hoa trên chóp | `barrel` Cầu vàng: khối cầu thấp sống dọc, gai vàng ở sống ngoài, vương miện 5 hoa |
-| `pothos` | `pole` Leo cột: cột rêu dựng đứng, lá xẻ so le leo dọc cột, lá đỉnh mang mặt | `trailing` Rủ: dây lá vắt qua miệng chậu rủ xuống hai bên, lá giữa mang mặt |
-| `orange` | `kumquat` Quất Tết: tán tỉa 4 tầng hình tháp, quả quất nhỏ dày, bao lì xì đỏ | `bonsai` Bonsai: thân xoắn nghiêng 2 cành, 3 tán mây dẹt (tán đỉnh mang mặt), vài quả cam |
-| `cherry` | `weeping` Rủ: thân cao, cành vồng rủ xuống như đài phun nước kết chuỗi bông, chỏm tròn mang mặt | `lantern` Cần câu: thân mảnh chéo lên như cần câu, dây treo chùm cherry to (quả giữa mang mặt) |
-| `rose` | `arch` Cổng vòm: vòm gỗ quấn dây phủ hồng nhỏ, bông đỉnh vòm mang mặt + vương miện | `dome` Chuông kính: hồng xanh đêm (`RoseHead` nhận bảng màu `p`) lơ lửng trong chuông kính lấp lánh |
-| `watermelon` | `square` Vuông: quả dưa khối vuông bo góc (mang mặt) ngồi giữa, lá tim hai bên | `trellis` Giàn leo: giàn thang dựng đứng, dây leo zigzag, dưa tí hon trong túi lưới, quả đỉnh to mang mặt |
-| `hydrangea` | `parrot` Vẹt: chén tulip loe miệng vàng, viền xoăn răng cưa, sọc lửa đỏ hai bên (đừng vẽ cánh toả tròn: thành hướng dương) | `bouquet` Bó hoa: ba tulip hồng/vàng/đỏ cao thấp buộc nơ xanh (`Cup`/`ClosedBud` nhận bảng màu `p`) |
+**Dáng mở khoá = cùng cây, khác chất liệu vẽ** (thay hẳn 18 dáng vẽ tay cũ; Gốc giữ nguyên): mọi loài có 2 dáng, **dáng 2 `Pixel`** (mở ở 10 ngày, `render: 'pixel'`) và **dáng 3 `Đất sét` / Clay** (20 ngày, `render: 'clay'`). **Id dáng giữ như cũ** (`sunflower` `mini`/`giant`, `corn` `popcorn`/`rainbow`, `cactus` `bunny`/`barrel`, `pothos` `pole`/`trailing`, `orange` `kumquat`/`bonsai`, `cherry` `weeping`/`lantern`, `rose` `arch`/`dome`, `watermelon` `square`/`trellis`, `hydrangea` `parrot`/`bouquet`) để người đã mở khoá và `DayRecord.styleId` không mất.
+- **Hình mỗi loài mô tả MỘT lần** trong `src/content/plants/styled/index.ts` bằng khối (`circle`/`ellipse`/`rect`/`poly`/`stick`, bảng màu `pal(màu, bóng?, sáng?)`), `styledPair(ids, { bud, bloom }, faceAnchor)` nặn ra cả hai bản. Lớp có `only: 'pixel' | 'clay'` (chi tiết riêng một bản), `flat` (đất sét tô phẳng), `gloss: false` (bỏ đốm bóng), `cut` (pixel: khoét trống, viền tự chạy vào, vd. khía lá Monstera).
+- **Pixel** (`art/pixel.tsx`): `pixelize` đổ khối thành lưới ô `PX` = 5 đơn vị (lưới chung, gốc 0,0), tự đổ bóng mép dưới-phải / sáng mép trên-trái, viền `PIXEL_INK` quanh mọi ô, gộp ô thành `<rect>` theo hàng, `crispEdges`. **Mặt pixel** `PixelFace` là bản đồ 7 × 5 ô cùng cỡ lưới (không co theo `scale`), nên chỗ mang mặt phải rộng ≥ 35 đơn vị.
+- **Đất sét** (`art/clay.tsx`): `useClay(colors)` tạo `radialGradient` sáng trên-trái cho từng màu + bộ lọc `feDropShadow` (id riêng mỗi cảnh); `clayOf` vẽ khối: bầu dục xoay viết bằng path cung (`ellipsePath`, không `transform`, để gradient luôn sáng cùng hướng), rect bo tròn, viền mảnh sẫm, `Gloss` tự thêm trên khối tròn đủ to. **Mặt đất sét** `ClayFace` (mắt hạt cườm, má loang) cùng hệ toạ độ/`scale` với mặt sticker.
+- Cả hai đủ biểu cảm `normal|smile|talk|sleep|sad` + kiểu ngầu (xương rồng) / quý cô (hoa hồng). `PlantScene` theo `getStageArt(...).render`: vẽ `PixelFace`/`ClayFace`, chậu thành **`StyledPot`** (`data-testid="styled-pot"`, `data-render`, `data-pot`) cùng chất liệu nhưng **lấy màu chậu đang chọn** (`PotStyle.tint`), và gắn `data-render` lên cảnh; Gốc / seed / sprout / ngủ / héo vẫn chậu + mặt sticker.
+- Soát hình: dựng trang tạm render `PlantScene` các dáng (ô cố định cỡ) rồi chụp WebKit; bài học: khe/vệt nhỏ giữa khối mất hút ở bản pixel và trông như đốm bóng ở bản đất sét, chi tiết nhận diện nên cắt từ mép (khía) hoặc đủ to; hoạ tiết 2–3 ô thì tô phẳng.
 
 Hình dùng chung cho mọi loài: `common/SleepingSeed.tsx` (ngày nghỉ) và `common/WiltedPlant.tsx` (ngày bỏ lỡ).
 
 ### Chậu: `PotStyle`
 ```ts
-interface PotStyle { id: string; name: string; art: Art }
+interface PotStyle { id: string; name: Localized<string>; art: Art; tint: { body: string; rim: string; accent?: string; motif?: 'dots' | 'band' | 'heart' | 'cat' } }  // tint: màu cho chậu Pixel / Đất sét
 ```
-**Thêm chậu mới:** vẽ component trong `src/content/pots/pots.tsx` (nên dùng `BasicPot({ body, rim, soil?, children })` cho chậu hình thang, `children` là hoạ tiết trên thân), hoặc dùng `{ image }`. Sau đó thêm một dòng vào `POTS` trong `pots/registry.ts`.
+**Thêm chậu mới:** vẽ component trong `src/content/pots/pots.tsx` (nên dùng `BasicPot({ body, rim, soil?, children })` cho chậu hình thang, `children` là hoạ tiết trên thân), hoặc dùng `{ image }`. Sau đó thêm một dòng vào `POTS` trong `pots/registry.ts`, **kèm `tint`** (màu thân/vành + hoạ tiết) để dáng Pixel / Đất sét vẽ được chậu cùng màu.
 
 Chậu hiện có: `terracotta` (Đất nung, mặc định chung), `polka` (Sứ chấm bi), `mint` (Gốm mint), `rattan` (Giỏ mây), `wood` (Hộp gỗ), `pink-cup` (Cốc hồng), `rose-porcelain` (Sứ hoa hồng), `tin-bucket` (Xô thiếc), `blue-ceramic` (Gốm xanh lam), `concrete` (Bê tông), `glass-bowl` (Bể kính: bình tròn trong suốt thấy lớp đất/cát/sỏi, dùng `clipPath` có id riêng qua `useId`), `cat` (Chậu mèo: mèo mướp có tai, mặt, chân). Đủ 12 chậu; chậu mới nên khác dáng hẳn các chậu đã có.
 
@@ -248,7 +242,7 @@ Với id không còn tồn tại (đã xoá khỏi nội dung, hoặc đến t�
 `content/catalog.ts` sinh `CATALOG` (chỉ id, chậu mặc định và weight) cho tầng domain từ 3 registry.
 
 ### Ghép cảnh
-`components/PlantScene.tsx` vẽ theo thứ tự: Underlay → chậu → cây (hoặc hạt ngủ / cây héo) + mặt → Overlay → lớp phụ (bình tưới, hiệu ứng bung lá).
+`components/PlantScene.tsx` vẽ theo thứ tự: Underlay → chậu (dáng Pixel / Đất sét: `StyledPot`) → cây (hoặc hạt ngủ / cây héo) + mặt → Overlay → lớp phụ (bình tưới, hiệu ứng bung lá).
 
 Các thuộc tính để test bám vào: `data-testid` (mặc định `plant-scene`), `data-plant`, `data-pot`, `data-stage`, `data-mode` (`plant | sleeping | wilted`), `data-special`, `data-style` (`base` khi Gốc).
 

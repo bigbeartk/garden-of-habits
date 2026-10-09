@@ -46,12 +46,26 @@ export interface PlantStyle {
   faceAnchor: Record<StyleStage, FaceAnchor>;
   /** không có = theo loài */
   faceStyle?: FaceStyle;
+  /** chất liệu vẽ: dáng 2 'pixel', dáng 3 'clay' (mặt và chậu cũng vẽ theo chất liệu này) */
+  render: StyleRender;
+}
+
+export type StyleRender = 'pixel' | 'clay';
+
+/** Màu chậu để vẽ lại chậu theo chất liệu Pixel / Đất sét; `motif` + `accent`: hoạ tiết đơn giản. */
+export interface PotTint {
+  body: string;
+  rim: string;
+  accent?: string;
+  motif?: 'dots' | 'band' | 'heart' | 'cat';
 }
 
 export interface PotStyle {
   id: string;
   name: Localized<string>;
   art: Art;
+  /** màu dùng khi cây đang ở dáng Pixel / Đất sét */
+  tint: PotTint;
 }
 
 export interface SpecialVariant {

@@ -3,6 +3,9 @@ import { motion } from 'motion/react';
 import { ArtView } from '../content/ArtView';
 import { BUG_SCALE, BugAura, bugSpot, getBug, star } from '../content/bugs';
 import { Face, type Mood } from '../content/Face';
+import { ClayFace } from '../content/plants/art/clay';
+import { PixelFace } from '../content/plants/art/pixel';
+import { StyledPot } from '../content/plants/art/styled';
 import { SleepingSeed } from '../content/common/SleepingSeed';
 import { WiltedPlant } from '../content/common/WiltedPlant';
 import { getSpecies } from '../content/plants/registry';
@@ -67,10 +70,11 @@ export function PlantScene({
       data-mood={mood}
       data-special={special?.id ?? ''}
       data-style={getStyle(species, styleId)?.id ?? BASE_STYLE_ID}
+      data-render={mode === 'plant' ? look.render : undefined}
     >
       {PlantFilter && <defs><PlantFilter id={filterId} animate={!reducedMotion} /></defs>}
       {Underlay && <Underlay />}
-      <ArtView art={pot.art} />
+      {mode === 'plant' && look.render ? <StyledPot render={look.render} pot={pot} /> : <ArtView art={pot.art} />}
       {mode === 'sleeping' && <SleepingSeed />}
       {mode === 'wilted' && <WiltedPlant />}
       {mode === 'plant' && (
@@ -83,7 +87,9 @@ export function PlantScene({
           transition={{ duration: 0.9, ease: 'easeOut' }}
         >
           <ArtView art={look.art} />
-          <Face mood={mood} faceStyle={look.faceStyle} {...look.faceAnchor} />
+          {look.render === 'pixel' ? <PixelFace mood={mood} faceStyle={look.faceStyle} {...look.faceAnchor} />
+            : look.render === 'clay' ? <ClayFace mood={mood} faceStyle={look.faceStyle} {...look.faceAnchor} />
+            : <Face mood={mood} faceStyle={look.faceStyle} {...look.faceAnchor} />}
         </motion.g>
         </g>
       )}

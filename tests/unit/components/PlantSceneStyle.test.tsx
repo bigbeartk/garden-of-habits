@@ -40,4 +40,25 @@ describe('PlantScene với dáng', () => {
     render(<MiniPlant status="plant" record={makeDay({ date: '2026-09-01', plantId: 'fake', finalStage: 'bloom', styleId: 'tall' })} />);
     expect(screen.getByTestId('art-tall-bloom')).toBeInTheDocument();
   });
+
+  it.each([
+    ['mini', 'pixel'],
+    ['giant', 'clay'],
+  ] as const)('dáng %s (thật) vẽ kiểu %s: cây, mặt và chậu cùng phong cách, chậu lấy màu chậu đã chọn', (styleId, kind) => {
+    render(<PlantScene plantId="sunflower" potId="mint" stage="bloom" specialId={null} styleId={styleId} mood="smile" />);
+    const scene = screen.getByTestId('plant-scene');
+    expect(scene).toHaveAttribute('data-render', kind);
+    expect(screen.getByTestId('face')).toHaveAttribute('data-render', kind);
+    const pot = screen.getByTestId('styled-pot');
+    expect(pot).toHaveAttribute('data-render', kind);
+    expect(pot).toHaveAttribute('data-pot', 'mint');
+    expect(scene.querySelector('[data-part="pot"]')).toBeNull(); // không vẽ chậu sticker
+  });
+
+  it('Gốc và giai đoạn đầu: chậu sticker, mặt sticker', () => {
+    render(<PlantScene plantId="sunflower" potId="mint" stage="sprout" specialId={null} styleId="mini" mood="smile" />);
+    expect(screen.getByTestId('plant-scene')).not.toHaveAttribute('data-render');
+    expect(screen.queryByTestId('styled-pot')).toBeNull();
+    expect(screen.getByTestId('face')).not.toHaveAttribute('data-render');
+  });
 });

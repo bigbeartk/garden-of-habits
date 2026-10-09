@@ -903,7 +903,7 @@ test('dáng cây: ra hoa lần thứ 10 thì hiện khung mừng mở dáng mớ
   await addTodo(page, 'Tưới cây');
   await closeDraft(page);
   await page.getByRole('checkbox', { name: 'Hoàn thành: Tưới cây' }).click();
-  await expect(page.getByTestId('style-unlock')).toContainText('Mở khoá dáng mới: Hướng dương · Mini!');
+  await expect(page.getByTestId('style-unlock')).toContainText('Mở khoá dáng mới: Hướng dương · Pixel!');
 });
 
 test('Nhắc việc: bật Hôm nay thì việc vào buổi Sáng, chưa xong thì hôm sau lại có, tick xong thì xuống mục đã hoàn thành', async ({ page }) => {

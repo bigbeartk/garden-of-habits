@@ -117,7 +117,7 @@ describe('PlantPotSheet: dáng cây', () => {
     expect(within(locked).getByTestId('locked-style-art')).toBeInTheDocument();
     expect(locked).toHaveTextContent('Dáng bí ẩn');
     expect(locked).toHaveTextContent('Ra hoa 20 ngày để mở');
-    expect(locked).not.toHaveTextContent('Khổng lồ');
+    expect(locked).not.toHaveTextContent('Đất sét');
     await user.click(locked);
     expect(onPick).not.toHaveBeenCalled();
     const mini = screen.getByTestId('style-mini');
