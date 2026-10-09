@@ -2,7 +2,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { useDeps } from '../app/deps';
 import { BUGS, countBugs } from '../content/bugs';
 import { dayKey } from '../domain/dayKey';
-import { listHabits, perfectHabitDays } from '../domain/habitService';
+import { dayBugId, listHabits, perfectHabitDays } from '../domain/habitService';
 import { useI18n } from '../i18n/I18nProvider';
 import './bug-collection.css';
 
@@ -14,7 +14,12 @@ export function BugCollection() {
     const habits = await listHabits(deps.db);
     if (habits.length === 0) return null;
     const from = habits.reduce((m, h) => (h.startDate < m ? h.startDate : m), habits[0].startDate);
-    return countBugs(await perfectHabitDays(deps, from, dayKey(deps.now())));
+    const today = dayKey(deps.now());
+    const perfect = await perfectHabitDays(deps, from, today);
+    const records = await deps.db.days.where('date').between(from, today, true, true).toArray();
+    const byDate = new Map(records.map((r) => [r.date, r]));
+    const ids = [...perfect].map((d) => dayBugId(byDate.get(d), d, today, BUGS)).filter((id): id is string => id !== null);
+    return countBugs(ids);
   }, [deps]);
   if (!counts) return null;
   const met = BUGS.filter((b) => counts.has(b.id)).length;

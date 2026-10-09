@@ -25,6 +25,7 @@ const DaySchema = z.object({
   potId: z.string(),
   specialId: z.string().nullable(),
   styleId: z.string().optional(), // dáng cây; file cũ chưa có
+  bugId: z.string().optional(), // côn trùng của ngày; file cũ chưa có
   isRestDay: z.boolean(),
   title: z.string().optional(),
   speech: z.string().optional(), // file cũ chưa có

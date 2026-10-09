@@ -2,13 +2,14 @@ import { useId, type FC, type ReactNode } from 'react';
 import { INK } from './Face';
 import type { FaceAnchor } from './types';
 import type { Localized } from '../i18n/lang';
+import { legacyBugFor, type BugTier } from '../domain/bugOdds';
 
 /**
  * Côn trùng chibi ghé cây vào ngày làm đủ mọi thói quen (xem `perfectHabitDays`).
  * Mỗi con vẽ quanh gốc (0, 0), rộng khoảng 26 đơn vị của khung cây 200×240; cánh vỗ bằng `<animateTransform>` của SVG,
  * tắt khi `animate = false` (giảm chuyển động).
  */
-export type BugRarity = 'common' | 'rare' | 'epic';
+export type BugRarity = BugTier;
 /** `weight`: trọng số khi chọn con của ngày (càng nhỏ càng hiếm); `rarity`: nhãn hiện ở thẻ "Côn trùng đã gặp". */
 export interface HabitBug { id: string; name: Localized<string>; weight: number; rarity: BugRarity; Art: FC<{ animate: boolean }> }
 
@@ -261,33 +262,18 @@ export const BUGS: HabitBug[] = [
   { id: 'luna-moth', name: { vi: 'Bướm trăng', en: 'Luna moth' }, weight: 1, rarity: 'epic', Art: LunaMoth },
 ];
 
-/** Băm khoá ngày ra số trong [0, 1): FNV-1a rồi trộn bit (murmur3 fmix32) để các ngày liền nhau rải đều. */
-function hashUnit(key: string): number {
-  let h = 0x811c9dc5;
-  for (const c of key) h = Math.imul(h ^ c.charCodeAt(0), 0x01000193);
-  h ^= h >>> 16; h = Math.imul(h, 0x85ebca6b);
-  h ^= h >>> 13; h = Math.imul(h, 0xc2b2ae35);
-  h ^= h >>> 16;
-  return (h >>> 0) / 2 ** 32;
-}
-
-/** Côn trùng của một ngày: chọn theo trọng số, cố định theo khoá ngày (không cần lưu DB, máy nào cũng như nhau). */
+/**
+ * Cách cũ: con của ngày bốc sẵn theo khoá ngày (trọng số `weight`). Giờ con của ngày được bốc thật và lưu ở
+ * `DayRecord.bugId` (tỉ lệ tăng theo chuỗi, `domain/bugOdds.ts`); hàm này chỉ còn cho ngày cũ chưa có `bugId`.
+ */
 export function bugFor(date: string): HabitBug {
-  let r = hashUnit(date) * BUGS.reduce((n, b) => n + b.weight, 0);
-  for (const b of BUGS) {
-    r -= b.weight;
-    if (r < 0) return b;
-  }
-  return BUGS[BUGS.length - 1];
+  return getBug(legacyBugFor(date, BUGS))!;
 }
 
-/** Số ngày gặp từng loài trong các ngày đã làm đủ thói quen. */
-export function countBugs(days: Iterable<string>): Map<string, number> {
+/** Số lần gặp từng loài, từ danh sách id con của các ngày. */
+export function countBugs(ids: Iterable<string>): Map<string, number> {
   const out = new Map<string, number>();
-  for (const d of days) {
-    const id = bugFor(d).id;
-    out.set(id, (out.get(id) ?? 0) + 1);
-  }
+  for (const id of ids) out.set(id, (out.get(id) ?? 0) + 1);
   return out;
 }
 

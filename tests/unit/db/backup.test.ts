@@ -354,6 +354,20 @@ describe('sao lưu cây đặc biệt đã mở khoá', () => {
   });
 });
 
+describe('sao lưu côn trùng của ngày', () => {
+  it('khứ hồi bugId; ngày không có bugId vẫn đọc được', async () => {
+    const src = makeDb();
+    await src.days.put(makeDay({ date: '2026-09-01', bugId: 'luna-moth' }));
+    await src.days.put(makeDay({ date: '2026-09-02' }));
+    const r = parseBackup(serializeBackup(await createBackup(src, 1)));
+    if (!r.ok) throw new Error(r.error);
+    const dst = makeDb();
+    await restoreBackup(dst, r.backup, 'replace');
+    expect((await dst.days.get('2026-09-01'))?.bugId).toBe('luna-moth');
+    expect((await dst.days.get('2026-09-02'))?.bugId).toBeUndefined();
+  });
+});
+
 describe('sao lưu dáng cây', () => {
   it('khứ hồi styleId của ngày', async () => {
     const src = makeDb();

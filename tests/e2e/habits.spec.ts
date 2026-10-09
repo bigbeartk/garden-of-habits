@@ -201,11 +201,20 @@ test('làm đủ mọi thói quen: côn trùng ghé cây ở Hôm nay, hôm sau 
   // khung báo tự tắt sau ~5 giây
   await expect(page.getByTestId('bug-visit')).toHaveCount(0, { timeout: 8000 });
 
+  // con được bốc một lần rồi lưu: bỏ tick → bay đi; tick lại vẫn đúng con đó (hôm sau ô Lịch cũng vậy, bên dưới)
+  const picked = (await bug.getAttribute('data-bug'))!;
+  const read = page.getByRole('switch', { name: 'Thói quen: Đọc sách' });
+  await read.click();
+  await expect(read).toHaveAttribute('aria-checked', 'false');
+  await expect(bug).toHaveCount(0);
+  await read.click();
+  await expect(bug).toHaveAttribute('data-bug', picked);
+
   await page.clock.setFixedTime(at('2026-10-09T10:00:00'));
   await page.reload();
   await goTab(page, 'Lịch');
   const cell = page.getByTestId('day-2026-10-08');
-  await expect(cell.getByTestId('habit-bug')).toHaveCount(1);
+  await expect(cell.getByTestId('habit-bug')).toHaveAttribute('data-bug', picked);
   await cell.screenshot({ path: 'test-results/habit-bug-cell.png' });
   await cell.click();
   await expect(page.getByText(/ghé thăm vì bạn làm đủ mọi thói quen/)).toBeVisible();

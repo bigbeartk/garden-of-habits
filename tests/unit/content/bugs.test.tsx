@@ -32,7 +32,7 @@ describe('côn trùng thưởng ngày làm đủ thói quen', () => {
   it('qua 4 năm, số ngày mỗi loài gần đúng tỉ lệ trọng số', () => {
     const days: string[] = [];
     for (let k = '2026-01-01'; k < '2030-01-01'; k = addDays(k, 1)) days.push(k);
-    const counts = countBugs(days);
+    const counts = countBugs(days.map((d) => bugFor(d).id));
     const total = BUGS.reduce((n, b) => n + b.weight, 0);
     for (const b of BUGS) {
       const share = (counts.get(b.id) ?? 0) / days.length;

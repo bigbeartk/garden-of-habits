@@ -24,6 +24,7 @@ export interface DayRecord {
   specialId: string | null;
   /** dáng cây của ngày; không có (bản ghi cũ) = 'base' */
   styleId?: string;
+  bugId?: string;        // côn trùng ghé ngày làm đủ thói quen, bốc một lần rồi giữ; không có = chưa bốc (ngày cũ: theo cách bốc sẵn)
   isRestDay: boolean;
   /** tiêu đề do người dùng đặt cho ngày; bản ghi cũ (trước khi có tính năng) không có trường này */
   title?: string;

@@ -3,6 +3,8 @@ import { dayKey } from './dayKey';
 import type { DayDeps } from './dayService';
 import { AppError } from './errors';
 import { habitReport, isScheduled, stoppedSince } from './habitReport';
+import { bugOdds, legacyBugFor, rollBug, streakBonus, type BugInfo, type DayBugInfo } from './bugOdds';
+import { addDays } from './dayKey';
 import { newId } from './id';
 import { cleanWeekdays } from './templateService';
 import type { Habit, HabitColor } from './types';
@@ -103,6 +105,65 @@ export async function perfectHabitDays(deps: DayDeps, from: string, to: string):
   const checks = await db.habitChecks.where('date').between(from, to, true, true).toArray();
   const rest = new Set((await db.days.where('date').between(from, to, true, true).toArray()).filter((d) => d.isRestDay).map((d) => d.date));
   return new Set(habitReport(habits, checks, rest, from, to, dayKey(deps.now())).perfectDays);
+}
+
+/** Mỗi ngày trong [from, to]: có thói quen có lịch không, có làm đủ không (ngày nghỉ = không có lịch). */
+export async function habitDayStatus(deps: DayDeps, from: string, to: string): Promise<Map<string, { scheduled: boolean; perfect: boolean }>> {
+  const { db } = deps;
+  const out = new Map<string, { scheduled: boolean; perfect: boolean }>();
+  const habits = await listHabits(db);
+  if (habits.length === 0 || from > to) return out;
+  const checks = await db.habitChecks.where('date').between(from, to, true, true).toArray();
+  const rest = new Set((await db.days.where('date').between(from, to, true, true).toArray()).filter((d) => d.isRestDay).map((d) => d.date));
+  const report = habitReport(habits, checks, rest, from, to, dayKey(deps.now()));
+  const perfect = new Set(report.perfectDays);
+  report.dates.forEach((date, i) => {
+    const scheduled = report.rows.some((r) => r.cells[i].state !== 'off' && r.cells[i].state !== 'future');
+    out.set(date, { scheduled, perfect: perfect.has(date) });
+  });
+  return out;
+}
+
+/** Con của một ngày: đã bốc thì lấy `bugId`; ngày đã qua chưa bốc (dữ liệu cũ) thì theo cách bốc sẵn cũ; hôm nay chưa bốc → null. */
+export function dayBugId(record: { date: string; bugId?: string } | undefined, date: string, todayKey: string, bugs: BugInfo[]): string | null {
+  if (record?.bugId) return record.bugId;
+  return date < todayKey ? legacyBugFor(date, bugs) : null;
+}
+
+/**
+ * Hôm nay vừa làm đủ thói quen mà chưa có con → bốc một lần (tỉ lệ theo chuỗi ngày làm đủ trước đó) rồi lưu vào
+ * `DayRecord.bugId`; đã có thì giữ (bỏ tick rồi tick lại không đổi con). Trả về id con, hoặc null nếu chưa làm đủ.
+ * Đọc hết trước, chỉ ghi trong transaction ngắn (gọi async lồng trong transaction rw từng gây PrematureCommitError).
+ */
+export async function ensureDayBug(deps: DayDeps, date: string, bugs: BugInfo[]): Promise<string | null> {
+  const { db } = deps;
+  const today = dayKey(deps.now());
+  if (date !== today) return null;
+  const habits = await listHabits(db);
+  if (habits.length === 0) return null;
+  const first = habits.reduce((m, h) => (h.startDate < m ? h.startDate : m), habits[0].startDate);
+  const status = await habitDayStatus(deps, first < date ? first : date, date);
+  if (!status.get(date)?.perfect) return null;
+  const record = await db.days.get(date);
+  if (!record) return null;
+  if (record.bugId) return record.bugId;
+
+  const rarity = new Map(bugs.map((b) => [b.id, b.rarity]));
+  const records = new Map((await db.days.where('date').between(first, date, true, false).toArray()).map((d) => [d.date, d]));
+  const history: DayBugInfo[] = [];
+  for (let k = addDays(date, -1); k >= first; k = addDays(k, -1)) {
+    const s = status.get(k) ?? { scheduled: false, perfect: false };
+    const id = s.perfect ? dayBugId(records.get(k), k, today, bugs) : null;
+    history.push({ ...s, tier: id ? rarity.get(id) ?? 'common' : null });
+  }
+  const id = rollBug(bugs, bugOdds(streakBonus(history)), deps.rng);
+  return db.transaction('rw', db.days, async () => {
+    const cur = await db.days.get(date);
+    if (!cur) return null;
+    if (cur.bugId) return cur.bugId;
+    await db.days.update(date, { bugId: id, updatedAt: deps.now().getTime() });
+    return id;
+  });
 }
 
 /** Đảo trạng thái đã làm của hôm nay; trả về true khi vừa tick. */
