@@ -237,8 +237,6 @@ export const vi = {
     menuIconCaption: 'Icon menu',
     showBgButton: 'Hiện nút đổi hình nền ở trang Lịch',
     showNoteDot: 'Hiện chấm đỏ ở ngày có ghi chú',
-    habitsTitle: 'Thói quen',
-    showHabitStrip: 'Hiện thói quen ở màn Hôm nay',
     backupTitle: 'Sao lưu & khôi phục',
     lastBackup: (when: string) => `Lần sao lưu gần nhất: ${when}`,
     neverBackedUp: 'Bạn chưa sao lưu lần nào.',
@@ -363,6 +361,8 @@ export const vi = {
     yearLabel: (y: number) => `Năm ${y}`,
     monthShort: ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'],
     cellLabel: (name: string, date: string) => `${name} · ${date}`,
+    checkToday: (name: string) => `Điểm danh hôm nay: ${name}`,
+    showStrip: 'Hiện thói quen ở màn Hôm nay',
   },
 };
 

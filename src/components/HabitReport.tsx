@@ -8,12 +8,14 @@ import { PlantScene } from './PlantScene';
 import { ChevronIcon } from './icons';
 import { listDaysInRange } from '../db/queries';
 import { dayKey, parseDayKey } from '../domain/dayKey';
-import { habitReport, periodRange, shiftPeriod, type HabitReportResult, type ReportKind } from '../domain/habitReport';
-import { listHabits } from '../domain/habitService';
+import { habitReport, isScheduled, periodRange, shiftPeriod, type HabitCellState, type HabitReportResult, type ReportKind } from '../domain/habitReport';
+import { listHabits, toggleHabit } from '../domain/habitService';
 import type { Habit } from '../domain/types';
 import { monthLabel, shortDate } from '../i18n/fmt';
 import { useI18n } from '../i18n/I18nProvider';
+import { errorText } from '../i18n/errors';
 import { useNow } from '../hooks/useNow';
+import { useOptimisticToggle } from '../hooks/useOptimisticToggle';
 import { WEEK_ORDER } from './WeekdayPicker';
 import './habit-report.css';
 
@@ -75,7 +77,7 @@ export function HabitReport({ onManage }: { onManage: () => void }) {
         <span className="habit-report__label">{label}</span>
         <button type="button" className="habit-report__arrow" aria-label={t.habits.next} disabled={isCurrent} onClick={() => setAnchor(shiftPeriod(kind, anchor, 1))}><ChevronIcon dir="right" size={18} /></button>
       </div>
-      {kind === 'week' && <WeekTable report={report} todayKey={todayKey} />}
+      {kind === 'week' && <WeekTable report={report} todayKey={todayKey} todayRest={data.rest.has(todayKey)} />}
       {kind === 'month' && <MonthCards report={report} />}
       {kind === 'year' && <YearBars habits={data.habits} checks={data.checks} rest={data.rest} year={y} todayKey={todayKey} />}
       <Stats report={report} />
@@ -83,10 +85,12 @@ export function HabitReport({ onManage }: { onManage: () => void }) {
   );
 }
 
-function WeekTable({ report, todayKey }: { report: HabitReportResult; todayKey: string }) {
+function WeekTable({ report, todayKey, todayRest }: { report: HabitReportResult; todayKey: string; todayRest: boolean }) {
   const { t } = useI18n();
+  const [error, setError] = useState<string | null>(null);
   return (
     <div className="habit-week" role="table">
+      {error && <p role="alert" className="error" onClick={() => setError(null)}>{error}</p>}
       <div className="habit-week__row habit-week__row--head" role="row">
         <span role="columnheader" />
         {WEEK_ORDER.map((d, i) => (
@@ -99,7 +103,11 @@ function WeekTable({ report, todayKey }: { report: HabitReportResult; todayKey: 
       {report.rows.map((row) => (
         <div key={row.habit.id} className="habit-week__row" role="row" style={colorVar(row.habit)}>
           <span role="rowheader" className="habit-week__name"><span aria-hidden="true">{row.habit.icon}</span> {row.habit.name}</span>
-          {row.cells.map((c) => (
+          {row.cells.map((c) => c.date === todayKey && !todayRest && isScheduled(row.habit, c.date) ? (
+            <span key={c.date} role="cell" className="habit-week__cell">
+              <TodayCell habit={row.habit} date={c.date} state={c.state} onError={(e) => setError(errorText(e, t))} />
+            </span>
+          ) : (
             <span
               key={c.date} role="cell" className={`habit-cell${c.date === todayKey ? ' is-today' : ''}`}
               data-testid={`habit-cell-${row.habit.id}-${c.date}`} data-state={c.state}
@@ -119,6 +127,21 @@ function WeekTable({ report, todayKey }: { report: HabitReportResult; todayKey: 
         <span role="cell" className="habit-week__badge">{report.perfectPeriod && <span aria-label={t.habits.perfectWeek}>👑</span>}</span>
       </div>
     </div>
+  );
+}
+
+/** Ô hôm nay của thói quen có lịch hôm nay: chạm để tick / bỏ tick (như chip ở màn Hôm nay), đổi ngay không chờ DB. */
+function TodayCell({ habit, date, state, onError }: { habit: Habit; date: string; state: HabitCellState; onError: (e: Error) => void }) {
+  const { t } = useI18n();
+  const deps = useDeps();
+  const { on, toggle } = useOptimisticToggle(state === 'done', async () => { await toggleHabit(deps, habit.id); }, onError);
+  return (
+    <button
+      type="button" role="switch" aria-checked={on} aria-label={t.habits.checkToday(habit.name)}
+      className="habit-cell is-today is-tappable"
+      data-testid={`habit-cell-${habit.id}-${date}`} data-state={on ? 'done' : 'pending'}
+      onClick={() => toggle()}
+    />
   );
 }
 

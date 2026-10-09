@@ -3,8 +3,24 @@ import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { makeDeps, renderWithDeps } from '../helpers';
 import { HabitsScreen } from '../../../src/screens/HabitsScreen';
 import { addHabit, isStopped, listHabits } from '../../../src/domain/habitService';
+import { getSetting } from '../../../src/db/settings';
 
 describe('HabitsScreen', () => {
+  it('công tắc Hiện thói quen ở màn Hôm nay: mặc định bật; tắt lưu false, bật lại lưu true', async () => {
+    const { deps } = makeDeps();
+    await addHabit(deps, { name: 'Yoga', icon: '🧘', color: 'mint', weekdays: [1] });
+    renderWithDeps(<HabitsScreen onBack={() => {}} />, deps);
+    await screen.findByText('Yoga');
+    const toggle = screen.getByRole('switch', { name: 'Hiện thói quen ở màn Hôm nay' });
+    expect(toggle).toHaveAttribute('aria-checked', 'true');
+    fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute('aria-checked', 'false');
+    await waitFor(async () => expect(await getSetting(deps.db, 'showHabitStrip')).toBe(false));
+    fireEvent.click(toggle);
+    await waitFor(async () => expect(await getSetting(deps.db, 'showHabitStrip')).toBe(true));
+    expect(toggle).toHaveAttribute('aria-checked', 'true');
+  });
+
   it('thêm thói quen: tên, emoji, màu, thứ', async () => {
     const { deps } = makeDeps();
     renderWithDeps(<HabitsScreen onBack={() => {}} />, deps);

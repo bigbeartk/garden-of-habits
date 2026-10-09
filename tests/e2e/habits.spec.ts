@@ -62,6 +62,53 @@ test('tạo thói quen, tick ở Hôm nay, xem ở Khu vườn', async ({ page }
   await expect(page.getByText('Năm 2026')).toBeVisible();
 });
 
+test('Khu vườn: chạm ô hôm nay trong bảng tuần để tick, Hôm nay đổi theo', async ({ page }) => {
+  await page.clock.setFixedTime(at('2026-10-08T10:00:00'));
+  await page.goto('/');
+  await goTab(page, 'Khu vườn');
+  await closeMenu(page);
+  await page.getByRole('tab', { name: 'Thói quen' }).click();
+  await page.getByRole('button', { name: '＋ Thói quen đầu tiên' }).click();
+  await createHabit(page, 'Uống nước', { formOpen: true });
+  await page.getByRole('button', { name: 'Quay lại Khu vườn' }).click();
+
+  const cell = page.getByRole('switch', { name: 'Điểm danh hôm nay: Uống nước' });
+  await expect(cell).toHaveAttribute('data-state', 'pending');
+  // là <button> nhưng vẫn phải là ô vuông 24px như các ô khác (Safari hay nong padding của nút)
+  const box = (await cell.boundingBox())!;
+  expect(Math.abs(box.width - 24)).toBeLessThan(1.5);
+  expect(Math.abs(box.height - 24)).toBeLessThan(1.5);
+  await cell.click();
+  await expect(cell).toHaveAttribute('aria-checked', 'true');
+  await expect(cell).toHaveAttribute('data-state', 'done');
+  await expect(page.getByTestId('habit-stats')).toContainText('100');
+
+  await goTab(page, 'Hôm nay');
+  await expect(page.getByRole('switch', { name: 'Thói quen: Uống nước' })).toHaveAttribute('aria-checked', 'true');
+  await goTab(page, 'Khu vườn');
+  await page.getByRole('switch', { name: 'Điểm danh hôm nay: Uống nước' }).click(); // bỏ tick
+  await goTab(page, 'Hôm nay');
+  await expect(page.getByRole('switch', { name: 'Thói quen: Uống nước' })).toHaveAttribute('aria-checked', 'false');
+});
+
+test('form thói quen: 8 màu nằm trên một dòng, nút màu vẫn tròn', async ({ page }) => {
+  await page.clock.setFixedTime(at('2026-10-08T10:00:00'));
+  await page.goto('/');
+  await goTab(page, 'Khu vườn');
+  await closeMenu(page);
+  await page.getByRole('tab', { name: 'Thói quen' }).click();
+  await page.getByRole('button', { name: '＋ Thói quen đầu tiên' }).click();
+  const colors = page.locator('.habit-form__color');
+  await expect(colors).toHaveCount(8);
+  const boxes = await Promise.all((await colors.all()).map((c) => c.boundingBox()));
+  const tops = boxes.map((b) => Math.round(b!.y));
+  expect(new Set(tops).size).toBe(1);
+  for (const b of boxes) {
+    expect(Math.abs(b!.width - b!.height)).toBeLessThan(1.5);
+    expect(b!.width).toBeGreaterThanOrEqual(26); // vẫn đủ to để chạm
+  }
+});
+
 test('10 thói quen tên dài: bảng tuần không tràn, trang không cuộn ngang', async ({ page }) => {
   await page.clock.setFixedTime(at('2026-10-08T10:00:00'));
   await page.goto('/');
@@ -89,7 +136,7 @@ test('10 thói quen tên dài: bảng tuần không tràn, trang không cuộn n
   expect(overflowToday).toBeLessThanOrEqual(0);
 });
 
-test('tắt "Hiện thói quen ở màn Hôm nay" trong Cài đặt: Hôm nay mất dải chip, Khu vườn vẫn có Thói quen', async ({ page }) => {
+test('tắt "Hiện thói quen ở màn Hôm nay" ở màn Quản lý thói quen: Hôm nay mất dải chip, Khu vườn vẫn có Thói quen', async ({ page }) => {
   await page.clock.setFixedTime(at('2026-10-08T10:00:00'));
   await page.goto('/');
   await goTab(page, 'Khu vườn');
@@ -105,10 +152,16 @@ test('tắt "Hiện thói quen ở màn Hôm nay" trong Cài đặt: Hôm nay m�
 
   await goTab(page, 'Cài đặt');
   await closeMenu(page);
+  await expect(page.getByRole('switch', { name: 'Hiện thói quen ở màn Hôm nay' })).toHaveCount(0); // không còn ở Cài đặt
+  await goTab(page, 'Khu vườn');
+  await closeMenu(page);
+  await page.getByRole('tab', { name: 'Thói quen' }).click();
+  await page.getByRole('button', { name: 'Quản lý thói quen' }).click();
   const toggle = page.getByRole('switch', { name: 'Hiện thói quen ở màn Hôm nay' });
   await expect(toggle).toHaveAttribute('aria-checked', 'true');
   await toggle.click();
   await expect(toggle).toHaveAttribute('aria-checked', 'false');
+  await page.getByRole('button', { name: 'Quay lại Khu vườn' }).click();
 
   await goTab(page, 'Hôm nay');
   await closeMenu(page);

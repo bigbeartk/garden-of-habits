@@ -5,6 +5,7 @@ import { useDeps } from '../app/deps';
 import { BackButton } from '../components/BackButton';
 import { ConfirmButton } from '../components/ConfirmButton';
 import { HabitForm } from '../components/HabitForm';
+import { SettingSwitch } from '../components/SettingSwitch';
 import { PauseIcon, PencilIcon, PlayIcon, RemoveIcon } from '../components/icons';
 import { WEEK_ORDER } from '../components/WeekdayPicker';
 import { HABIT_COLORS } from '../content/habits';
@@ -120,6 +121,9 @@ export function HabitsScreen({ onBack, startAdding = false, backLabel }: { onBac
           </ul>
         </section>
       )}
+      <div className="card habits__options">
+        <SettingSwitch settingKey="showHabitStrip" label={t.habits.showStrip} onError={setError} />
+      </div>
     </section>
   );
 }

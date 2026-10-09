@@ -22,8 +22,12 @@
   font-size: 1.25rem; line-height: 1; cursor: pointer;
 }
 .habit-form__icon.is-on { border-color: var(--cocoa); background: var(--butter); box-shadow: var(--shadow-pop); }
-.habit-form__colors { display: flex; gap: 8px; flex-wrap: wrap; }
-.habit-form__color { width: 34px; height: 34px; padding: 0; border-radius: 50%; border: 2px solid var(--cocoa-soft); cursor: pointer; }
+/* 8 màu luôn một dòng: lưới 8 cột như hàng icon, nút co theo chỗ (tối đa 34px), aspect-ratio giữ tròn */
+.habit-form__colors { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 6px; justify-items: center; }
+.habit-form__color {
+  width: 100%; max-width: 34px; height: auto; aspect-ratio: 1; padding: 0;
+  border-radius: 50%; border: 2px solid var(--cocoa-soft); cursor: pointer;
+}
 .habit-form__color.is-on { border: 3px solid var(--cocoa); box-shadow: var(--shadow-pop); }
 .habit-form__actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 6px; }
 
@@ -43,3 +47,5 @@
 .habit-card__btn:active { transform: translateY(2px) scale(0.95); box-shadow: none; }
 /* đang hỏi xác nhận xoá: hai nút chữ rộng, cho xuống hàng riêng để khỏi bóp tên */
 .habit-card__actions:has(.confirm) { flex-basis: 100%; justify-content: flex-end; }
+/* công tắc Hiện thói quen ở màn Hôm nay (chuyển từ Cài đặt sang), cuối màn quản lý */
+.habits__options { margin-top: 16px; padding: 4px 14px; }

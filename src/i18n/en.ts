@@ -226,8 +226,6 @@ export const en: Messages = {
     menuIconCaption: 'Menu icon',
     showBgButton: 'Show the background button on Calendar',
     showNoteDot: 'Show a red dot on days with a note',
-    habitsTitle: 'Habits',
-    showHabitStrip: 'Show habits on the Today screen',
     backupTitle: 'Backup & restore',
     lastBackup: (when) => `Last backup: ${when}`,
     neverBackedUp: "You haven't backed up yet.",
@@ -341,5 +339,7 @@ export const en: Messages = {
     yearLabel: (y: number) => `${y}`,
     monthShort: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
     cellLabel: (name: string, date: string) => `${name} · ${date}`,
+    checkToday: (name: string) => `Check in today: ${name}`,
+    showStrip: 'Show habits on the Today screen',
   },
 };

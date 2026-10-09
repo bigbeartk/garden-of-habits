@@ -37,6 +37,37 @@ describe('HabitReport', () => {
     expect(await screen.findByText('28/09 – 04/10')).toBeTruthy();
   });
 
+  it('bảng tuần: chạm ô hôm nay để tick / bỏ tick; ô ngày khác và thói quen không có lịch hôm nay thì không bấm được', async () => {
+    const { deps } = makeDeps(start);
+    const h = await addHabit(deps, { name: 'Uống nước', icon: '💧', color: 'sky', weekdays: [0, 1, 2, 3, 4, 5, 6] });
+    const off = await addHabit(deps, { name: 'Yoga', icon: '🧘', color: 'mint', weekdays: [1] }); // chỉ thứ Hai
+    renderWithDeps(<HabitReport onManage={() => {}} />, deps);
+    const sw = await screen.findByRole('switch', { name: 'Điểm danh hôm nay: Uống nước' });
+    expect(sw).toHaveAttribute('aria-checked', 'false');
+    expect(sw).toHaveAttribute('data-testid', `habit-cell-${h.id}-2026-10-08`);
+    fireEvent.click(sw);
+    expect(sw).toHaveAttribute('aria-checked', 'true'); // đổi ngay, không chờ DB
+    await waitFor(async () => expect(await deps.db.habitChecks.get([h.id, '2026-10-08'])).toBeTruthy());
+    await waitFor(() => expect(sw).toHaveAttribute('data-state', 'done'));
+    await waitFor(() => expect(screen.getByTestId('habit-stats').textContent).toContain('100'));
+    fireEvent.click(sw);
+    await waitFor(async () => expect(await deps.db.habitChecks.get([h.id, '2026-10-08'])).toBeUndefined());
+    await waitFor(() => expect(sw).toHaveAttribute('data-state', 'pending'));
+    // chỉ một công tắc: ô Yoga hôm nay (không có lịch) và ô các ngày khác chỉ để xem
+    expect(screen.getAllByRole('switch')).toHaveLength(1);
+    expect(screen.getByTestId(`habit-cell-${off.id}-2026-10-08`).tagName).toBe('SPAN');
+    expect(screen.getByTestId(`habit-cell-${h.id}-2026-10-07`).tagName).toBe('SPAN');
+  });
+
+  it('bảng tuần: ngày tiết kiệm năng lượng không có ô bấm được', async () => {
+    const { deps } = makeDeps(start);
+    await addHabit(deps, { name: 'Uống nước', icon: '💧', color: 'sky', weekdays: [0, 1, 2, 3, 4, 5, 6] });
+    await deps.db.days.put({ date: '2026-10-08', plantId: 'sunflower', potId: 'terracotta', specialId: null, isRestDay: true, greetedAt: 1, note: '', todos: [], finalStage: 'seed', createdAt: 0, updatedAt: 0 });
+    renderWithDeps(<HabitReport onManage={() => {}} />, deps);
+    await screen.findByTestId('habit-stats');
+    expect(screen.queryByRole('switch')).toBeNull();
+  });
+
   it('Tháng và Năm', async () => {
     const { deps } = makeDeps(start);
     const h = await addHabit(deps, { name: 'Yoga', icon: '🧘', color: 'mint', weekdays: [4] });

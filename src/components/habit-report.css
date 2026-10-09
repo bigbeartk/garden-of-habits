@@ -36,6 +36,17 @@
   content: ''; position: absolute; left: 50%; top: 50%; width: 4px; height: 4px; margin: -2px; border-radius: 50%; background: var(--cocoa-soft); opacity: 0.4;
 }
 .habit-cell.is-today { outline: 2px solid var(--cocoa); outline-offset: 1px; }
+/* ô hôm nay bấm được (tick / bỏ tick): là <button> nên phải xoá padding/viền mặc định (Safari làm méo nút) */
+.habit-week__cell { display: flex; justify-content: center; }
+.habit-cell.is-tappable {
+  padding: 0; margin: 0; font: inherit; cursor: pointer;
+  -webkit-appearance: none; appearance: none; -webkit-tap-highlight-color: transparent;
+  transition: transform 0.12s ease;
+}
+.habit-cell.is-tappable[data-state='pending'] { opacity: 0.55; }
+.habit-cell.is-tappable::after { content: ''; position: absolute; inset: -8px; } /* vùng chạm rộng hơn ô 24px */
+.habit-cell.is-tappable:active { transform: scale(0.88); }
+@media (prefers-reduced-motion: reduce) { .habit-cell.is-tappable { transition: none; } }
 
 .habit-months, .habit-years { display: flex; flex-direction: column; gap: 10px; }
 .habit-month, .habit-year { border: 2px solid var(--cocoa-soft); border-radius: 14px; padding: 8px; background: var(--white); }

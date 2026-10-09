@@ -130,11 +130,6 @@ export function SettingsScreen() {
       </div>
 
       <div className="card settings__section">
-        <h2>{t.settings.habitsTitle}</h2>
-        <SettingSwitch settingKey="showHabitStrip" label={t.settings.showHabitStrip} onError={setError} />
-      </div>
-
-      <div className="card settings__section">
         <h2>{t.settings.calendarTitle}</h2>
         <div className="settings__pickers">
           <div className="settings__picker">
