@@ -4,7 +4,7 @@ import { useDeps } from '../app/deps';
 import type { HabitManagerMode } from '../app/habitIntent';
 import { HABIT_COLORS } from '../content/habits';
 import { getSetting } from '../db/settings';
-import { checksOn, habitsForDay, listHabits, toggleHabit } from '../domain/habitService';
+import { checksOn, habitsForDay, isStopped, listHabits, toggleHabit } from '../domain/habitService';
 import { useI18n } from '../i18n/I18nProvider';
 import { errorText } from '../i18n/errors';
 import { PlusIcon } from './icons';
@@ -27,10 +27,12 @@ export function HabitStrip({ date, isRestDay, onChecked, onManage }: {
   const [error, setError] = useState<string | null>(null);
   if (!data || !data.show || isRestDay) return null;
 
-  if (data.habits.length === 0) {
+  // chưa có thói quen → mở form thêm; có nhưng đều đã dừng → mở danh sách để tiếp tục hoặc thêm mới
+  if (data.habits.every(isStopped)) {
+    const mode = data.habits.length === 0 ? 'add' : 'list';
     return (
       <div className="habit-strip habit-strip--empty">
-        <button type="button" className="habit-chip habit-chip--add is-faint" onClick={() => onManage('add')}>
+        <button type="button" className="habit-chip habit-chip--add is-faint" onClick={() => onManage(mode)}>
           <span className="habit-chip__dot"><PlusIcon size={22} /></span>
           <span className="habit-chip__name">{t.habits.addFirstChip}</span>
         </button>

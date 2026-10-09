@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { cellState, datesBetween, habitReport, periodRange, shiftPeriod } from '../../../src/domain/habitReport';
+import { cellState, datesBetween, habitReport, isScheduled, periodRange, shiftPeriod } from '../../../src/domain/habitReport';
 import type { Habit, HabitCheck } from '../../../src/domain/types';
 
 const habit = (p: Partial<Habit> & { id: string }): Habit => ({
@@ -107,5 +107,35 @@ describe('habitReport', () => {
   it('bỏ qua check của thói quen không còn trong danh sách', () => {
     const r = habitReport([a], [check('zzz', '2026-10-05')], NONE, '2026-10-05', '2026-10-05', today);
     expect(r.stats.totalDone).toBe(0);
+  });
+});
+
+describe('thói quen đã dừng', () => {
+  const today = '2026-10-15';
+  // dừng 07/10 → tiếp tục 10/10, rồi dừng lại từ 13/10
+  const h = habit({ id: 'a', startDate: '2026-10-01', pauses: [{ from: '2026-10-07', to: '2026-10-10' }, { from: '2026-10-13', to: null }] });
+
+  it('isScheduled bỏ qua những ngày đang dừng (from tính, to không tính)', () => {
+    expect(isScheduled(h, '2026-10-06')).toBe(true);
+    expect(isScheduled(h, '2026-10-07')).toBe(false);
+    expect(isScheduled(h, '2026-10-09')).toBe(false);
+    expect(isScheduled(h, '2026-10-10')).toBe(true);
+    expect(isScheduled(h, '2026-10-12')).toBe(true);
+    expect(isScheduled(h, '2026-10-13')).toBe(false);
+    expect(isScheduled(h, '2026-12-01')).toBe(false);
+  });
+
+  it('ô ngày dừng là off (không tính bỏ lỡ); tick cũ vẫn done', () => {
+    expect(cellState(h, '2026-10-08', false, false, today)).toBe('off');
+    expect(cellState(h, '2026-10-08', true, false, today)).toBe('done');
+    expect(cellState(h, '2026-10-06', false, false, today)).toBe('missed');
+  });
+
+  it('kỳ nằm trọn sau ngày dừng hẳn: không hiện thói quen; kỳ trước đó vẫn hiện', () => {
+    const later = habitReport([h], [], NONE, '2026-10-19', '2026-10-25', '2026-10-21');
+    expect(later.rows).toHaveLength(0);
+    const sameWeek = habitReport([h], [], NONE, '2026-10-12', '2026-10-18', today);
+    expect(sameWeek.rows).toHaveLength(1);
+    expect(sameWeek.rows[0].cells.map((c) => c.state)).toEqual(['missed', 'off', 'off', 'off', 'future', 'future', 'future']);
   });
 });

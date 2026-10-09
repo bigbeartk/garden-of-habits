@@ -7,7 +7,10 @@ import { ConfirmButton } from '../components/ConfirmButton';
 import { HabitForm } from '../components/HabitForm';
 import { WEEK_ORDER } from '../components/WeekdayPicker';
 import { HABIT_COLORS } from '../content/habits';
-import { addHabit, deleteHabit, editHabit, listHabits } from '../domain/habitService';
+import { addHabit, deleteHabit, editHabit, listHabits, resumeHabit, stopHabit } from '../domain/habitService';
+import { stoppedSince } from '../domain/habitReport';
+import type { Habit } from '../domain/types';
+import { shortDate } from '../i18n/fmt';
 import type { Messages } from '../i18n/vi';
 import { useI18n } from '../i18n/I18nProvider';
 import { errorText } from '../i18n/errors';
@@ -22,12 +25,31 @@ export function scheduleLabel(weekdays: number[], t: Messages): string {
 
 /** Habit management screen, opened from the Garden (Habits view) or the + chip on Today; `onBack` returns to the Garden. */
 export function HabitsScreen({ onBack, startAdding = false, backLabel }: { onBack: () => void; startAdding?: boolean; backLabel?: string }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const deps = useDeps();
   const habits = useLiveQuery(() => listHabits(deps.db), [deps.db]) ?? [];
+  const active = habits.filter((h) => stoppedSince(h) === null);
+  const stopped = habits.filter((h) => stoppedSince(h) !== null);
   const [editing, setEditing] = useState<string | 'new' | null>(startAdding ? 'new' : null);
   const [error, setError] = useState<string | null>(null);
   useBackHandler(editing !== null, () => setEditing(null), 'form');
+  const fail = (e: Error) => setError(errorText(e, t));
+
+  const head = (h: Habit, sub: string) => (
+    <>
+      <span className="habit-card__icon" style={{ background: HABIT_COLORS[h.color] }} aria-hidden="true">{h.icon}</span>
+      <div className="habit-card__text">
+        <h2 className="habit-card__name">{h.name}</h2>
+        <p className="habit-card__days">{sub}</p>
+      </div>
+    </>
+  );
+  const del = (h: Habit) => (
+    <ConfirmButton
+      label={t.habits.delete} confirmLabel={t.habits.deleteConfirm} className="tpl__mini"
+      onConfirm={() => deleteHabit(deps, h.id).catch(fail)}
+    />
+  );
 
   return (
     <section className="screen screen--habits" data-testid="habits-screen">
@@ -50,7 +72,7 @@ export function HabitsScreen({ onBack, startAdding = false, backLabel }: { onBac
       )}
       {habits.length === 0 && editing !== 'new' && <p className="empty card">{t.habits.empty}</p>}
       <ul className="habits__list">
-        {habits.map((h) => (
+        {active.map((h) => (
           <li key={h.id} className="card habit-card" data-testid={`habit-${h.id}`}>
             {editing === h.id ? (
               <HabitForm
@@ -63,23 +85,38 @@ export function HabitsScreen({ onBack, startAdding = false, backLabel }: { onBac
               />
             ) : (
               <>
-                <span className="habit-card__icon" style={{ background: HABIT_COLORS[h.color] }} aria-hidden="true">{h.icon}</span>
-                <div className="habit-card__text">
-                  <h2 className="habit-card__name">{h.name}</h2>
-                  <p className="habit-card__days">{scheduleLabel(h.weekdays, t)}</p>
-                </div>
+                {head(h, scheduleLabel(h.weekdays, t))}
                 <div className="habit-card__actions">
                   <button type="button" className="tpl__mini" onClick={() => setEditing(h.id)}>{t.habits.edit}</button>
-                  <ConfirmButton
-                    label={t.habits.delete} confirmLabel={t.habits.deleteConfirm} className="tpl__mini"
-                    onConfirm={() => deleteHabit(deps, h.id).catch((e: Error) => setError(errorText(e, t)))}
-                  />
+                  <button type="button" className="tpl__mini" aria-label={t.habits.stop(h.name)} onClick={() => stopHabit(deps, h.id).catch(fail)}>
+                    {t.habits.stopShort}
+                  </button>
+                  {del(h)}
                 </div>
               </>
             )}
           </li>
         ))}
       </ul>
+      {stopped.length > 0 && (
+        <section className="habits__stopped" data-testid="habits-stopped" aria-labelledby="habits-stopped-title">
+          <h2 id="habits-stopped-title" className="habits__stopped-title">{t.habits.stoppedTitle}</h2>
+          <p className="habits__stopped-hint">{t.habits.stoppedHint}</p>
+          <ul className="habits__list">
+            {stopped.map((h) => (
+              <li key={h.id} className="card habit-card is-stopped" data-testid={`habit-${h.id}`}>
+                {head(h, t.habits.stoppedSince(shortDate(lang, stoppedSince(h)!)))}
+                <div className="habit-card__actions">
+                  <button type="button" className="tpl__mini" aria-label={t.habits.resume(h.name)} onClick={() => resumeHabit(deps, h.id).catch(fail)}>
+                    {t.habits.resumeShort}
+                  </button>
+                  {del(h)}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </section>
   );
 }

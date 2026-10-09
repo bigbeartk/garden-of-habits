@@ -78,6 +78,7 @@ const HabitSchema = z.object({
   weekdays: z.array(z.number().int().min(0).max(6)),
   order: z.number(),
   startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  pauses: z.array(z.object({ from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable() })).optional(), // khoảng dừng; file cũ chưa có
   createdAt: z.number(),
   updatedAt: z.number(),
 });

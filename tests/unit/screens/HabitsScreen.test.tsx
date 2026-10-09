@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
-import { fireEvent, screen, waitFor } from '@testing-library/react';
+import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { makeDeps, renderWithDeps } from '../helpers';
 import { HabitsScreen } from '../../../src/screens/HabitsScreen';
-import { addHabit, listHabits } from '../../../src/domain/habitService';
+import { addHabit, isStopped, listHabits } from '../../../src/domain/habitService';
 
 describe('HabitsScreen', () => {
   it('thêm thói quen: tên, emoji, màu, thứ', async () => {
@@ -64,5 +64,25 @@ describe('HabitsScreen', () => {
     renderWithDeps(<HabitsScreen onBack={onBack} />, deps);
     fireEvent.click(screen.getByRole('button', { name: 'Quay lại Khu vườn' }));
     expect(onBack).toHaveBeenCalled();
+  });
+
+  it('Dừng chuyển thói quen xuống mục Đã dừng (giữ lịch sử); Tiếp tục đưa lại lên', async () => {
+    const { deps, clock } = makeDeps();
+    await addHabit(deps, { name: 'Yoga', icon: '🧘', color: 'mint', weekdays: [1] });
+    clock.current = new Date(2026, 9, 5, 10);
+    renderWithDeps(<HabitsScreen onBack={() => {}} />, deps);
+    fireEvent.click(await screen.findByRole('button', { name: 'Dừng: Yoga' }));
+    const stopped = await screen.findByTestId('habits-stopped');
+    expect(within(stopped).getByText('Yoga')).toBeInTheDocument();
+    expect(within(stopped).getByText('Đã dừng từ 05/10')).toBeInTheDocument();
+    expect(within(stopped).queryByRole('button', { name: 'Sửa' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Dừng: Yoga' })).not.toBeInTheDocument();
+    expect(isStopped((await listHabits(deps.db))[0])).toBe(true);
+
+    clock.current = new Date(2026, 9, 7, 10);
+    fireEvent.click(within(stopped).getByRole('button', { name: 'Tiếp tục: Yoga' }));
+    expect(await screen.findByRole('button', { name: 'Dừng: Yoga' })).toBeInTheDocument();
+    expect(screen.queryByTestId('habits-stopped')).not.toBeInTheDocument();
+    expect((await listHabits(deps.db))[0].pauses).toEqual([{ from: '2026-10-05', to: '2026-10-07' }]);
   });
 });

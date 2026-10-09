@@ -313,6 +313,13 @@ export const vi = {
     edit: 'Sửa',
     delete: 'Xoá',
     deleteConfirm: 'Xoá cả lịch sử',
+    stop: (name: string) => `Dừng: ${name}`,
+    stopShort: 'Dừng',
+    resume: (name: string) => `Tiếp tục: ${name}`,
+    resumeShort: 'Tiếp tục',
+    stoppedTitle: 'Đã dừng',
+    stoppedHint: 'Lịch sử vẫn được giữ trong báo cáo. Tiếp tục thì làm lại từ hôm nay.',
+    stoppedSince: (date: string) => `Đã dừng từ ${date}`,
     form: {
       name: 'Tên thói quen',
       namePlaceholder: 'Ví dụ: Uống nước',

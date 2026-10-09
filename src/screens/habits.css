@@ -10,7 +10,7 @@
   flex: none; width: 44px; height: 44px; border-radius: 50%; border: 2px solid var(--cocoa);
   display: grid; place-items: center; font-size: 1.4rem; box-shadow: var(--shadow-pop);
 }
-.habit-card__text { flex: 1 1 0; min-width: 0; }
+.habit-card__text { flex: 1 1 150px; min-width: 0; } /* chật thì hàng nút xuống dòng, tên không bị bóp */
 .habit-card__name { margin: 0; font-size: 1.05rem; overflow-wrap: anywhere; }
 .habit-card__days { margin: 2px 0 0; font-size: 0.85rem; color: var(--cocoa-soft); font-weight: 700; }
 .habit-card__actions { display: flex; gap: 6px; margin-left: auto; }
@@ -26,3 +26,10 @@
 .habit-form__color { width: 34px; height: 34px; padding: 0; border-radius: 50%; border: 2px solid var(--cocoa-soft); cursor: pointer; }
 .habit-form__color.is-on { border: 3px solid var(--cocoa); box-shadow: var(--shadow-pop); }
 .habit-form__actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 6px; }
+
+/* thói quen đã dừng: nằm riêng cuối màn, mờ đi */
+.habits__stopped { margin-top: 18px; }
+.habits__stopped-title { margin: 0 4px 2px; font-size: 1.05rem; }
+.habits__stopped-hint { margin: 0 4px 10px; font-size: 0.85rem; color: var(--cocoa-soft); }
+.habit-card.is-stopped { border-style: dashed; box-shadow: none; }
+.habit-card.is-stopped .habit-card__icon { filter: grayscale(0.6); opacity: 0.7; }

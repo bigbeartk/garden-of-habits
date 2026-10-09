@@ -94,9 +94,13 @@ export interface Habit {
   weekdays: number[];    // 0 = CN … 6 = T7, đã cleanWeekdays, không rỗng
   order: number;         // thứ tự hiển thị = thứ tự tạo
   startDate: string;     // dayKey lúc tạo; ngày trước đó không tính
+  pauses?: HabitPause[]; // các khoảng đã dừng, theo thứ tự; không có = chưa dừng lần nào
   createdAt: number;
   updatedAt: number;
 }
+
+/** Khoảng dừng thói quen: từ `from` (tính) tới `to` (không tính, ngày tiếp tục); `to: null` = đang dừng. */
+export interface HabitPause { from: string; to: string | null }
 
 /** Có bản ghi = thói quen `habitId` đã làm ngày `date`. */
 export interface HabitCheck { habitId: string; date: string; at: number }

@@ -497,6 +497,17 @@ describe('thói quen trong sao lưu', () => {
     expect(await getSetting(dst, 'gardenView')).toBe('habits');
   });
 
+  it('giữ các khoảng dừng của thói quen', async () => {
+    const src = makeDb();
+    const P = { ...H, pauses: [{ from: '2026-10-03', to: '2026-10-05' }, { from: '2026-10-07', to: null }] };
+    await src.habits.add(P);
+    const parsed = parseBackup(serializeBackup(await createBackup(src, 1)));
+    if (!parsed.ok) throw new Error(parsed.error);
+    const dst = makeDb();
+    await restoreBackup(dst, parsed.backup, 'replace');
+    expect(await dst.habits.toArray()).toEqual([P]);
+  });
+
   it('file v5 không có thói quen → [] và không xoá gardenView khi gộp', async () => {
     const r = parseBackup(JSON.stringify({ format: BACKUP_FORMAT, schemaVersion: 5, exportedAt: 1, days: [], templates: [], calendarBg: null }));
     if (!r.ok) throw new Error(r.error);

@@ -120,3 +120,38 @@ test('tắt "Hiện thói quen ở màn Hôm nay" trong Cài đặt: Hôm nay m�
   await page.getByRole('tab', { name: 'Thói quen' }).click();
   await expect(page.getByTestId('habit-report')).toBeVisible();
 });
+
+test('dừng thói quen: rời Hôm nay, xuống mục Đã dừng, lịch sử giữ; Tiếp tục đưa lại', async ({ page }) => {
+  await page.clock.setFixedTime(at('2026-10-08T10:00:00'));
+  await page.goto('/');
+  await openToday(page);
+  await closeMenu(page);
+  await page.getByRole('button', { name: 'Thêm thói quen' }).click();
+  await createHabit(page, 'Uống nước', { formOpen: true });
+  await page.getByRole('button', { name: '＋ Thói quen mới' }).click();
+  await createHabit(page, 'Đọc sách', { formOpen: true });
+  await page.getByRole('button', { name: 'Quay lại Hôm nay' }).click();
+  const chip = page.getByRole('switch', { name: 'Thói quen: Uống nước' });
+  await chip.click();
+  await expect(chip).toHaveAttribute('aria-checked', 'true');
+
+  await page.getByRole('button', { name: 'Quản lý thói quen' }).click();
+  await page.getByRole('button', { name: 'Dừng: Uống nước' }).click();
+  const stopped = page.getByTestId('habits-stopped');
+  await expect(stopped.getByText('Đã dừng từ 08/10')).toBeVisible();
+  await page.screenshot({ path: 'test-results/habits-stopped.png' });
+  const width = await page.evaluate(() => document.documentElement.scrollWidth);
+  expect(width).toBeLessThanOrEqual(390);
+
+  await page.getByRole('button', { name: 'Quay lại Hôm nay' }).click();
+  await expect(page.getByRole('switch', { name: 'Thói quen: Đọc sách' })).toBeVisible();
+  await expect(chip).toHaveCount(0);
+
+  await goTab(page, 'Khu vườn');
+  await expect(page.locator('[data-testid^="habit-cell-"][data-testid$="-2026-10-08"]').first()).toHaveAttribute('data-state', 'done');
+
+  await page.getByRole('button', { name: 'Quản lý thói quen' }).click();
+  await stopped.getByRole('button', { name: 'Tiếp tục: Uống nước' }).click();
+  await expect(stopped).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Dừng: Uống nước' })).toBeVisible();
+});

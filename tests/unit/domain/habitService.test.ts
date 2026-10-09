@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { makeDay, makeDeps } from '../helpers';
 import {
-  addHabit, checksOn, deleteHabit, editHabit, habitsForDay, listHabits, toggleHabit, HABIT_NAME_MAX,
+  addHabit, checksOn, deleteHabit, editHabit, habitsForDay, isStopped, listHabits, resumeHabit, stopHabit, toggleHabit, HABIT_NAME_MAX,
 } from '../../../src/domain/habitService';
 import { isScheduled } from '../../../src/domain/habitReport';
 import type { HabitInput } from '../../../src/domain/habitService';
@@ -81,5 +81,58 @@ describe('habitService', () => {
     const full = { id: 'a', name: 'a', icon: '💧', color: 'sky' as const, weekdays: [1], order: 0, startDate: '2026-10-01', createdAt: 0, updatedAt: 0 };
     expect(habitsForDay([full], '2026-10-05', false)).toHaveLength(1);
     expect(habitsForDay([full], '2026-10-05', true)).toHaveLength(0);
+  });
+
+  it('stopHabit dừng từ hôm nay: không còn trong hôm nay, giữ lịch sử tick, không tick được', async () => {
+    const { deps, clock } = makeDeps();
+    const h = await addHabit(deps, input());
+    await toggleHabit(deps, h.id);
+    clock.current = new Date(2026, 9, 5, 10);
+    await stopHabit(deps, h.id);
+    const [s] = await listHabits(deps.db);
+    expect(s.pauses).toEqual([{ from: '2026-10-05', to: null }]);
+    expect(isStopped(s)).toBe(true);
+    expect(s.updatedAt).toBe(clock.current.getTime());
+    expect(habitsForDay([s], '2026-10-05', false)).toHaveLength(0);
+    expect(await checksOn(deps.db, '2026-10-02')).toEqual(new Set([h.id]));
+    await expect(toggleHabit(deps, h.id)).rejects.toMatchObject({ code: 'habitNotToday' });
+    await stopHabit(deps, h.id); // dừng lần nữa: không đổi gì
+    expect((await listHabits(deps.db))[0].pauses).toEqual([{ from: '2026-10-05', to: null }]);
+    await expect(stopHabit(deps, 'nope')).rejects.toMatchObject({ code: 'habitNotFound' });
+  });
+
+  it('resumeHabit làm lại từ hôm nay, khoảng đã dừng giữ nguyên', async () => {
+    const { deps, clock } = makeDeps();
+    const h = await addHabit(deps, input());
+    clock.current = new Date(2026, 9, 5, 10);
+    await stopHabit(deps, h.id);
+    clock.current = new Date(2026, 9, 8, 10);
+    await resumeHabit(deps, h.id);
+    const [s] = await listHabits(deps.db);
+    expect(s.pauses).toEqual([{ from: '2026-10-05', to: '2026-10-08' }]);
+    expect(isStopped(s)).toBe(false);
+    expect(await toggleHabit(deps, h.id)).toBe(true);
+  });
+
+  it('dừng rồi tiếp tục trong cùng ngày: không để lại khoảng dừng; dừng lại đúng ngày vừa tiếp tục thì nối khoảng cũ', async () => {
+    const { deps, clock } = makeDeps();
+    const h = await addHabit(deps, input());
+    await stopHabit(deps, h.id);
+    await resumeHabit(deps, h.id);
+    expect((await listHabits(deps.db))[0].pauses).toEqual([]);
+    clock.current = new Date(2026, 9, 5, 10);
+    await stopHabit(deps, h.id);
+    clock.current = new Date(2026, 9, 7, 10);
+    await resumeHabit(deps, h.id);
+    await stopHabit(deps, h.id);
+    expect((await listHabits(deps.db))[0].pauses).toEqual([{ from: '2026-10-05', to: null }]);
+  });
+
+  it('editHabit giữ các khoảng dừng', async () => {
+    const { deps } = makeDeps();
+    const h = await addHabit(deps, input());
+    await stopHabit(deps, h.id);
+    await editHabit(deps, h.id, input({ name: 'Nước' }));
+    expect(isStopped((await listHabits(deps.db))[0])).toBe(true);
   });
 });

@@ -145,7 +145,7 @@ describe('SettingsScreen chọn hình nền lịch', () => {
       picker = await openPicker(user);
       expect(within(picker).getByRole('radio', { name })).toHaveAttribute('aria-checked', 'true');
     }
-  });
+  }, 15_000); // mở/đóng bảng nhiều lần: máy bận (CI) dễ quá 5 giây
 
   it('đã có ảnh (bản cũ) thì đang chọn Ảnh của bạn; đổi sang nền động vẫn giữ ảnh', async () => {
     const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
@@ -179,7 +179,7 @@ describe('SettingsScreen icon nút menu', () => {
       group = await screen.findByRole('radiogroup', { name: 'Icon nút menu' });
       expect(within(group).getByRole('radio', { name })).toHaveAttribute('aria-checked', 'true');
     }
-  });
+  }, 15_000); // mở/đóng bảng nhiều lần: máy bận (CI) dễ quá 5 giây
 });
 
 describe('SettingsScreen phiên bản app', () => {

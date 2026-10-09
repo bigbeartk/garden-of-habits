@@ -2,9 +2,19 @@ import { addDays, formatDate, parseDayKey } from './dayKey';
 import { weekStart } from './reminderView';
 import type { Habit, HabitCheck } from './types';
 
-/** Thói quen có lịch ngày `date`: đúng thứ và không trước ngày tạo (chưa xét ngày nghỉ / tương lai). */
-export function isScheduled(habit: Pick<Habit, 'weekdays' | 'startDate'>, date: string): boolean {
-  return date >= habit.startDate && habit.weekdays.includes(parseDayKey(date).getDay());
+/** Thói quen có lịch ngày `date`: đúng thứ, không trước ngày tạo, không trong khoảng dừng (chưa xét ngày nghỉ / tương lai). */
+export function isScheduled(habit: Pick<Habit, 'weekdays' | 'startDate' | 'pauses'>, date: string): boolean {
+  return date >= habit.startDate && habit.weekdays.includes(parseDayKey(date).getDay()) && !isPausedOn(habit, date);
+}
+
+function isPausedOn(habit: Pick<Habit, 'pauses'>, date: string): boolean {
+  return (habit.pauses ?? []).some((p) => date >= p.from && (p.to === null || date < p.to));
+}
+
+/** Ngày bắt đầu dừng hẳn (khoảng dừng cuối chưa tiếp tục), hoặc null nếu đang làm. */
+export function stoppedSince(habit: Pick<Habit, 'pauses'>): string | null {
+  const last = habit.pauses?.at(-1);
+  return last && last.to === null ? last.from : null;
 }
 
 export type ReportKind = 'week' | 'month' | 'year';
@@ -75,7 +85,9 @@ export function habitReport(
 ): HabitReportResult {
   const dates = datesBetween(from, to);
   const checked = new Set(checks.map((c) => `${c.habitId}|${c.date}`));
-  const rows: HabitRow[] = habits.map((habit) => {
+  // thói quen đã dừng hẳn từ trước kỳ: không còn gì để xem trong kỳ này
+  const shown = habits.filter((h) => { const s = stoppedSince(h); return s === null || s > from; });
+  const rows: HabitRow[] = shown.map((habit) => {
     const cells = dates.map((date) => ({ date, state: cellState(habit, date, checked.has(`${habit.id}|${date}`), restDays.has(date), todayKey) }));
     const done = cells.filter((c) => c.state === 'done').length;
     const counted = cells.filter((c) => isCounted(c.state)).length;

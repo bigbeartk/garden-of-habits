@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { makeDay, makeDeps, renderWithDeps } from '../helpers';
 import { HabitStrip } from '../../../src/components/HabitStrip';
-import { addHabit, checksOn } from '../../../src/domain/habitService';
+import { addHabit, checksOn, stopHabit } from '../../../src/domain/habitService';
 import { setSetting } from '../../../src/db/settings';
 
 const TODAY = '2026-10-02'; // thứ Sáu (makeDeps mặc định)
@@ -15,6 +15,17 @@ describe('HabitStrip', () => {
     renderWithDeps(<HabitStrip date={TODAY} isRestDay={false} onChecked={() => {}} onManage={onManage} />, deps);
     fireEvent.click(await screen.findByRole('button', { name: 'Thêm thói quen' }));
     expect(onManage).toHaveBeenCalledWith('add');
+  });
+
+  it('mọi thói quen đã dừng: chỉ chip Thêm thói quen, mở danh sách để tiếp tục', async () => {
+    const { deps } = makeDeps();
+    const h = await addHabit(deps, { name: 'Uống nước', icon: '💧', color: 'sky', weekdays: [5] });
+    await stopHabit(deps, h.id);
+    const onManage = vi.fn();
+    renderWithDeps(<HabitStrip date={TODAY} isRestDay={false} onChecked={() => {}} onManage={onManage} />, deps);
+    fireEvent.click(await screen.findByRole('button', { name: 'Thêm thói quen' }));
+    expect(onManage).toHaveBeenCalledWith('list');
+    expect(screen.queryByRole('switch', { name: 'Thói quen: Uống nước' })).not.toBeInTheDocument();
   });
 
   it('có thói quen: chip ＋ cuối mở danh sách', async () => {

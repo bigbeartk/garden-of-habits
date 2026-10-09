@@ -2,7 +2,7 @@ import type { PlantDB } from '../db/db';
 import { dayKey } from './dayKey';
 import type { DayDeps } from './dayService';
 import { AppError } from './errors';
-import { isScheduled } from './habitReport';
+import { isScheduled, stoppedSince } from './habitReport';
 import { newId } from './id';
 import { cleanWeekdays } from './templateService';
 import type { Habit, HabitColor } from './types';
@@ -57,6 +57,38 @@ export async function deleteHabit(deps: DayDeps, id: string): Promise<void> {
   await deps.db.transaction('rw', [deps.db.habits, deps.db.habitChecks], async () => {
     await deps.db.habitChecks.where('habitId').equals(id).delete();
     await deps.db.habits.delete(id);
+  });
+}
+
+export const isStopped = (habit: Habit) => stoppedSince(habit) !== null;
+
+/** Dừng thói quen từ hôm nay: không còn lịch, không tính bỏ lỡ; lịch sử tick giữ nguyên. Đang dừng thì thôi. */
+export async function stopHabit(deps: DayDeps, id: string): Promise<void> {
+  const today = dayKey(deps.now());
+  await deps.db.transaction('rw', deps.db.habits, async () => {
+    const habit = await deps.db.habits.get(id);
+    if (!habit) throw new AppError('habitNotFound');
+    if (isStopped(habit)) return;
+    const pauses = [...(habit.pauses ?? [])];
+    const last = pauses.at(-1);
+    // vừa tiếp tục hôm nay rồi lại dừng: nối vào khoảng cũ
+    if (last && last.to === today) pauses[pauses.length - 1] = { from: last.from, to: null };
+    else pauses.push({ from: today, to: null });
+    await deps.db.habits.update(id, { pauses, updatedAt: deps.now().getTime() });
+  });
+}
+
+/** Làm lại thói quen đã dừng, tính từ hôm nay; khoảng đã dừng không tính bỏ lỡ. */
+export async function resumeHabit(deps: DayDeps, id: string): Promise<void> {
+  const today = dayKey(deps.now());
+  await deps.db.transaction('rw', deps.db.habits, async () => {
+    const habit = await deps.db.habits.get(id);
+    if (!habit) throw new AppError('habitNotFound');
+    if (!isStopped(habit)) return;
+    const pauses = [...habit.pauses!];
+    const last = pauses.pop()!;
+    if (last.from < today) pauses.push({ from: last.from, to: today }); // dừng rồi tiếp tục trong ngày: bỏ khoảng rỗng
+    await deps.db.habits.update(id, { pauses, updatedAt: deps.now().getTime() });
   });
 }
 
