@@ -34,7 +34,7 @@ PWA todo cho iPhone, có phần "nuôi cây": mỗi việc làm xong là một l
 - E2E: sau khi đổi `page.clock.setFixedTime` rồi reload và thao tác một lúc, animation đóng menu nổi của WebKit có thể đứng ~5 giây (đồng hồ giả lệch timeline Web Animations, không phải lỗi app), làm `closeMenu` hết hạn. Khi đó đừng chờ dải tab thu lại: bấm thẳng nút cần bấm (chạm ra ngoài cũng tự thu menu).
 - Thay đổi giao diện phải chạy E2E trên **WebKit**: Chrome không bắt được lỗi bố cục riêng của Safari.
 - Làm theo TDD: viết test đỏ trước, rồi mới sửa code. Soát hình bằng ảnh chụp WebKit khổ iPhone 13.
-- Test E2E/unit hay chập chờn khi chưa chờ ghi IndexedDB xong (reload ngay sau khi gõ) hoặc chờ một trong hai `useLiveQuery`: chờ trạng thái cuối cùng hiện ra trên giao diện. Nút gạt/toggle đọc từ DB phải giữ state cục bộ (optimistic), nếu không bấm nhanh hai lần sẽ sai.
+- Test E2E/unit hay chập chờn khi chưa chờ ghi IndexedDB xong (reload ngay sau khi gõ) hoặc chờ một trong hai `useLiveQuery`: chờ trạng thái cuối cùng hiện ra trên giao diện. Nút gạt/toggle đọc từ DB phải giữ state cục bộ (optimistic), nếu không bấm nhanh hai lần sẽ sai: dùng `useOptimisticToggle(stored, save, onError)` (`src/hooks/`), nó **bỏ qua giá trị DB báo về khi còn lần lưu chưa xong** (kết quả đọc cũ về muộn từng làm công tắc nhảy ngược, test Cài đặt chập chờn trên CI), lưu xong thì lại theo DB, lưu lỗi thì quay về giá trị DB. Đừng viết `useEffect(() => setOn(stored), [stored])` trần. Đang dùng ở `SettingSwitch` và công tắc ☀ của Nhắc việc.
 
 ## Môi trường (Windows)
 

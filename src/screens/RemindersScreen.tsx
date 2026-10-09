@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useBackHandler } from '../app/back';
 import { useDeps } from '../app/deps';
@@ -10,6 +10,7 @@ import type { DayDeps } from '../domain/dayService';
 import { addReminder, deleteReminder, editReminder, setReminderAutoToday, toggleReminderDone } from '../domain/reminderService';
 import { activeReminders, doneThisWeek } from '../domain/reminderView';
 import type { Reminder } from '../domain/types';
+import { useOptimisticToggle } from '../hooks/useOptimisticToggle';
 import { useI18n } from '../i18n/I18nProvider';
 import { errorText } from '../i18n/errors';
 import '../components/todo.css';
@@ -115,8 +116,11 @@ export function RemindersScreen({ onBack }: { onBack: () => void }) {
 function ReminderRow({ r, tone, deps, run, onRing }: { r: Reminder; tone: Tone; deps: DayDeps; run: Run; onRing: () => void }) {
   const { t } = useI18n();
   // giữ trạng thái công tắc ngay trên giao diện để bấm nhanh liên tiếp vẫn đúng
-  const [on, setOn] = useState(r.autoToday);
-  useEffect(() => setOn(r.autoToday), [r.autoToday]);
+  const { on, toggle } = useOptimisticToggle(
+    r.autoToday,
+    (v) => { const p = setReminderAutoToday(deps, r.id, v); run(p); return p; }, // run hiện lỗi
+    () => {},
+  );
   const [editing, setEditing] = useState(false);
   const [text, setText] = useState(r.text);
   useBackHandler(editing, () => setEditing(false), 'form');
@@ -147,12 +151,7 @@ function ReminderRow({ r, tone, deps, run, onRing }: { r: Reminder; tone: Tone; 
         <button
           type="button" role="switch" aria-checked={on} aria-label={t.reminders.addToToday(r.text)}
           className={`rem__today${on ? ' is-on' : ''}`}
-          onClick={() => {
-            const next = !on;
-            setOn(next);
-            if (next) onRing();
-            run(setReminderAutoToday(deps, r.id, next));
-          }}
+          onClick={() => { if (toggle()) onRing(); }}
         >
           <SunIcon size={20} />
           <span className="rem__today-dot" aria-hidden="true" />

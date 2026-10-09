@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useDeps } from '../app/deps';
 import { getSetting, setSetting, type BooleanSetting } from '../db/settings';
+import { useOptimisticToggle } from '../hooks/useOptimisticToggle';
 import { useI18n } from '../i18n/I18nProvider';
 import { errorText } from '../i18n/errors';
 
@@ -16,8 +16,7 @@ export function SettingSwitch({ settingKey, label, defaultOn = true, onError }: 
   const deps = useDeps();
   const stored = useLiveQuery(async () => (await getSetting(deps.db, settingKey)) ?? defaultOn, [deps.db, settingKey, defaultOn], defaultOn);
   // giữ trạng thái ngay trên giao diện để bấm nhanh liên tiếp vẫn đổi đúng
-  const [on, setOn] = useState(stored);
-  useEffect(() => setOn(stored), [stored]);
+  const { on, toggle } = useOptimisticToggle(stored, (v) => setSetting(deps.db, settingKey, v), (e) => onError(errorText(e, t)));
   return (
     <button
       type="button"
@@ -25,11 +24,7 @@ export function SettingSwitch({ settingKey, label, defaultOn = true, onError }: 
       aria-checked={on}
       aria-label={label}
       className={`switch-row${on ? ' is-on' : ''}`}
-      onClick={() => {
-        const next = !on;
-        setOn(next);
-        setSetting(deps.db, settingKey, next).catch((e: Error) => onError(errorText(e, t)));
-      }}
+      onClick={toggle}
     >
       <span className="switch-row__text">{label}</span>
       <span className="switch" aria-hidden="true"><span className="switch__knob" /></span>
