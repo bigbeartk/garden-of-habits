@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { handleBack, useBackHandler } from './back';
 import { useDeps } from './deps';
 import { NavContext, type Tab } from './nav';
@@ -18,6 +18,12 @@ export function App() {
   const todayKey = dayKey(useNow());
   const [tab, setTab] = useState<Tab>('calendar');
   const menuIcon = useMenuIcon();
+  const mainRef = useRef<HTMLElement>(null);
+
+  // Các tab dùng chung một khung cuộn: sang tab khác thì về đầu trang (không giữ vị trí cuộn của tab cũ).
+  useLayoutEffect(() => {
+    if (mainRef.current) mainRef.current.scrollTop = 0;
+  }, [tab]);
 
   // Chạy khi mở app và mỗi khi sang ngày mới (kể cả khi app để mở qua 4:00 rồi quay lại).
   useEffect(() => {
@@ -41,7 +47,7 @@ export function App() {
   return (
     <NavContext.Provider value={setTab}>
       <div className="app">
-        <main className="app__main">
+        <main className="app__main" ref={mainRef}>
           {tab === 'calendar' && <CalendarScreen />}
           {tab === 'today' && <TodayScreen />}
           {tab === 'garden' && <GardenScreen />}

@@ -50,6 +50,12 @@
 }
 .tpl__actions .confirm { display: inline-flex; gap: 6px; }
 .tpl__actions .confirm .btn { min-height: 40px; padding: 0 12px; }
+/* máy hẹp (Android 360px, máy gập 344px): thu đệm để [Thêm vào hôm nay][Sửa][Xoá] vẫn một hàng */
+@media (max-width: 374px) {
+  .tpl__actions { gap: 6px; }
+  .tpl__apply { padding: 0 10px; }
+  .tpl__mini { padding: 0 10px; }
+}
 
 .tpl-form { display: flex; flex-direction: column; gap: 10px; }
 .tpl-form__label { font-weight: 700; }

@@ -31,7 +31,7 @@ body {
   overscroll-behavior: none;
 }
 button, input, textarea { font: inherit; color: inherit; }
-.app { display: flex; flex-direction: column; height: 100dvh; padding-top: var(--safe-area-inset-top, env(safe-area-inset-top)); }
+.app { display: flex; flex-direction: column; height: 100%; height: 100dvh; padding-top: var(--safe-area-inset-top, env(safe-area-inset-top)); }
 .app__main { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
 .screen { min-height: 100%; padding: 16px 16px calc(var(--tabbar-h) + var(--safe-area-inset-bottom, env(safe-area-inset-bottom)) + 24px); }
 .screen__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
@@ -87,6 +87,11 @@ button, input, textarea { font: inherit; color: inherit; }
 }
 .fnav__tab.is-active { background: var(--peach); }
 .fnav__label { white-space: nowrap; }
+/* máy gập / Android hẹp: 4 tab + nút menu vẫn nằm trong màn */
+@media (max-width: 359px) {
+  .fnav__tabs { gap: 2px; padding: 5px; }
+  .fnav__tab { min-width: 54px; }
+}
 .icon { display: block; flex: none; }
 /* Nút quay lại: chỉ mũi tên, không nền, không viền */
 .back-btn {

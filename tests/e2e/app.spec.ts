@@ -772,7 +772,7 @@ test('lời cây nói: chạm bong bóng để sửa, ẩn/hiện được nhớ
   await expect(bubble).toHaveCount(0);
   await page.reload();
   await openToday(page);
-  await closeMenu(page);
+  // sau reload với đồng hồ giả, animation đóng menu của WebKit có thể đứng: bấm thẳng, không chờ dải tab thu lại
   await expect(page.getByRole('button', { name: 'Hiện lời cây nói' })).toBeVisible();
   await expect(page.getByTestId('speech-bubble')).toHaveCount(0);
   await page.getByRole('button', { name: 'Hiện lời cây nói' }).click();

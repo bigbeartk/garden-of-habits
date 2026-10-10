@@ -1,6 +1,6 @@
 .sheet__backdrop { position: fixed; inset: 0; background: rgba(91, 70, 54, 0.25); z-index: 40; }
 .sheet {
-  position: fixed; left: 0; right: 0; bottom: 0; z-index: 41; max-height: 85dvh; overflow-y: auto;
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 41; max-height: 85vh; max-height: 85dvh; overflow-y: auto;
   background: var(--white); border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   padding: 10px 16px calc(16px + var(--safe-area-inset-bottom, env(safe-area-inset-bottom))); box-shadow: 0 -8px 24px rgba(91, 70, 54, 0.15);
 }

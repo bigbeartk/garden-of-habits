@@ -41,6 +41,20 @@ App song ngữ Việt / Anh. Máy mới: theo ngôn ngữ của máy (tiếng Vi
 **Cài đặt → Ngôn ngữ · Language**. Soát tay khi đổi giao diện: máy để tiếng Anh, cài mới → app tiếng Anh;
 chọn Tiếng Việt, thoát hẳn rồi mở lại vẫn tiếng Việt; nút Back và menu Chia sẻ vẫn chạy.
 
+## Bố cục trên nhiều máy
+
+- **Cỡ chữ hệ thống bị bỏ qua**: `MainActivity` đặt `textZoom = 100`, nên chữ trong app không phóng theo
+  Cài đặt → Cỡ chữ của Android (nếu phóng, nút tròn / ô lịch / bảng tuần sẽ vỡ).
+- **WebView tối thiểu 111** (`android.minWebViewVersion` ở `capacitor.config.ts`, khớp `build.target` của Vite).
+  Máy có WebView cũ hơn mở `public/webview-update.html` (nhắc cập nhật "Android System WebView" trên CH Play)
+  thay vì giao diện vỡ.
+- Cỡ màn tự động: `tests/e2e/layout.spec.ts` (Chromium 360×640, 360×780, 412×915, 344×882 máy gập).
+- **Soát tay trên máy thật** khi đổi bố cục hoặc `src/platform`:
+  - để cỡ chữ hệ thống **lớn nhất** → mở 4 tab, bảng Đổi cây & chậu: chữ vẫn cỡ thường, không vỡ;
+  - thanh điều hướng **cử chỉ** và **3 nút**: nút menu nổi, đáy bảng không bị thanh hệ thống che;
+  - Android 15+ (tràn viền): đầu màn Hôm nay / nút X của bảng không nằm dưới thanh trạng thái;
+  - bàn phím: thêm việc ở buổi Tối, ô gõ vẫn thấy được.
+
 ## Chuyển dữ liệu giữa PWA và app
 
 Hai bên có kho dữ liệu riêng. Dùng **Cài đặt → Sao lưu dữ liệu** ở bên cũ, rồi **Khôi phục từ file**

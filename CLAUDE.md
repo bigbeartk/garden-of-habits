@@ -37,6 +37,18 @@ PWA todo cho iPhone, có phần "nuôi cây": mỗi việc làm xong là một l
 - Làm theo TDD: viết test đỏ trước, rồi mới sửa code. Soát hình bằng ảnh chụp WebKit khổ iPhone 13.
 - Test E2E/unit hay chập chờn khi chưa chờ ghi IndexedDB xong (reload ngay sau khi gõ) hoặc chờ một trong hai `useLiveQuery`: chờ trạng thái cuối cùng hiện ra trên giao diện. Nút gạt/toggle đọc từ DB phải giữ state cục bộ (optimistic), nếu không bấm nhanh hai lần sẽ sai: dùng `useOptimisticToggle(stored, save, onError)` (`src/hooks/`), nó **bỏ qua giá trị DB báo về khi còn lần lưu chưa xong** (kết quả đọc cũ về muộn từng làm công tắc nhảy ngược, test Cài đặt chập chờn trên CI), lưu xong thì lại theo DB, lưu lỗi thì quay về giá trị DB. Đừng viết `useEffect(() => setOn(stored), [stored])` trần. Đang dùng ở `SettingSwitch` và công tắc ☀ của Nhắc việc.
 
+## Máy hỗ trợ & bố cục nhiều cỡ màn
+
+- **Thấp nhất: iOS 16.4, Android 7 (minSdk 24) với WebView ≥ 111.** `build.target` của Vite (`es2022`, `safari16.4`, `chrome111`) và `android.minWebViewVersion` (111, `capacitor.config.ts`) phải khớp nhau; WebView cũ hơn mở `public/webview-update.html` (`server.errorPath`). Trong mức này dùng được `dvh`, `translate:`/`scale:`, `:has()`, `Array.at`, `crypto.randomUUID`; dòng `vh`/`100%` trước `dvh` chỉ là dự phòng rẻ.
+- **App Android bỏ qua cỡ chữ hệ thống** (`MainActivity`: `setTextZoom(100)`).
+- **`tests/e2e/layout.spec.ts`** chạy trên ma trận cỡ máy (`playwright.config.ts`): iPhone 13 (390×844), SE (375×667), 13 mini (375×812), 16 Pro (393×852), 16 Pro Max (440×956), iPhone nằm ngang (844×390) bằng WebKit; Android 360×640, 360×780, 412×915, máy gập 344×882 bằng Chromium (`npx playwright install webkit chromium`). Các spec khác chỉ chạy ở `iphone-13`. Chạy riêng: `npx playwright test tests/e2e/layout.spec.ts > pw.log 2>&1`.
+  - Dữ liệu nạp một lần qua **Khôi phục → Gộp** (file sao lưu dựng trong test: 120 ngày, 8 việc, lời cây dài, 6 thói quen tên dài, việc nhắc).
+  - **Safe-area giả** bằng `metadata.safeArea` của project → biến `--safe-area-inset-top/bottom` (CSS đọc biến trước `env()`), nên kiểm được tai thỏ / Dynamic Island / Android tràn viền mà không cần máy thật.
+  - `expectFits`: trang/khung cuộn không cuộn ngang, mọi nút/ô nằm trong khung ngang (trừ nằm trong khung cuộn ngang vừa màn như dải chip thói quen), chữ `nowrap` không tràn hộp, nút tròn vẫn tròn. Mỗi màn chụp ảnh vào `test-results/layout/<project>/` để soát hình.
+  - Có một lượt **tiếng Anh** (chữ dài hơn) đổi ngôn ngữ bằng `LanguagePicker`.
+  - **Thêm màn / bảng mới thì thêm vào `layout.spec.ts`.**
+- Đã sửa nhờ ma trận này: Lịch căn giữa dọc bằng `margin: auto` ở `.cal__head`/`.cal__footer` (không dùng `justify-content: center`: nội dung cao hơn màn thì phần đầu bị đẩy lên trên, không cuộn tới được) và tối đa 520px; **chuyển tab thì `.app__main` về đầu trang** (`App`, các tab chung một khung cuộn); hàng nút thẻ Mẫu và dải tab menu thu đệm ở màn ≤ 374px / ≤ 359px; màn thấp (≤ 500px, nằm ngang) trời Hôm nay thấp lại.
+
 ## Môi trường (Windows)
 
 - Máy dev là Windows 10; công cụ Bash là Git Bash (POSIX). Đường dẫn Windows trong biến môi trường (`$APPDATA`…) bị hỏng trong Bash, nên dùng PowerShell khi cần.

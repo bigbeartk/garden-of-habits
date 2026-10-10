@@ -16,6 +16,8 @@ function appVersion(): string {
 
 export default defineConfig({
   base: process.env.BASE_PATH ?? '/',
+  // Máy thấp nhất được hỗ trợ: iOS 16.4, Android WebView 111 (khớp android.minWebViewVersion ở capacitor.config.ts)
+  build: { target: ['es2022', 'safari16.4', 'chrome111'] },
   define: {
     __APP_VERSION__: JSON.stringify(appVersion()),
     __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
