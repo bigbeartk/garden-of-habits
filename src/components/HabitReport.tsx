@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useDeps } from '../app/deps';
+import { BUGS, getBug } from '../content/bugs';
 import { HABIT_COLORS } from '../content/habits';
 import { PLANTS } from '../content/plants/registry';
 import { DEFAULT_POT_ID } from '../content/pots/registry';
@@ -9,8 +10,8 @@ import { ChevronIcon } from './icons';
 import { listDaysInRange } from '../db/queries';
 import { dayKey, parseDayKey } from '../domain/dayKey';
 import { habitReport, isScheduled, periodRange, shiftPeriod, type HabitCellState, type HabitReportResult, type ReportKind } from '../domain/habitReport';
-import { listHabits, toggleHabit } from '../domain/habitService';
-import type { Habit } from '../domain/types';
+import { dayBugId, ensureDayBug, listHabits, toggleHabit } from '../domain/habitService';
+import type { DayRecord, Habit } from '../domain/types';
 import { monthLabel, shortDate } from '../i18n/fmt';
 import { useI18n } from '../i18n/I18nProvider';
 import { errorText } from '../i18n/errors';
@@ -37,7 +38,7 @@ export function HabitReport({ onManage }: { onManage: () => void }) {
       deps.db.habitChecks.where('date').between(from, to, true, true).toArray(),
       listDaysInRange(deps.db, from, to),
     ]);
-    return { habits, checks, rest: new Set(days.filter((d) => d.isRestDay).map((d) => d.date)) };
+    return { habits, checks, days: new Map(days.map((d) => [d.date, d])), rest: new Set(days.filter((d) => d.isRestDay).map((d) => d.date)) };
   }, [deps.db, from, to]);
   if (!data) return null;
 
@@ -77,7 +78,7 @@ export function HabitReport({ onManage }: { onManage: () => void }) {
         <span className="habit-report__label">{label}</span>
         <button type="button" className="habit-report__arrow" aria-label={t.habits.next} disabled={isCurrent} onClick={() => setAnchor(shiftPeriod(kind, anchor, 1))}><ChevronIcon dir="right" size={18} /></button>
       </div>
-      {kind === 'week' && <WeekTable report={report} todayKey={todayKey} todayRest={data.rest.has(todayKey)} />}
+      {kind === 'week' && <WeekTable report={report} days={data.days} todayKey={todayKey} todayRest={data.rest.has(todayKey)} />}
       {kind === 'month' && <MonthCards report={report} />}
       {kind === 'year' && <YearBars habits={data.habits} checks={data.checks} rest={data.rest} year={y} todayKey={todayKey} />}
       <Stats report={report} />
@@ -85,9 +86,17 @@ export function HabitReport({ onManage }: { onManage: () => void }) {
   );
 }
 
-function WeekTable({ report, todayKey, todayRest }: { report: HabitReportResult; todayKey: string; todayRest: boolean }) {
-  const { t } = useI18n();
+function WeekTable({ report, days, todayKey, todayRest }: {
+  report: HabitReportResult; days: Map<string, DayRecord>; todayKey: string; todayRest: boolean;
+}) {
+  const { t, tr, lang } = useI18n();
+  const deps = useDeps();
   const [error, setError] = useState<string | null>(null);
+  // tick đủ hôm nay ngay trong bảng mà chưa có con → bốc luôn (như màn Hôm nay), để hàng Ngày trọn vẹn hiện được
+  const rollToday = report.perfectDays.includes(todayKey) && !days.get(todayKey)?.bugId;
+  useEffect(() => {
+    if (rollToday) ensureDayBug(deps, todayKey, BUGS).catch(() => {});
+  }, [rollToday, deps, todayKey]);
   return (
     <div className="habit-week" role="table">
       {error && <p role="alert" className="error" onClick={() => setError(null)}>{error}</p>}
@@ -114,16 +123,25 @@ function WeekTable({ report, todayKey, todayRest }: { report: HabitReportResult;
               title={t.habits.cellLabel(row.habit.name, c.date)}
             />
           ))}
-          <span role="cell" className="habit-week__badge">
-            {row.perfect && <span data-testid={`habit-perfect-${row.habit.id}`} aria-label={t.habits.perfectBadge(row.habit.name)}>⭐</span>}
-          </span>
+          <span role="cell" />
         </div>
       ))}
       <div className="habit-week__row habit-week__row--perfect" role="row">
         <span role="rowheader" className="habit-week__name">{t.habits.perfectRow}</span>
-        {report.dates.map((d) => (
-          <span key={d} role="cell" className="habit-week__medal">{report.perfectDays.includes(d) ? '🏅' : ''}</span>
-        ))}
+        {report.dates.map((d) => {
+          // ngày trọn vẹn → côn trùng ghé cây hôm đó (cùng con với Lịch / Hôm nay)
+          const bug = report.perfectDays.includes(d) ? getBug(dayBugId(days.get(d), d, todayKey, BUGS)) : null;
+          return (
+            <span key={d} role="cell" className="habit-week__bug">
+              {bug && (
+                <svg
+                  viewBox="-16 -16 32 32" role="img" data-testid={`habit-day-bug-${d}`} data-bug={bug.id}
+                  aria-label={t.habits.dayBug(shortDate(lang, d), tr(bug.name))}
+                ><bug.Art animate={false} /></svg>
+              )}
+            </span>
+          );
+        })}
         <span role="cell" className="habit-week__badge">{report.perfectPeriod && <span aria-label={t.habits.perfectWeek}>👑</span>}</span>
       </div>
     </div>

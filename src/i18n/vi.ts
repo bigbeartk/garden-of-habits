@@ -354,7 +354,7 @@ export const vi = {
     prev: 'Kỳ trước',
     next: 'Kỳ sau',
     perfectRow: 'Ngày trọn vẹn',
-    perfectBadge: (name: string) => `Làm đủ cả kỳ: ${name}`,
+    dayBug: (date: string, bug: string) => `${date}: ${bug}`,
     perfectWeek: 'Cả tuần trọn vẹn',
     stats: { met: 'Đạt', perfectDays: 'Ngày trọn vẹn', totalDone: 'Tổng lần làm', bestStreak: 'Chuỗi dài nhất' },
     dayUnit: 'ngày',

@@ -332,7 +332,7 @@ export const en: Messages = {
     prev: 'Previous',
     next: 'Next',
     perfectRow: 'Perfect days',
-    perfectBadge: (name: string) => `Done every time: ${name}`,
+    dayBug: (date: string, bug: string) => `${date}: ${bug}`,
     perfectWeek: 'Perfect week',
     stats: { met: 'Met', perfectDays: 'Perfect days', totalDone: 'Total done', bestStreak: 'Best streak' },
     dayUnit: 'd',

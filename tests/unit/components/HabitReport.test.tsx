@@ -59,6 +59,34 @@ describe('HabitReport', () => {
     expect(screen.getByTestId(`habit-cell-${h.id}-2026-10-07`).tagName).toBe('SPAN');
   });
 
+  it('bảng tuần: hàng Ngày trọn vẹn hiện côn trùng của ngày, không còn ⭐ / 🏅', async () => {
+    const { deps, clock } = makeDeps(new Date(2026, 9, 6, 10)); // tạo thứ Ba 06/10
+    const h = await addHabit(deps, { name: 'Uống nước', icon: '💧', color: 'sky', weekdays: [0, 1, 2, 3, 4, 5, 6] });
+    await toggleHabit(deps, h.id); // 06/10 làm đủ
+    await deps.db.days.put({ date: '2026-10-06', plantId: 'sunflower', potId: 'terracotta', specialId: null, isRestDay: false, greetedAt: 1, note: '', todos: [], finalStage: 'seed', bugId: 'bee', createdAt: 0, updatedAt: 0 });
+    clock.current = start; // 08/10, chưa tick; 07/10 bỏ lỡ
+    renderWithDeps(<HabitReport onManage={() => {}} />, deps);
+    const bug = await screen.findByTestId('habit-day-bug-2026-10-06');
+    expect(bug).toHaveAttribute('data-bug', 'bee');
+    expect(bug).toHaveAccessibleName('06/10: Ong');
+    expect(screen.queryByTestId('habit-day-bug-2026-10-07')).toBeNull();
+    expect(screen.queryByTestId('habit-day-bug-2026-10-08')).toBeNull();
+    expect(screen.queryByTestId(`habit-perfect-${h.id}`)).toBeNull();
+    expect(screen.getByTestId('habit-report').textContent).not.toMatch(/[⭐🏅]/u);
+  });
+
+  it('bảng tuần: tick đủ hôm nay ngay trong bảng thì côn trùng hôm nay được bốc và hiện', async () => {
+    const { deps } = makeDeps(start);
+    await addHabit(deps, { name: 'Uống nước', icon: '💧', color: 'sky', weekdays: [0, 1, 2, 3, 4, 5, 6] });
+    await deps.db.days.put({ date: '2026-10-08', plantId: 'sunflower', potId: 'terracotta', specialId: null, isRestDay: false, greetedAt: 1, note: '', todos: [], finalStage: 'seed', createdAt: 0, updatedAt: 0 });
+    renderWithDeps(<HabitReport onManage={() => {}} />, deps);
+    fireEvent.click(await screen.findByRole('switch', { name: 'Điểm danh hôm nay: Uống nước' }));
+    const bug = await screen.findByTestId('habit-day-bug-2026-10-08');
+    const saved = (await deps.db.days.get('2026-10-08'))?.bugId;
+    expect(saved).toBeTruthy();
+    expect(bug).toHaveAttribute('data-bug', saved);
+  });
+
   it('bảng tuần: ngày tiết kiệm năng lượng không có ô bấm được', async () => {
     const { deps } = makeDeps(start);
     await addHabit(deps, { name: 'Uống nước', icon: '💧', color: 'sky', weekdays: [0, 1, 2, 3, 4, 5, 6] });
