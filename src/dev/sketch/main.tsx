@@ -3,6 +3,9 @@ import type { ReactNode } from 'react';
 import '../../app/theme.css';
 import { I18nProvider } from '../../i18n/I18nProvider';
 import { StylesGrid } from './kit';
+import { BlueberrySketches } from './blueberry';
+import { DaisySketches } from './daisy';
+import { StrawberrySketches } from './strawberry';
 import { CherrySketches } from './cherry';
 import { FaceSketches } from './faces';
 import { Playground } from './playground';
@@ -30,6 +33,9 @@ const SHEETS: Record<string, { group: keyof typeof GROUPS; title: string; render
   styles: { group: 'tools', title: 'Mọi loài + dáng mở khoá (?p=rose,hydrangea để lọc; Tulip có id hydrangea)', render: (q) => <StylesGrid only={q.get('p')?.split(',')} /> },
   faces: { group: 'faces', title: 'Mặt chibi: kiểu đang dùng + kiểu mắt / miệng mới × 5 nét mặt (10/2026)', render: () => <FaceSketches /> },
   tomato: { group: 'species', title: 'Cà chua: loài mới theo ảnh mẫu (10/2026)', render: () => <TomatoSketches /> },
+  blueberry: { group: 'species', title: 'Việt quất: loài mới theo ảnh mẫu (10/2026)', render: () => <BlueberrySketches /> },
+  daisy: { group: 'species', title: 'Cúc hoạ mi: loài mới theo ảnh mẫu (10/2026)', render: () => <DaisySketches /> },
+  strawberry: { group: 'species', title: 'Dâu tây: loài mới theo ảnh mẫu (10/2026)', render: () => <StrawberrySketches /> },
   rose: { group: 'styles', title: 'Hoa hồng: các bản phác thảo dáng 2 / 3 (10/2026)', render: () => <RoseSketches /> },
   sunflower: { group: 'styles', title: 'Hướng dương: dáng 2 kiểu game thủ thành (10/2026)', render: () => <SunflowerSketches /> },
   cherry: { group: 'styles', title: 'Cherry: dáng 2 thay Rủ (10/2026)', render: () => <CherrySketches /> },

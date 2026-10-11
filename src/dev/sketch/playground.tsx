@@ -6,7 +6,11 @@ import { PLANTS, getSpecies } from '../../content/plants/registry';
 import { getStageArt } from '../../content/plants/styles';
 import { POTS } from '../../content/pots/registry';
 import type { FaceAnchor } from '../../content/types';
-import { EYES, MOODS, MOOD_VI, MOUTHS, SketchFace } from './faces';
+import { EYES, FACE_PRESETS, MOODS, MOOD_VI, MOUTHS, SketchFace } from './faces';
+import { BLUEBERRY_LOOKS } from './blueberry';
+import { DAISY_LOOKS } from './daisy';
+import { STRAWBERRY_LOOKS } from './strawberry';
+import type { Look as SketchLook } from './kit';
 import { TOMATO_LOOKS } from './tomato';
 
 /*
@@ -19,21 +23,29 @@ import { TOMATO_LOOKS } from './tomato';
 type Stage = 'seed' | 'sprout' | 'bud' | 'bloom';
 const STAGES: Stage[] = ['seed', 'sprout', 'bud', 'bloom'];
 const STAGE_VI: Record<Stage, string> = { seed: 'Hạt', sprout: 'Mầm', bud: 'Ra chồi', bloom: 'Ra hoa' };
-type FaceChoice = 'auto' | FaceStyle | 'mix';
+/** F0–F5 = bộ mặt phác thảo (FACE_PRESETS) */
+type FaceChoice = 'auto' | FaceStyle | 'mix' | `F${number}`;
 
 /** Cây phác thảo (chưa có trong app): id `sketch:<tên>` */
-const SKETCH_PLANTS = TOMATO_LOOKS.map(([name, bud, bloom], i) => ({ id: `sketch:tomato-T${i + 1}`, name: `Cà chua ${name}`, bud, bloom }));
+const SKETCH_PLANTS = [
+  ...TOMATO_LOOKS.map(([name, bud, bloom], i) => ({ id: `sketch:tomato-T${i + 1}`, name: `Cà chua ${name}`, bud, bloom })),
+  ...DAISY_LOOKS.map(([name, bud, bloom], i) => ({ id: `sketch:daisy-D${i + 1}`, name: `Cúc hoạ mi ${name}`, bud, bloom })),
+  ...STRAWBERRY_LOOKS.map(([name, bud, bloom], i) => ({ id: `sketch:strawberry-S${i + 1}`, name: `Dâu tây ${name}`, bud, bloom })),
+  ...BLUEBERRY_LOOKS.map(([name, bud, bloom], i) => ({ id: `sketch:blueberry-B${i + 1}`, name: `Việt quất ${name}`, bud, bloom })),
+];
 
-interface Resolved { art: ReactNode; anchor: FaceAnchor; faceStyle?: FaceStyle; defaultPot: string }
+/** drawFace: cây phác thảo có mặt riêng (dùng khi Kiểu mặt = Theo loài) */
+interface Resolved { art: ReactNode; anchor: FaceAnchor; faceStyle?: FaceStyle; defaultPot: string; drawFace?: SketchLook['drawFace']; faceName?: string }
 
 function resolvePlant(p: string, styleId: string, stage: Stage): Resolved {
   const sk = SKETCH_PLANTS.find((s) => s.id === p);
   if (sk) {
     // cây phác thảo chỉ vẽ bud/bloom; hạt/mầm dùng phần chung
-    if (stage === 'seed') return { art: <Seed color="#F3E3B5" stripe="#E2C98A" />, anchor: { x: 100, y: 149, scale: 0.55 }, defaultPot: 'pink-cup' };
-    if (stage === 'sprout') return { art: <Sprout leaf="#5DAE5A" stem="#5E9E4F" />, anchor: { x: 100, y: 122, scale: 0.6 }, defaultPot: 'pink-cup' };
+    const own = { drawFace: sk.bloom.drawFace, faceName: sk.bloom.faceName, defaultPot: 'pink-cup' };
+    if (stage === 'seed') return { art: <Seed color="#F3E3B5" stripe="#E2C98A" />, anchor: { x: 100, y: 149, scale: 0.55 }, ...own };
+    if (stage === 'sprout') return { art: <Sprout leaf="#5DAE5A" stem="#5E9E4F" />, anchor: { x: 100, y: 122, scale: 0.6 }, ...own };
     const look = sk[stage];
-    return { art: look.art(), anchor: look.face!, defaultPot: 'pink-cup' };
+    return { art: look.art(), anchor: look.face!, ...own };
   }
   const sp = getSpecies(p);
   const r = getStageArt(sp, styleId, stage);
@@ -69,17 +81,25 @@ function Pick({ label, value, onChange, options, disabled }: { label: string; va
 }
 
 /** Cảnh: chậu → cây → mặt (cùng thứ tự PlantScene) */
-interface Look { face: FaceChoice; eyes: (typeof EYES)[number]; mouth: (typeof MOUTHS)[number] }
-function Scene({ r, potId, look, mood, size }: { r: Resolved; potId: string; look: Look; mood: Mood; size: number }) {
+interface FaceLook { face: FaceChoice; eyes: (typeof EYES)[number]; mouth: (typeof MOUTHS)[number] }
+/** `zoom`: chỉ cắt khung quanh mặt (rộng ~2,5 lần mặt) để nhìn rõ nét mặt */
+function Scene({ r, potId, look, mood, size, zoom = false }: { r: Resolved; potId: string; look: FaceLook; mood: Mood; size: number; zoom?: boolean }) {
+  const a = r.anchor, half = 50 * a.scale;
+  const viewBox = zoom ? `${a.x - half} ${a.y - half * 0.8} ${half * 2} ${half * 1.6}` : '0 0 200 240';
   const { face, eyes, mouth } = look;
+  const preset = FACE_PRESETS.find((f) => f.id === face);
   const pot = POTS.find((x) => x.id === potId) ?? POTS[0];
   return (
-    <svg viewBox="0 0 200 240" width={size} height={size * 1.2} style={{ background: '#fff', borderRadius: 14, display: 'block' }}>
+    <svg viewBox={viewBox} width={size} height={size * (zoom ? 0.8 : 1.2)} style={{ background: '#fff', borderRadius: 14, display: 'block' }}>
       <ArtView art={pot.art} />
       {r.art}
-      {face === 'mix'
+      {preset
+        ? <SketchFace eyes={preset.eyes} mouth={preset.mouth} mood={mood} {...r.anchor} />
+        : face === 'mix'
         ? <SketchFace eyes={eyes} mouth={mouth} mood={mood} {...r.anchor} />
-        : <Face mood={mood} faceStyle={face === 'auto' ? r.faceStyle : face} {...r.anchor} />}
+        : face === 'auto' && r.drawFace
+          ? r.drawFace(r.anchor, mood)
+          : <Face mood={mood} faceStyle={face === 'auto' ? r.faceStyle : (face as FaceStyle)} {...r.anchor} />}
     </svg>
   );
 }
@@ -96,11 +116,11 @@ export function Playground() {
   const eyes = EYES.find((e) => e.id === s.e) ?? EYES[0];
   const mouth = MOUTHS.find((m) => m.id === s.m) ?? MOUTHS[0];
 
-  const look: Look = { face, eyes, mouth };
-  const scene = (md: Mood, size: number) => <Scene r={r} potId={potId} look={look} mood={md} size={size} />;
+  const look: FaceLook = { face, eyes, mouth };
+  const scene = (md: Mood, size: number, zoom = false) => <Scene r={r} potId={potId} look={look} mood={md} size={size} zoom={zoom} />;
 
-  const autoLabel = sketchPlant ? 'cute' : (species?.faceStyle ?? 'cute');
-  const usedTag = face === 'mix' || sketchPlant ? '✏️ PHÁC THẢO' : '✅ ĐANG DÙNG';
+  const autoLabel = sketchPlant ? (r.faceName ?? 'cute') : (species?.faceStyle ?? 'cute');
+  const usedTag = face === 'mix' || face.startsWith('F') || sketchPlant ? '✏️ PHÁC THẢO' : '✅ ĐANG DÙNG';
 
   return (
     <div style={{ font: '14px sans-serif', color: '#5B4636' }}>
@@ -116,7 +136,9 @@ export function Playground() {
         <Pick label="Giai đoạn" value={stage} onChange={(v) => set('g', v)} options={STAGES.map((g) => [g, STAGE_VI[g]])} />
         <Pick label="Chậu" value={s.pot} onChange={(v) => set('pot', v)} options={[['auto', `Mặc định (${r.defaultPot})`], ...POTS.map((p): [string, string] => [p.id, `${p.name.vi} (${p.id})`])]} />
         <Pick label="Kiểu mặt" value={s.f} onChange={(v) => set('f', v)} options={[
-          ['auto', `✅ Theo loài (${autoLabel})`], ['cute', '✅ cute'], ['cool', '✅ cool (xương rồng)'], ['lady', '✅ lady (hoa hồng)'], ['mix', '✏️ Tự ghép mắt + miệng'],
+          ['auto', `${r.faceName ? '✏️' : '✅'} Theo loài (${autoLabel})`], ['cute', '✅ cute'], ['cool', '✅ cool (xương rồng)'], ['lady', '✅ lady (hoa hồng)'],
+          ...FACE_PRESETS.map((f): [string, string] => [f.id, `✏️ Bộ ${f.name.split(':')[0]}`]),
+          ['mix', '✏️ Tự ghép mắt + miệng'],
         ]} />
         <Pick label="Mắt" value={s.e} onChange={(v) => set('e', v)} disabled={face !== 'mix'} options={EYES.map((e) => [e.id, `${e.id === 'E0' ? '✅' : '✏️'} ${e.name}`])} />
         <Pick label="Miệng" value={s.m} onChange={(v) => set('m', v)} disabled={face !== 'mix'} options={MOUTHS.map((m) => [m.id, `${m.id === 'M0' ? '✅' : '✏️'} ${m.name}`])} />
@@ -127,13 +149,22 @@ export function Playground() {
         {' · '}mặt tại x {r.anchor.x}, y {r.anchor.y}, scale {r.anchor.scale}
       </p>
       <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-        {scene(mood, 300)}
+        {scene(mood, 400)}
         <div>
-          <b>Mọi nét mặt</b>
+          <b>Phóng to mặt, mọi nét mặt</b>
+          <div style={{ display: 'flex', gap: 6, marginTop: 4, marginBottom: 10, flexWrap: 'wrap' }}>
+            {MOODS.map((m) => (
+              <figure key={m} style={{ margin: 0, textAlign: 'center' }}>
+                {scene(m, 170, true)}
+                <figcaption>{MOOD_VI[m]}</figcaption>
+              </figure>
+            ))}
+          </div>
+          <b>Cả cây, mọi nét mặt</b>
           <div style={{ display: 'flex', gap: 6, marginTop: 4, flexWrap: 'wrap' }}>
             {MOODS.map((m) => (
               <figure key={m} style={{ margin: 0, textAlign: 'center' }}>
-                {scene(m, 110)}
+                {scene(m, 170)}
                 <figcaption>{MOOD_VI[m]}</figcaption>
               </figure>
             ))}

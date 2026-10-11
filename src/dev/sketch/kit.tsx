@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { PlantScene } from '../../components/PlantScene';
 import { ArtView } from '../../content/ArtView';
-import { Face, type FaceStyle } from '../../content/Face';
+import { Face, type FaceStyle, type Mood } from '../../content/Face';
 import { PLANTS } from '../../content/plants/registry';
 import { getPot } from '../../content/pots/registry';
 
@@ -9,17 +9,20 @@ import { getPot } from '../../content/pots/registry';
 export interface Look {
   art: () => ReactNode;
   face?: { x: number; y: number; scale: number };
+  /** mặt phác thảo riêng (vd. mắt E4 + miệng M0) thay cho <Face> của app; `faceName` ghi tên kiểu đó */
+  drawFace?: (face: { x: number; y: number; scale: number }, mood: Mood) => ReactNode;
+  faceName?: string;
 }
 
 /** Ô vẽ một Look trong chậu, giống cách PlantScene ghép cảnh (chậu → cây → mặt) */
-export function Cell({ look, potId = 'terracotta', faceStyle, label, size = 170 }: { look: Look; potId?: string; faceStyle?: FaceStyle; label?: string; size?: number }) {
+export function Cell({ look, potId = 'terracotta', faceStyle, label, size = 170, mood = 'smile' }: { look: Look; potId?: string; faceStyle?: FaceStyle; label?: string; size?: number; mood?: Mood }) {
   return (
     <figure style={{ margin: 0 }}>
       {label !== undefined && <figcaption style={{ fontWeight: 700, fontSize: 14, marginBottom: 4, minHeight: 18 }}>{label}</figcaption>}
       <svg viewBox="0 0 200 240" width={size} height={size * 1.2} style={{ background: '#fff', borderRadius: 12, display: 'block' }}>
         <ArtView art={getPot(potId).art} />
         {look.art()}
-        {look.face && <Face mood="smile" faceStyle={faceStyle} {...look.face} />}
+        {look.face && (look.drawFace ? look.drawFace(look.face, mood) : <Face mood={mood} faceStyle={faceStyle} {...look.face} />)}
       </svg>
     </figure>
   );
