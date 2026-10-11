@@ -124,7 +124,8 @@ export interface CalendarBg {
 
 /** Phần dữ liệu nội dung mà tầng domain cần (không phụ thuộc React). */
 export interface Catalog {
-  plants: { id: string; defaultPotId: string; styles?: { id: string; unlockAt: number }[] }[];
+  /** locked: loài mở khoá bằng ngày đạt (plantUnlocks); không có = có sẵn */
+  plants: { id: string; defaultPotId: string; styles?: { id: string; unlockAt: number }[]; locked?: boolean }[];
   potIds: string[];
   specials: { id: string; weight: number }[];
 }

@@ -33,8 +33,10 @@ export const TEST_CATALOG: Catalog = {
   plants: [
     { id: 'sunflower', defaultPotId: 'terracotta', styles: [{ id: 'mini', unlockAt: 10 }, { id: 'giant', unlockAt: 20 }] },
     { id: 'corn', defaultPotId: 'rattan' },
+    { id: 'tomato', defaultPotId: 'pink-cup', locked: true },
+    { id: 'daisy', defaultPotId: 'glass-bowl', locked: true },
   ],
-  potIds: ['terracotta', 'rattan', 'pink-cup'],
+  potIds: ['terracotta', 'rattan', 'pink-cup', 'glass-bowl'],
   specials: [{ id: 'glow', weight: 1 }],
 };
 

@@ -26,6 +26,8 @@ export interface SettingsShape {
   unlockedSpecials: string[];
   /** dáng cây đã mở khoá (đủ ngày ra hoa), dạng 'plantId|styleId'; mở rồi giữ luôn */
   unlockedStyles: string[];
+  /** loài cây khoá đã được người dùng chọn mở (mỗi 90 ngày đạt một lượt); mở rồi giữ luôn */
+  unlockedPlants: string[];
   /** ngày ('YYYY-MM-DD') đã góp vào mở dáng; mỗi ngày chỉ góp một lần dù bỏ tick, đổi loài rồi tick lại */
   styleBloomCredit: string;
   /** ngôn ngữ giao diện; không có = chưa giải lần nào (resolveLang ghi ở lần mở đầu) */
