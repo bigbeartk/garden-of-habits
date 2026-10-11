@@ -322,6 +322,13 @@ test('Bảng: Đổi cây & chậu, chi tiết ngày, xoá dữ liệu: nút X d
   await expectClose('Đổi cây & chậu');
   await expectFits(page, 'Bảng đổi cây');
   await shot(page, 'sheet-plant');
+  // mục Cây mới: dữ liệu mẫu đã đủ 90 ngày đạt → có lượt; chạm ô khoá hiện hai nút xác nhận
+  const newPlants = page.getByTestId('picker-new-plants');
+  await newPlants.scrollIntoViewIfNeeded();
+  await page.getByRole('button', { name: 'Dâu tây (đang khoá)' }).click();
+  await expect(page.getByRole('button', { name: 'Mở khoá: Dâu tây' })).toBeVisible();
+  await expectFits(page, 'Mục Cây mới');
+  await shot(page, 'sheet-new-plants');
   await page.getByRole('button', { name: /^Dáng cây: Hướng dương/ }).click();
   await expectFits(page, 'Màn dáng cây');
   await page.getByRole('button', { name: 'Quay lại chọn cây' }).click();
