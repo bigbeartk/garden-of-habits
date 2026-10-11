@@ -1,5 +1,5 @@
 .bug-collection { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; background: rgba(255, 253, 251, 0.95); }
-.bug-collection__head { display: flex; align-items: center; gap: 8px; }
+.bug-collection__head { position: relative; display: flex; align-items: center; gap: 8px; }
 .bug-collection__title { margin: 0; font-size: 1.05rem; }
 .bug-collection__grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; margin: 0; padding: 0; list-style: none; }
 .bug-collection__item { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 0; text-align: center; }
@@ -20,3 +20,17 @@
 .bug-collection__rarity { font-size: 0.62rem; font-weight: 700; color: var(--cocoa-soft); line-height: 1.1; }
 .bug-collection__item.is-epic .bug-collection__rarity { color: #B07D00; }
 .bug-collection__hint { margin: 0; font-size: 0.8rem; color: var(--cocoa-soft); }
+.bug-collection__tip { display: contents; }
+/* nút tròn: padding 0 để Safari không nở thành bầu dục */
+.bug-collection__tip-btn {
+  width: 24px; height: 24px; padding: 0; flex: none; display: grid; place-items: center; border-radius: 50%;
+  border: 2px solid var(--cocoa); background: var(--lavender); box-shadow: var(--shadow-pop);
+  font-family: var(--font-display); font-weight: 800; font-size: 0.9rem; line-height: 1; color: var(--cocoa); cursor: pointer;
+}
+.bug-collection__tip-btn[aria-expanded='true'] { background: var(--butter); }
+/* nổi đè lên lưới (không đẩy bố cục), rộng bằng hàng tiêu đề */
+.bug-collection__tip-pop {
+  position: absolute; z-index: 2; top: calc(100% + 8px); left: 0; right: 0; margin: 0; padding: 8px 12px;
+  border: 2px solid var(--cocoa); border-radius: 14px; background: var(--lavender); box-shadow: var(--shadow-pop);
+  font-size: 0.82rem; font-weight: 600; line-height: 1.35; color: var(--cocoa);
+}

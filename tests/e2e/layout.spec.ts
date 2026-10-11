@@ -246,6 +246,19 @@ test('Khu vườn: tab Cây và bảng tuần Thói quen vừa khổ màn', asyn
   }
   await expectFits(page, 'Khu vườn · Thói quen');
   await shot(page, 'garden-habits');
+  // nút ! cạnh số côn trùng đã gặp: gợi ý nổi nằm gọn trong thẻ
+  const bugs = page.getByTestId('bug-collection');
+  await page.getByRole('button', { name: 'Mẹo gặp côn trùng hiếm' }).click();
+  const tip = page.getByTestId('bug-streak-hint');
+  await tip.scrollIntoViewIfNeeded();
+  const [c, tb] = [await box(page, bugs), await box(page, tip)];
+  expect(tb.x, 'gợi ý tràn trái thẻ côn trùng').toBeGreaterThanOrEqual(c.x - 0.5);
+  expect(tb.x + tb.width, 'gợi ý tràn phải thẻ côn trùng').toBeLessThanOrEqual(c.x + c.width + 0.5);
+  await expectFits(page, 'Khu vườn · Thói quen · gợi ý côn trùng');
+  await shot(page, 'garden-bug-tip');
+  await page.keyboard.press('Escape');
+  await expect(tip).toBeHidden();
+  await report.scrollIntoViewIfNeeded();
   for (const tab of ['Tháng', 'Năm']) {
     await page.getByRole('tab', { name: tab }).click();
     await expectFits(page, `Khu vườn · Thói quen · ${tab}`);

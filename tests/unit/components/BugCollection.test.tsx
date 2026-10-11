@@ -1,4 +1,4 @@
-import { screen, within } from '@testing-library/react';
+import { fireEvent, screen, within } from '@testing-library/react';
 import { makeDeps, renderWithDeps } from '../helpers';
 import { BugCollection } from '../../../src/components/BugCollection';
 import { BUGS, bugFor } from '../../../src/content/bugs';
@@ -11,6 +11,29 @@ describe('BugCollection', () => {
     renderWithDeps(<BugCollection />, deps);
     await new Promise((r) => setTimeout(r, 50));
     expect(screen.queryByTestId('bug-collection')).not.toBeInTheDocument();
+  });
+
+  it('nút ! cạnh số đã gặp mở gợi ý chuỗi ngày (không ghi tỉ lệ); bấm lại / Escape / chạm ra ngoài thì đóng', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 2, 10));
+    await deps.db.habits.put(habit);
+    renderWithDeps(<BugCollection />, deps);
+    const btn = await screen.findByRole('button', { name: 'Mẹo gặp côn trùng hiếm' });
+    expect(btn).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByTestId('bug-streak-hint')).not.toBeInTheDocument();
+    fireEvent.click(btn);
+    const hint = screen.getByTestId('bug-streak-hint');
+    expect(btn).toHaveAttribute('aria-expanded', 'true');
+    expect(hint).toHaveTextContent('Làm đủ thói quen nhiều ngày liên tiếp');
+    expect(hint).toHaveTextContent('rất hiếm');
+    expect(hint.textContent).not.toMatch(/\d/);
+    fireEvent.click(btn);
+    expect(screen.queryByTestId('bug-streak-hint')).not.toBeInTheDocument();
+    fireEvent.click(btn);
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(screen.queryByTestId('bug-streak-hint')).not.toBeInTheDocument();
+    fireEvent.click(btn);
+    fireEvent.pointerDown(document.body);
+    expect(screen.queryByTestId('bug-streak-hint')).not.toBeInTheDocument();
   });
 
   it('đếm số lần gặp từng loài; loài chưa gặp là ô bí ẩn có ghi độ hiếm', async () => {

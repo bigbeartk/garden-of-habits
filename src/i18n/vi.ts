@@ -99,6 +99,8 @@ export const vi = {
   bugs: {
     title: 'Côn trùng đã gặp',
     hint: 'Làm đủ mọi thói quen trong ngày để một bạn côn trùng ghé cây.',
+    streakHintButton: 'Mẹo gặp côn trùng hiếm',
+    streakHint: '✨ Làm đủ thói quen nhiều ngày liên tiếp thì cơ hội gặp bạn hiếm và rất hiếm càng cao. Bỏ lỡ một ngày là chuỗi đứt nha!',
     rarity: { common: 'Thường gặp', rare: 'Hiếm', epic: 'Rất hiếm' } as Record<BugRarity, string>,
     mystery: 'Côn trùng bí ẩn',
     times: (n: number) => `×${n}`,

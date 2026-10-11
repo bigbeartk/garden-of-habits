@@ -90,6 +90,8 @@ export const en: Messages = {
   bugs: {
     title: 'Bug friends met',
     hint: 'Finish every habit in a day and a little bug comes to visit your plant.',
+    streakHintButton: 'Tip: rare bugs',
+    streakHint: '✨ Keep a streak of perfect days and rare or super rare bugs get more likely to drop by. Miss a day and the streak starts over!',
     rarity: { common: 'Common', rare: 'Rare', epic: 'Super rare' },
     mystery: 'Mystery bug',
     times: (n) => `×${n}`,

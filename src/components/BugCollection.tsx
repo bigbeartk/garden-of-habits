@@ -1,4 +1,6 @@
+import { useEffect, useRef, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
+import { useBackHandler } from '../app/back';
 import { useDeps } from '../app/deps';
 import { BUGS, countBugs } from '../content/bugs';
 import { dayKey } from '../domain/dayKey';
@@ -29,6 +31,7 @@ export function BugCollection() {
       <header className="bug-collection__head">
         <h2 id="bug-collection-title" className="bug-collection__title">{t.bugs.title}</h2>
         <span className="pill">{`${met}/${BUGS.length}`}</span>
+        <StreakTip />
       </header>
       <ul className="bug-collection__grid">
         {BUGS.map((b) => {
@@ -58,5 +61,31 @@ export function BugCollection() {
       </ul>
       {met < BUGS.length && <p className="bug-collection__hint">{t.bugs.hint}</p>}
     </section>
+  );
+}
+
+/** Nút ! cạnh số đã gặp: bấm thì nổi gợi ý chuỗi ngày (chỉ lời gợi ý, không ghi tỉ lệ — xem domain/bugOdds.ts).
+ *  Bấm lại, chạm ra ngoài, Escape hoặc Back Android thì đóng. */
+function StreakTip() {
+  const { t } = useI18n();
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLSpanElement>(null);
+  useBackHandler(open, () => setOpen(false), 'sheet');
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: PointerEvent) => { if (!ref.current?.contains(e.target as Node)) setOpen(false); };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
+    document.addEventListener('pointerdown', onDown, true);
+    document.addEventListener('keydown', onKey);
+    return () => { document.removeEventListener('pointerdown', onDown, true); document.removeEventListener('keydown', onKey); };
+  }, [open]);
+  return (
+    <span ref={ref} className="bug-collection__tip">
+      <button
+        type="button" className="bug-collection__tip-btn" aria-label={t.bugs.streakHintButton}
+        aria-expanded={open} aria-controls="bug-streak-hint" onClick={() => setOpen((o) => !o)}
+      >!</button>
+      {open && <p id="bug-streak-hint" role="note" className="bug-collection__tip-pop" data-testid="bug-streak-hint">{t.bugs.streakHint}</p>}
+    </span>
   );
 }
