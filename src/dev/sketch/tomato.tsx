@@ -5,7 +5,7 @@ import { Cell, Row, type Look } from './kit';
  * Phác thảo loài mới: Cà chua (10/2026), theo ảnh mẫu chủ repo gửi (quả to mang mặt giữa cây,
  * thân cong móc qua đỉnh quả, lá kép răng cưa, quả nhỏ treo bên dưới).
  * Dáng khác các loài đã có: cụm quả tròn mang mặt giữa một bụi lá kép xoè, thân móc câu.
- * Chưa đưa vào app: để dành, khi làm loài Cà chua thì chọn bản (T1 bám sát ảnh mẫu nhất) và chậu mặc định còn trống.
+ * ĐÃ VÀO APP (src/content/plants/tomato.tsx): Gốc = T1, dáng `arch` = T2, `staked` = T3; chậu pink-cup; mặt doll.
  */
 
 const STEM = '#5E9E4F', STEM_DARK = '#4A8540', LEAF = '#5DAE5A', LEAF_VEIN = '#9BD58C';

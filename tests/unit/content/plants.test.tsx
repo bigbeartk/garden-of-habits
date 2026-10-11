@@ -7,10 +7,10 @@ import { SPECIALS } from '../../../src/content/specials/registry';
 import { GROWTH_STAGES } from '../../../src/domain/growth';
 
 describe('plants', () => {
-  it('có 9 loài theo thứ tự', () => {
-    expect(PLANTS.map((p) => p.id)).toEqual(['sunflower', 'corn', 'cactus', 'pothos', 'orange', 'cherry', 'rose', 'watermelon', 'hydrangea']);
-    expect(PLANTS.map((p) => p.name.vi)).toEqual(['Hướng dương', 'Ngô', 'Xương rồng', 'Monstera', 'Cây cam', 'Cherry', 'Hoa hồng', 'Dưa hấu', 'Tulip']);
-    expect(PLANTS.map((p) => p.name.en)).toEqual(['Sunflower', 'Corn', 'Cactus', 'Monstera', 'Orange tree', 'Cherry', 'Rose', 'Watermelon', 'Tulip']);
+  it('các loài theo thứ tự', () => {
+    expect(PLANTS.map((p) => p.id)).toEqual(['sunflower', 'corn', 'cactus', 'pothos', 'orange', 'cherry', 'rose', 'watermelon', 'hydrangea', 'tomato']);
+    expect(PLANTS.map((p) => p.name.vi)).toEqual(['Hướng dương', 'Ngô', 'Xương rồng', 'Monstera', 'Cây cam', 'Cherry', 'Hoa hồng', 'Dưa hấu', 'Tulip', 'Cà chua']);
+    expect(PLANTS.map((p) => p.name.en)).toEqual(['Sunflower', 'Corn', 'Cactus', 'Monstera', 'Orange tree', 'Cherry', 'Rose', 'Watermelon', 'Tulip', 'Tomato']);
   });
 
   it('mỗi loài có đủ 4 giai đoạn, toạ độ mặt và chậu mặc định hợp lệ', () => {
@@ -59,7 +59,13 @@ describe('plants', () => {
       rose: ['arch', 'dome'],
       watermelon: ['square', 'trellis'],
       hydrangea: ['parrot', 'bouquet'],
+      tomato: ['arch', 'staked'],
     });
+  });
+
+  it('loài khoá: loài mới nằm sau 9 loài cũ', () => {
+    expect(PLANTS.filter((p) => p.locked).map((p) => p.id)).toEqual(['tomato']);
+    expect(PLANTS.slice(0, 9).every((p) => !p.locked)).toBe(true);
   });
 
   it('getSpecies với id lạ trả về loài đầu tiên', () => {
@@ -70,6 +76,7 @@ describe('plants', () => {
     expect(CATALOG.plants).toEqual(PLANTS.map((p) => ({
       id: p.id, defaultPotId: p.defaultPotId,
       styles: (p.styles ?? []).map((s) => ({ id: s.id, unlockAt: s.unlockAt })),
+      ...(p.locked ? { locked: true } : {}),
     })));
     expect(CATALOG.potIds).toEqual(POTS.map((p) => p.id));
     expect(CATALOG.specials).toEqual(SPECIALS.map((s) => ({ id: s.id, weight: s.weight })));

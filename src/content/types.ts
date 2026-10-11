@@ -31,6 +31,8 @@ export interface PlantSpecies {
   taps?: Localized<string[]>;
   /** 2 dáng mở khoá, theo thứ tự unlockAt (10, 20) */
   styles?: PlantStyle[];
+  /** loài mở khoá bằng ngày đạt (mỗi 90 ngày một lượt, người dùng tự chọn); không có = có sẵn */
+  locked?: true;
 }
 
 /** Giai đoạn mà dáng mới vẽ lại; seed/sprout dùng chung bản Gốc. */
