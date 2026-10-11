@@ -48,16 +48,21 @@ export interface PlantUnlockState {
 
 const lockedIds = (catalog: Catalog) => catalog.plants.filter((p) => p.locked).map((p) => p.id);
 
-/** Danh sách đã mở (setting), bỏ id lạ / loài không khoá, theo thứ tự nội dung. */
-async function savedUnlocked(deps: DayDeps): Promise<string[]> {
-  const saved = new Set((await getSetting(deps.db, 'unlockedPlants')) ?? []);
-  return lockedIds(deps.catalog).filter((id) => saved.has(id));
-}
+/** Danh sách đã mở (giá trị setting), bỏ id lạ / loài không khoá, theo thứ tự nội dung. */
+const cleanUnlocked = (catalog: Catalog, saved: string[] | undefined) => {
+  const set = new Set(saved ?? []);
+  return lockedIds(catalog).filter((id) => set.has(id));
+};
 
+/*
+ * Dùng được trong useLiveQuery: mọi lệnh đọc Dexie phải BẮT ĐẦU trước khi await một promise không phải của Dexie
+ * (await hàm async tự viết bọc getSetting rồi mới đọc `days` làm liveQuery mất dấu bảng `days`: tick hoàn thành
+ * không cập nhật). Nên đọc setting và đếm ngày đạt song song bằng Promise.all.
+ */
 export async function plantUnlockState(deps: DayDeps): Promise<PlantUnlockState> {
   const all = lockedIds(deps.catalog);
-  const unlocked = await savedUnlocked(deps);
-  const goodDays = await goodDayCount(deps);
+  const [saved, goodDays] = await Promise.all([getSetting(deps.db, 'unlockedPlants'), goodDayCount(deps)]);
+  const unlocked = cleanUnlocked(deps.catalog, saved);
   const earned = earnedSlots(goodDays, all.length);
   // cây đã mở có thể nhiều hơn lượt đang có (bỏ tick làm tụt) → mốc kế tiếp tính từ số lớn hơn
   const used = Math.max(earned, unlocked.length);
@@ -84,6 +89,6 @@ export async function unlockPlant(deps: DayDeps, plantId: string): Promise<void>
 
 /** Loài chọn được (bốc ngày mới, đổi tay): loài không khoá + loài khoá đã mở, theo thứ tự nội dung. */
 export async function availablePlants(deps: DayDeps): Promise<Catalog['plants']> {
-  const unlocked = new Set(await savedUnlocked(deps));
+  const unlocked = new Set(cleanUnlocked(deps.catalog, await getSetting(deps.db, 'unlockedPlants')));
   return deps.catalog.plants.filter((p) => !p.locked || unlocked.has(p.id));
 }

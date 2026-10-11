@@ -206,6 +206,7 @@ export const vi = {
     goalPlaceholder: 'Đặt mục tiêu cho hôm nay…',
     styleUnlocked: (plant: string, style: string) => `Mở khoá dáng mới: ${plant} · ${style}!`,
     styleUnlockedHint: 'Vào Đổi cây & chậu để thử nha',
+    plantUnlockReady: 'Đủ 90 ngày đạt! Mở 1 cây mới trong Đổi cây & chậu 🌱',
     /** khung báo khi côn trùng vừa ghé (làm đủ thói quen): lần đầu gặp loài / con hiếm / rất hiếm */
     bugVisit: {
       new: (name: string, rarity: string | null) => `Gặp bạn mới: ${name}${rarity ? ` (${rarity.toLowerCase()})` : ''}!`,

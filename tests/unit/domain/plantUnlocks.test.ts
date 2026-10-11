@@ -1,3 +1,4 @@
+import { liveQuery } from 'dexie';
 import { availablePlants, earnedSlots, goodDayCount, plantUnlockState, unlockPlant } from '../../../src/domain/plantUnlocks';
 import { getSetting, setSetting } from '../../../src/db/settings';
 import { addDays } from '../../../src/domain/dayKey';
@@ -76,4 +77,35 @@ describe('mở khoá loài cây mới', () => {
     await setSetting(deps.db, 'unlockedPlants', ['daisy']);
     expect((await availablePlants(deps)).map((p) => p.id)).toEqual(['sunflower', 'corn', 'daisy']);
   });
+
+  it('liveQuery: trạng thái và danh sách loài tự cập nhật khi ngày đổi / setting đổi', async () => {
+    const { deps } = makeDeps();
+    await deps.db.days.bulkPut([...blooms(89), makeDay({ date: '2026-10-02', finalStage: 'seed' })]);
+    const days: number[] = [];
+    const ids: string[][] = [];
+    const a = liveQuery(() => plantUnlockState(deps)).subscribe((v) => days.push(v.goodDays));
+    const b = liveQuery(() => availablePlants(deps)).subscribe((v) => ids.push(v.map((p) => p.id)));
+    await new Promise((r) => setTimeout(r, 300));
+    await deps.db.days.update('2026-10-02', { finalStage: 'bloom' });
+    await new Promise((r) => setTimeout(r, 500));
+    expect(days.at(-1)).toBe(90); // chỉ ngày đổi (setting chưa đổi) mà vẫn chạy lại
+    await setSetting(deps.db, 'unlockedPlants', ['daisy']);
+    await new Promise((r) => setTimeout(r, 500));
+    a.unsubscribe();
+    b.unsubscribe();
+    expect(ids.at(-1)).toEqual(['sunflower', 'corn', 'daisy']);
+  });
+
+  it('liveQuery: tick thói quen hôm nay (không đổi ngày) cũng cập nhật số ngày đạt', async () => {
+    const { deps } = makeDeps();
+    await deps.db.habits.add({ id: 'h', name: 'Đọc', icon: '📚', color: 'mint', weekdays: [0, 1, 2, 3, 4, 5, 6], order: 0, startDate: '2026-09-01', createdAt: 0, updatedAt: 0 });
+    const seen: number[] = [];
+    const sub = liveQuery(() => plantUnlockState(deps)).subscribe((v) => seen.push(v.goodDays));
+    await new Promise((r) => setTimeout(r, 300));
+    await deps.db.habitChecks.put({ habitId: 'h', date: '2026-10-02', at: 0 });
+    await new Promise((r) => setTimeout(r, 500));
+    sub.unsubscribe();
+    expect(seen.at(-1)).toBe(1);
+  });
 });
+

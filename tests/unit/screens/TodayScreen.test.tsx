@@ -12,6 +12,7 @@ import { makeDay, makeDeps, renderWithDeps } from '../helpers';
 import { addReminder, setReminderAutoToday } from '../../../src/domain/reminderService';
 import { getSetting, setSetting } from '../../../src/db/settings';
 import { ensureToday } from '../../../src/domain/dayService';
+import { addDays } from '../../../src/domain/dayKey';
 import { addHabit } from '../../../src/domain/habitService';
 import { getBug } from '../../../src/content/bugs';
 
@@ -595,3 +596,54 @@ describe('TodayScreen: lối vào Nhắc việc', () => {
   });
 });
 
+
+describe('TodayScreen: lượt mở cây mới', () => {
+  /** n ngày ra hoa của Ngô, kết thúc hôm qua (hôm nay 2026-10-02) */
+  const good = (n: number) => Array.from({ length: n }, (_, i) => makeDay({ date: addDays('2026-10-01', -i), plantId: 'corn', finalStage: 'bloom' }));
+
+  it('còn lượt mở cây: nút Đổi cây & chậu có chấm; đủ mốc từ lịch sử thì không mừng', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
+    await deps.db.days.bulkPut([...good(90), makeDay({ date: '2026-10-02', plantId: 'corn', potId: 'rattan', greetedAt: 1, speech: '' })]);
+    renderWithDeps(<TodayScreen />, deps);
+    const btn = await screen.findByRole('button', { name: 'Đổi cây & chậu' });
+    await waitFor(() => expect(btn.querySelector('.icon-btn__badge')).not.toBeNull(), { timeout: 3000 });
+    await new Promise((r) => setTimeout(r, 300));
+    expect(screen.queryByTestId('plant-unlock-ready')).toBeNull();
+  });
+
+  it('chưa có lượt: không có chấm', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
+    await deps.db.days.bulkPut([...good(10), makeDay({ date: '2026-10-02', plantId: 'corn', potId: 'rattan', greetedAt: 1, speech: '' })]);
+    renderWithDeps(<TodayScreen />, deps);
+    const btn = await screen.findByRole('button', { name: 'Đổi cây & chậu' });
+    await new Promise((r) => setTimeout(r, 500));
+    expect(btn.querySelector('.icon-btn__badge')).toBeNull();
+  });
+
+  it('tick việc cuối làm đủ 90 ngày đạt → khung mừng mở cây mới', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
+    await deps.db.days.bulkPut([...good(89), makeDay({ date: '2026-10-02', plantId: 'corn', potId: 'rattan', greetedAt: 1, speech: '' })]);
+    // dáng của Ngô đã mở từ trước: chỉ còn khung mừng cây mới
+    await setSetting(deps.db, 'unlockedStyles', ['corn|popcorn', 'corn|rainbow']);
+    const user = userEvent.setup();
+    renderWithDeps(<TodayScreen />, deps);
+    await addTodoInline(user, 'Uống nước');
+    expect(screen.queryByTestId('plant-unlock-ready')).toBeNull();
+    await user.click(await screen.findByRole('checkbox', { name: 'Hoàn thành: Uống nước' }));
+    expect(await screen.findByTestId('plant-unlock-ready', {}, { timeout: 3000 })).toHaveTextContent('Đủ 90 ngày đạt!');
+  });
+
+  it('vừa mở dáng vừa đủ mốc cây mới cùng lúc: khung dáng trước, khung cây mới hiện sau (không bị nuốt)', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
+    // 9 ngày Ngô gần nhất + 80 ngày Xương rồng trước đó: tick hôm nay = Ngô ra hoa lần 10 (mở dáng) VÀ ngày đạt thứ 90
+    const past = good(89).map((d, i) => (i < 9 ? d : { ...d, plantId: 'cactus', potId: 'concrete' }));
+    await deps.db.days.bulkPut([...past, makeDay({ date: '2026-10-02', plantId: 'corn', potId: 'rattan', greetedAt: 1, speech: '' })]);
+    const user = userEvent.setup();
+    renderWithDeps(<TodayScreen />, deps);
+    await addTodoInline(user, 'Uống nước');
+    await user.click(await screen.findByRole('checkbox', { name: 'Hoàn thành: Uống nước' }));
+    expect(await screen.findByTestId('style-unlock', {}, { timeout: 3000 })).toBeInTheDocument();
+    expect(screen.queryByTestId('plant-unlock-ready')).toBeNull();
+    expect(await screen.findByTestId('plant-unlock-ready', {}, { timeout: 8000 })).toBeInTheDocument();
+  }, 15000);
+});
