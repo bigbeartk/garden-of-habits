@@ -582,3 +582,35 @@ describe('sao lưu công tắc hiện thói quen ở Hôm nay', () => {
     expect(await getSetting(dst2, 'showHabitStrip')).toBe(false);
   });
 });
+
+describe('sao lưu loài cây đã mở khoá', () => {
+  async function backupWith(ids: string[]) {
+    const src = makeDb();
+    await setSetting(src, 'unlockedPlants', ids);
+    const r = parseBackup(serializeBackup(await createBackup(src, 1)));
+    if (!r.ok) throw new Error(r.error);
+    return r.backup;
+  }
+
+  it('xuất ra file', async () => {
+    expect((await backupWith(['tomato'])).unlockedPlants).toEqual(['tomato']);
+  });
+
+  it('thay thế: lấy đúng danh sách trong file (file không có thì xoá)', async () => {
+    const dst = makeDb();
+    await setSetting(dst, 'unlockedPlants', ['daisy']);
+    await restoreBackup(dst, await backupWith(['tomato']), 'replace');
+    expect(await getSetting(dst, 'unlockedPlants')).toEqual(['tomato']);
+    await restoreBackup(dst, await createBackup(makeDb(), 1), 'replace');
+    expect(await getSetting(dst, 'unlockedPlants')).toBeUndefined();
+  });
+
+  it('gộp: hợp hai danh sách, không trùng; file không có thì giữ của máy', async () => {
+    const dst = makeDb();
+    await setSetting(dst, 'unlockedPlants', ['daisy', 'tomato']);
+    await restoreBackup(dst, await backupWith(['tomato', 'strawberry']), 'merge');
+    expect(await getSetting(dst, 'unlockedPlants')).toEqual(['daisy', 'tomato', 'strawberry']);
+    await restoreBackup(dst, await createBackup(makeDb(), 1), 'merge');
+    expect(await getSetting(dst, 'unlockedPlants')).toEqual(['daisy', 'tomato', 'strawberry']);
+  });
+});
