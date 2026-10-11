@@ -25,7 +25,7 @@ import { WatermelonSketches } from './watermelon';
 const GROUPS = {
   tools: 'Công cụ xem thử',
   faces: 'Mặt chibi',
-  species: 'Loài mới (chưa vào app)',
+  species: 'Loài khoá (đã vào app, giữ bản phác thảo)',
   pots: 'Chậu',
   styles: 'Dáng mở khoá (đã chốt / lưu trữ bản cũ)',
 } as const;

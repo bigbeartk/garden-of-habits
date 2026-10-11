@@ -87,7 +87,7 @@ src/
   platform/   khác biệt PWA ⇄ Android (Capacitor): chia sẻ file, link ngoài, resume, nút Back
   i18n/       vi.ts (nguồn chuẩn) + en.ts, lang (Lang, detectLang, resolveLang, Localized, tr), fmt (ngày giờ), I18nProvider (useI18n), errors (errorText)
   dev/        ArtGallery.tsx — xem trước mọi cây/chậu/côn trùng (render tạm từ main.tsx khi cần)
-              sketch/ — SỔ PHÁC THẢO (sketch.html, chỉ chạy ở dev, không vào build): kit (Cell/Row/StylesGrid), main (SHEETS + GROUPS, mục lục chia nhóm), playground (Phòng thử), faces (mặt), tomato + blueberry + daisy + strawberry (loài chờ), cherry, rose, sunflower, tulip, watermelon
+              sketch/ — SỔ PHÁC THẢO (sketch.html, chỉ chạy ở dev, không vào build): kit (Cell/Row/StylesGrid), main (SHEETS + GROUPS, mục lục chia nhóm), playground (Phòng thử), faces (mặt), tomato + blueberry + daisy + strawberry (bản phác thảo của 4 loài khoá), pots (Giỏ đan), cherry, rose, sunflower, tulip, watermelon
 ```
 
 - Màn hình không gọi thẳng `db` hay `Math.random`/`new Date()`. Chúng lấy `DayDeps = { db, catalog, rng, now }` qua `useDeps()`.
@@ -133,6 +133,16 @@ src/
   - `DayRecord.styleId` (không có = Gốc); `PlantScene` nhận `styleId`, vẽ qua `getStageArt` (`content/plants/styles.ts`; `seed`/`sprout` và dáng lạ → Gốc). Lịch/chi tiết ngày/Hôm nay vẽ đúng dáng của ngày; Khu vườn luôn vẽ Gốc.
   - Giao diện: ô loài có nút `Dáng cây: <loài> (n/3)` mở **màn dáng** (`Dáng của <loài>`, `Quay lại chọn cây`, Back Android về lưới) với tiến độ `Tiến độ mở dáng` và ô `style-<id>`. **Dáng khoá không render hình cây nào của dáng đó** (chỉ `LockedStyleArt`, `Dáng bí ẩn`). Chọn loài ở lưới = Gốc; chọn cặp đặc biệt giữ dáng hôm nay nếu cùng loài. Loài chưa có `styles` thì ẩn nút dáng.
   - Mừng (`style-unlock`, ~5 giây) **chỉ khi khoá vừa được ghi vào `unlockedStyles`** lúc màn đang mở; mở nhờ lịch sử cũ (kể cả lúc sang ngày mới) thì không mừng.
+
+### Cây mới mở khoá (4 loài khoá)
+Spec `docs/superpowers/specs/2026-10-11-locked-plants-design.md`; `domain/plantUnlocks.ts`, `components/NewPlants.tsx`.
+- `tomato`, `blueberry`, `daisy`, `strawberry` có `locked: true` (nội dung → `CATALOG.plants[i].locked`). Ban đầu khoá: **không bốc cho ngày mới** (kể cả lượt cây đặc biệt), `changePlant` từ chối (`AppError('plantLocked')`), Khu vườn không có luống, lưới chính của bảng Đổi cây không có.
+- **Ngày đạt** (`goodDayCount`): không phải ngày nghỉ, và cây ra hoa (`finalStage === 'bloom'`) **hoặc** "Ngày trọn vẹn" thói quen (`perfectHabitDays`); đạt cả hai tính 1; tính cả lịch sử và hôm nay; ngày không có bản ghi `days` mà làm đủ thói quen vẫn tính.
+- Cứ **90 ngày đạt** (`PLANT_UNLOCK_EVERY`) được một lượt, tối đa 4 (`earnedSlots`); người dùng **tự chọn** loài để mở (`unlockPlant`). Đã mở lưu ở setting `unlockedPlants` và **giữ mãi** (bỏ tick làm tụt số ngày thì cây đã mở vẫn mở; `freeSlots` không âm, `nextAt` tính từ max(lượt, số đã mở)).
+- `ensureToday` đọc `availablePlants` **trước** transaction; chưa mở loài khoá nào thì danh sách = 9 loài cũ nên **chuỗi random cũ không đổi**.
+- **Bài học liveQuery:** trong hàm dùng cho `useLiveQuery`, đừng `await` một hàm async tự viết (bọc `getSetting`) rồi mới đọc bảng khác: liveQuery mất dấu bảng đọc sau (tick không cập nhật). `plantUnlockState` đọc setting và đếm ngày song song (`Promise.all`); test `liveQuery: ...` trong `plantUnlocks.test.ts` giữ điều này.
+- Giao diện: tab Cây có mục `picker-new-plants` **Cây mới** (ô `new-plant-<id>`, `data-locked`; loài khoá vẽ mờ + ổ khoá SVG; thanh `plant-unlock-progress` `x/90 ngày đạt`; có lượt thì chạm ô khoá → `Mở khoá: <loài>` / `Thôi` → mừng `plant-unlocked`; chưa có lượt thì nhắc `Còn n ngày đạt nữa để mở`; loài đã mở như ô thường, có nút dáng). Hôm nay: nút Đổi cây có chấm khi `freeSlots > 0`; khung `plant-unlock-ready` (~5 giây) khi số lượt đã kiếm **tăng lúc màn đang mở** (đủ mốc nhờ lịch sử thì chỉ có chấm); trùng lúc mừng dáng mới thì **xếp hàng sau** khung dáng.
+- E2E `tests/e2e/unlock.spec.ts` (vi + en, ghi thẳng IndexedDB); `layout.spec.ts` kiểm mục Cây mới.
 
 ### Lịch, ngày tương lai, Khu vườn
 - **Lịch:** mỗi ô ngày mang một trạng thái (`dayCellStatus`):
@@ -218,7 +228,9 @@ interface PlantSpecies {
   sayings?: Localized<string[]>;                     // lời của ngày riêng của loài (≤ 100 ký tự)
   praises?: Localized<string[]>;                     // câu khen riêng khi xong việc
   taps?: Localized<string[]>;                        // câu riêng khi bị chạm vào
-  faceStyle?: 'cute' | 'cool' | 'lady';              // 'cool': kính râm + nhếch mép, không má hồng; 'lady': mi cong + môi son (ngủ/buồn vẫn mặt thường)
+  faceStyle?: FaceStyle;                             // 'cute' (mặc định) | 'cool': kính râm + nhếch mép, không má hồng; 'lady': mi cong + môi son (ngủ/buồn vẫn mặt thường)
+                                                     // | 'doll' (cà chua) | 'sparkle' (việt quất) | 'happy' (cúc hoạ mi) | 'cheeky' (dâu tây): chốt từ sổ phác thảo `faces`
+  locked?: true;                                     // loài mở khoá bằng ngày đạt (xem *Cây mới mở khoá*)
   styles?: PlantStyle[];                             // 2 dáng mở khoá (unlockAt 10, 20)
 }
 interface PlantStyle {                               // chỉ vẽ lại bud/bloom; seed/sprout dùng Gốc
@@ -249,6 +261,12 @@ Các loài hiện có (id cũ được giữ để không mất dữ liệu cũ,
 | `rose` | Hoa hồng (**quý cô**, `faceStyle: 'lady'`) | `rose-porcelain` | một bông hồng nhiều lớp đội vương miện, cành thắt nơ |
 | `watermelon` | Dưa hấu | `tin-bucket` | dây bò lá tim xoè ngang + quả dưa giữa |
 | `hydrangea` | Tulip (id cũ của Cẩm tú cầu) | `blue-ceramic` | một bông tulip đỏ mũm mĩm hình chén, cánh bo tròn, hai lá to ở gốc |
+| `tomato` 🔒 | Cà chua (mặt `doll`) | `pink-cup` | thân móc câu qua đỉnh quả to mang mặt, lá kép răng cưa, quả nhỏ mặt mini |
+| `blueberry` 🔒 | Việt quất (mặt `sparkle`) | `cat` | thân chẻ đôi thấp, hai quả tròn có vương miện sao |
+| `daisy` 🔒 | Cúc hoạ mi (mặt `happy`) | `glass-bowl` | bó ba bông cúc trắng trên thân mảnh xoè |
+| `strawberry` 🔒 | Dâu tây (mặt `cheeky`) | `basket` | một quả dâu khổng lồ làm thân ngồi trên khóm lá ba chét |
+
+🔒 = loài khoá (xem *Cây mới mở khoá*).
 
 **Phác thảo trước, đưa vào nội dung sau:** vẽ hình mới (loài, dáng, chậu…) thì phác thảo trong `src/dev/sketch/` (thêm trang vào `SHEETS` ở `main.tsx`, xem ở `http://localhost:5173/sketch.html?s=<trang>` hoặc chụp bằng `npm run sketch:shot`), cho chủ repo chọn rồi mới chép vào `src/content`. **Giữ lại** file phác thảo sau khi chốt (ghi bản nào đã chọn); trang `styles` vẽ mọi loài + dáng thật bằng `PlantScene`. Trang `playground` (Phòng thử) chọn cây / dáng / giai đoạn / chậu / kiểu mặt / mắt / miệng / nét mặt, lựa chọn nằm trên URL nên chụp lại được; nhãn ✅ = đang dùng trong app, ✏️ = phác thảo. Trang `faces`: 3 kiểu mặt đang dùng (vẽ bằng `Face` thật) + phác thảo: bộ mặt F0–F5 (`FACE_PRESETS`, cặp mắt + miệng có tính cách, chọn được ở ô Kiểu mặt của Phòng thử), mắt E1–E4, miệng M1–M3; hình phác thảo gắn mặt riêng qua `Look.drawFace` (việt quất: F0 = E4 + M0). Trang `tomato` (Cà chua, T1 bám ảnh mẫu nhất), `blueberry` (Việt quất, B1–B3), `daisy` (Cúc hoạ mi, D1–D3, mặt E5 + M3; D1 theo mẫu trùng dáng Hướng dương) và `strawberry` (Dâu tây, S1–S3, mặt F3). Bốn loài chờ chỉ còn 3 chậu trống, loài thứ tư cần chậu mới: loài chờ đưa vào app, cũng chọn được trong Phòng thử. Mỗi trang có nút `← Mục lục` (`sketch:shot` ẩn khi chụp).
 
@@ -265,6 +283,12 @@ Các loài hiện có (id cũ được giữ để không mất dữ liệu cũ,
 | `rose` | `arch` (id cũ) Cành ba bông: cành chẻ hai nhánh, ba bông nhìn từ trên (`TopRose`); **không phụ kiện** | `dome` (id cũ) Hồng bắp cải: một bông cầu hai vòng cánh (`CabbageHead`); **không phụ kiện** |
 | `watermelon` | `square` Vuông: quả dưa khối vuông bo góc | `trellis` Giàn leo: giàn thang, dây zigzag, dưa trong túi lưới |
 | `hydrangea` | `parrot` (id cũ) Hồng: **cùng dáng Gốc, màu hồng** (`TulipBud`/`TulipBloom` nhận bảng màu `p`) | `bouquet` (id cũ) Vàng: **cùng dáng Gốc, màu vàng**; bản Bó hoa cũ ở `src/dev/sketch/tulip.tsx` |
+| `tomato` | `arch` Cành cong: cành vòng dấu hỏi, quả treo dưới vòm | `staked` Cọc tre: thân buộc cọc, quả to trên đỉnh (**ngoại lệ do chủ repo chọn**: gần cột xương rồng) |
+| `blueberry` | `branchy` Cây nhánh: thân nâu chữ V, quả treo dọc nhánh | `cluster` Chùm quả (**ngoại lệ do chủ repo chọn**: gần khối cầu cây cam) |
+| `daisy` | `candelabra` Đèn nến: nhánh uốn như chân nến | `single` Một bông theo ảnh mẫu (**ngoại lệ do chủ repo chọn**: trùng dáng Gốc Hướng dương) |
+| `strawberry` | `patch` Bụi thấp: khóm lá xoè, quả rủ qua miệng chậu | `twig` Cành treo quả |
+
+Dáng của 4 loài khoá là các bản phác thảo không được chọn làm Gốc (`src/dev/sketch/{tomato,blueberry,daisy,strawberry}.tsx`, đầu file ghi bản nào vào đâu).
 
 Hình dùng chung cho mọi loài: `common/SleepingSeed.tsx` (ngày nghỉ) và `common/WiltedPlant.tsx` (ngày bỏ lỡ).
 
@@ -274,7 +298,7 @@ interface PotStyle { id: string; name: Localized<string>; art: Art }
 ```
 **Thêm chậu mới:** vẽ component trong `src/content/pots/pots.tsx` (nên dùng `BasicPot({ body, rim, soil?, children })` cho chậu hình thang, `children` là hoạ tiết trên thân), hoặc dùng `{ image }`. Sau đó thêm một dòng vào `POTS` trong `pots/registry.ts`. Chậu mới nên khác dáng hẳn các chậu đã có. Chậu dùng `clipPath` thì lấy id riêng qua `useId` (như `glass-bowl`).
 
-Chậu hiện có (12): `terracotta` (Đất nung, mặc định chung), `polka`, `mint`, `rattan`, `wood`, `pink-cup`, `rose-porcelain`, `tin-bucket`, `blue-ceramic`, `concrete`, `glass-bowl` (Bể kính), `cat` (Chậu mèo).
+Chậu hiện có (13): `terracotta` (Đất nung, mặc định chung), `polka`, `mint`, `rattan`, `wood`, `pink-cup`, `rose-porcelain`, `tin-bucket`, `blue-ceramic`, `concrete`, `glass-bowl` (Bể kính), `cat` (Chậu mèo), `basket` (Giỏ đan có quai, của Dâu tây; phác thảo `src/dev/sketch/pots.tsx`). Mọi chậu đều đã là chậu mặc định của một loài: loài mới cần chậu mới.
 
 ### Hiệu ứng đặc biệt: `SpecialVariant`
 ```ts
@@ -375,6 +399,7 @@ gardenOnlyPlanted: boolean                           // Khu vườn chỉ hiện
 gardenSeparateSpecial: boolean                       // Khu vườn tách ngày cây đặc biệt thành luống riêng; không có = TẮT
 unlockedSpecials: string[]                           // cây đặc biệt đã tung trúng, 'plantId|specialId'; có trong sao lưu (gộp = hợp hai danh sách)
 unlockedStyles: string[]                             // dáng cây đã mở (đủ ngày ra hoa), 'plantId|styleId'; có trong sao lưu (gộp = hợp)
+unlockedPlants: string[]                             // loài khoá đã chọn mở (mỗi 90 ngày đạt một lượt); có trong sao lưu (thay thế: theo file, gộp = hợp)
 styleBloomCredit: string                             // ngày đã góp vào mở dáng (mỗi ngày một lần); không có trong sao lưu
 // mọi công tắc bật/tắt liệt kê ở BOOLEAN_SETTINGS (db/settings.ts): backup tự sao lưu/khôi phục theo danh sách này
 ```
@@ -403,6 +428,7 @@ Tên file: `chau-cay-backup-YYYY-MM-DD.json`. Khi lưu, app mở menu Chia sẻ 
   "calendarBg": { "mime": "image/jpeg", "base64": "..." } | null,
   "unlockedSpecials": ["corn|glow", ...],         // tuỳ chọn; file cũ không có
   "unlockedStyles": ["sunflower|mini", ...],      // tuỳ chọn; file cũ không có (ngày có thể có "styleId", "bugId")
+  "unlockedPlants": ["tomato", ...],             // tuỳ chọn; file cũ không có
   "language": "vi",                               // tuỳ chọn; file cũ không có
   "menuIcon": "auto"                              // tuỳ chọn; file cũ không có
 }
