@@ -6,6 +6,7 @@ import { pickUniform, rollSpecial, type Rng } from './random';
 import { PERIODS, type Period } from './period';
 import { listUnlockedSpecials, pairKey, unlockSpecial } from './specialUnlocks';
 import { listUnlockedStyles, styleKey, unlockStylesFor } from './styleUnlocks';
+import { availablePlants } from './plantUnlocks';
 import { BASE_STYLE_ID, type Catalog, type DayRecord, type Reminder, type TemplateItem, type Todo } from './types';
 import { AppError, LockedDayError } from './errors';
 
@@ -29,6 +30,8 @@ export async function ensureToday(deps: DayDeps): Promise<DayRecord> {
   // đọc trước khi mở transaction: hàm async lồng nhau bên trong transaction làm Dexie mất ngữ cảnh
   // khi App và useToday cùng gọi ensureToday (PrematureCommitError)
   const unlockedStyles = await listUnlockedStyles(deps);
+  // loài chọn được: đọc TRƯỚC transaction như trên; chưa mở loài khoá nào thì = catalog cũ (giữ chuỗi random)
+  const plants = await availablePlants(deps);
   return db.transaction('rw', [db.days, db.templates, db.planned, db.plannedGoals, db.settings, db.reminders], async () => {
     const existing = await db.days.get(date);
     if (existing) return existing;
@@ -46,7 +49,7 @@ export async function ensureToday(deps: DayDeps): Promise<DayRecord> {
     const reminders = (await db.reminders.toArray())
       .filter((r) => r.autoToday && r.doneAt === null)
       .sort((a, b) => a.createdAt - b.createdAt);
-    const plant = pickUniform(deps.catalog.plants, deps.rng);
+    const plant = pickUniform(plants, deps.rng);
     const ts = deps.now().getTime();
     const record: DayRecord = {
       date,
@@ -213,6 +216,7 @@ export async function changePlant(
 ): Promise<DayRecord> {
   const next = deps.catalog.plants.find((p) => p.id === plantId);
   if (!next) throw new AppError('unknownPlant', { id: plantId });
+  if (next.locked && !(await availablePlants(deps)).some((p) => p.id === plantId)) throw new AppError('plantLocked', { id: plantId });
   if (specialId) {
     const key = pairKey({ plantId, specialId });
     const unlocked = await listUnlockedSpecials(deps);

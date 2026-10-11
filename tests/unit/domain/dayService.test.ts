@@ -2,7 +2,10 @@ import {
   LockedDayError, addTodo, addTodos, changePlant, changePot, deleteTodo, editTodo,
   ensureToday, markGreeted, moveTodo, setDaySpeech, setNote, setRestDay, setTitle, toggleTodo,
 } from '../../../src/domain/dayService';
-import { makeDay, makeDeps } from '../helpers';
+import { makeDay, makeDeps, TEST_CATALOG } from '../helpers';
+import { availablePlants } from '../../../src/domain/plantUnlocks';
+import { setSetting } from '../../../src/db/settings';
+import { mulberry32 } from '../../../src/domain/random';
 
 const m = (text: string) => ({ text, period: 'morning' as const });
 const TEMPLATE = (isDefault: boolean, items: { text: string; period: 'morning' | 'afternoon' | 'evening' }[]) => ({
@@ -274,5 +277,55 @@ describe('lời cây nói của ngày', () => {
     const { deps } = makeDeps();
     await deps.db.days.put(makeDay({ date: '2026-10-01' }));
     await expect(setDaySpeech(deps, '2026-10-01', 'x')).rejects.toBeInstanceOf(LockedDayError);
+  });
+});
+
+describe('loài khoá', () => {
+  it('ensureToday không bao giờ bốc loài khoá chưa mở', async () => {
+    for (let seed = 1; seed <= 40; seed++) {
+      const { deps } = makeDeps();
+      deps.rng = mulberry32(seed);
+      const d = await ensureToday(deps);
+      expect(['sunflower', 'corn']).toContain(d.plantId);
+    }
+  });
+
+  it('ensureToday bốc được loài khoá đã mở', async () => {
+    const seen = new Set<string>();
+    for (let seed = 1; seed <= 40; seed++) {
+      const { deps } = makeDeps();
+      deps.rng = mulberry32(seed);
+      await setSetting(deps.db, 'unlockedPlants', ['daisy']);
+      seen.add((await ensureToday(deps)).plantId);
+    }
+    expect(seen.has('daisy')).toBe(true);
+    expect(seen.has('tomato')).toBe(false);
+  });
+
+  it('chưa mở gì: cùng seed cho cùng ngày như catalog không có loài khoá (chuỗi random cũ)', async () => {
+    const plain = { ...TEST_CATALOG, plants: TEST_CATALOG.plants.filter((p) => !p.locked) };
+    for (let seed = 1; seed <= 10; seed++) {
+      const a = makeDeps();
+      a.deps.rng = mulberry32(seed);
+      const b = makeDeps(undefined, plain);
+      b.deps.rng = mulberry32(seed);
+      const [da, db2] = [await ensureToday(a.deps), await ensureToday(b.deps)];
+      expect([da.plantId, da.specialId, da.styleId]).toEqual([db2.plantId, db2.specialId, db2.styleId]);
+    }
+  });
+
+  it('changePlant từ chối loài khoá chưa mở, nhận khi đã mở', async () => {
+    const { deps } = makeDeps();
+    const day = await ensureToday(deps);
+    await expect(changePlant(deps, day.date, 'tomato')).rejects.toMatchObject({ code: 'plantLocked' });
+    await setSetting(deps.db, 'unlockedPlants', ['tomato']);
+    expect((await changePlant(deps, day.date, 'tomato')).plantId).toBe('tomato');
+  });
+
+  it('ngày đã lưu loài khoá vẫn đọc được (khôi phục từ máy đã mở)', async () => {
+    const { deps } = makeDeps();
+    await deps.db.days.put(makeDay({ date: '2026-09-01', plantId: 'tomato', potId: 'pink-cup', finalStage: 'bloom' }));
+    expect((await deps.db.days.get('2026-09-01'))!.plantId).toBe('tomato');
+    expect((await availablePlants(deps)).map((p) => p.id)).not.toContain('tomato');
   });
 });
