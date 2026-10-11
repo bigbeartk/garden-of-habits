@@ -1,19 +1,19 @@
-# Spec: 4 loài cây mới, mở khoá bằng ngày ra hoa
+# Spec: 4 loài cây mới, mở khoá bằng ngày đạt
 
 ## Context
-Sổ phác thảo đã có 4 loài mới (Cà chua, Việt quất, Cúc hoạ mi, Dâu tây), mỗi loài 3 bản vẽ. Đưa cả 4 vào app như phần thưởng sưu tầm: ban đầu **bị khoá**, cứ đủ **30 ngày ra hoa** (cộng dồn, mọi loài) thì người dùng được **tự chọn mở 1 cây**. Mỗi loài có Gốc + 2 dáng mở khoá như 9 loài cũ.
+Sổ phác thảo đã có 4 loài mới (Cà chua, Việt quất, Cúc hoạ mi, Dâu tây), mỗi loài 3 bản vẽ. Đưa cả 4 vào app như phần thưởng sưu tầm: ban đầu **bị khoá**, cứ đủ **90 ngày đạt** (cộng dồn, không cần liên tiếp; dùng đều thì khoảng 3 tháng một cây) thì người dùng được **tự chọn mở 1 cây**. Mỗi loài có Gốc + 2 dáng mở khoá như 9 loài cũ.
 
 ## Các quyết định đã chốt
 | Chủ đề | Quyết định |
 |---|---|
-| Ngày được tính | `finalStage === 'bloom'` và không phải ngày nghỉ, của **mọi loài**, mọi dáng, kể cả ngày cây đặc biệt |
+| Ngày đạt | Không phải ngày nghỉ, và **một trong hai**: cây ra hoa (`finalStage === 'bloom'`, mọi loài / dáng / cây đặc biệt) **hoặc** "Ngày trọn vẹn" thói quen (`perfectHabitDays`: ≥ 1 thói quen có lịch và mọi thói quen có lịch đều tick). Ngày đạt cả hai vẫn chỉ tính 1 |
 | Lịch sử cũ | **Có tính**: người dùng lâu năm có thể có sẵn vài lượt ngay khi cập nhật |
-| Hôm nay | Tính nếu hôm nay đang ra hoa (bỏ tick thì lượt chưa dùng tụt theo; cây đã mở thì không) |
-| Mốc | Lượt mở thứ k cần `30 × k` ngày ra hoa; tối đa 4 lượt (= số loài khoá) |
+| Hôm nay | Tính nếu hôm nay đang đạt (bỏ tick thì lượt chưa dùng tụt theo; cây đã mở thì không) |
+| Mốc | Lượt mở thứ k cần `90 × k` ngày đạt; tối đa 4 lượt (= số loài khoá) |
 | Chọn cây | **Người dùng tự chọn** cây muốn mở trong bảng Đổi cây |
 | Mở rồi thì giữ | Có, lưu ở setting `unlockedPlants` |
 | Cây khoá | Không bốc cho ngày mới (kể cả lượt cây đặc biệt), không chọn được, ẩn khỏi Khu vườn |
-| Báo | Khung mừng ~5 giây **chỉ khi hôm nay vừa chuyển sang ra hoa và đúng lúc đó đủ thêm một mốc**; đủ mốc nhờ lịch sử thì chỉ hiện chấm đỏ |
+| Báo | Khung mừng ~5 giây **chỉ khi hôm nay vừa thành ngày đạt (tick việc hoặc thói quen ở màn Hôm nay) và đúng lúc đó đủ thêm một mốc**; đủ mốc nhờ lịch sử thì chỉ hiện chấm đỏ |
 | Dáng mở khoá | Bản phác thảo không được chọn làm dáng 2 (10 ngày) và dáng 3 (20 ngày), luật mở dáng như loài cũ |
 
 ## Nội dung 4 loài
@@ -39,19 +39,19 @@ Sổ phác thảo đã có 4 loài mới (Cà chua, Việt quất, Cúc hoạ mi
 
 ## Domain: `src/domain/plantUnlocks.ts`
 ```ts
-export const PLANT_UNLOCK_EVERY = 30;
-/** Số ngày ra hoa (không nghỉ), mọi loài, mọi ngày có bản ghi tính cả hôm nay. */
-export async function bloomDayCount(db): Promise<number>;
-/** Lượt đã kiếm = min(số loài khoá, floor(bloomDays / 30)). */
-export function earnedSlots(bloomDays: number, lockedTotal: number): number;
+export const PLANT_UNLOCK_EVERY = 90;
+/** Số ngày đạt tới hết hôm nay: ngày không nghỉ có bản ghi ra hoa HOẶC thuộc perfectHabitDays(từ ngày sớm nhất tới hôm nay). */
+export async function goodDayCount(deps: DayDeps): Promise<number>;
+/** Lượt đã kiếm = min(số loài khoá, floor(goodDays / 90)). */
+export function earnedSlots(goodDays: number, lockedTotal: number): number;
 export interface PlantUnlockState {
   locked: string[];          // id loài khoá chưa mở, theo thứ tự nội dung
   unlocked: string[];        // id loài khoá đã mở
   freeSlots: number;         // max(0, earned - unlocked.length)
-  bloomDays: number;
-  nextAt: number | null;     // mốc tiếp theo (30, 60…); null khi đã mở hết
+  goodDays: number;
+  nextAt: number | null;     // mốc tiếp theo (90, 180…); null khi đã mở hết
 }
-export async function plantUnlockState(deps: { db; catalog }): Promise<PlantUnlockState>;
+export async function plantUnlockState(deps: DayDeps): Promise<PlantUnlockState>;
 /** Mở một loài: phải là loài khoá, chưa mở, và còn lượt; không thì AppError('plantUnlockUnavailable'). */
 export async function unlockPlant(deps, plantId: string): Promise<void>;
 /** Loài chọn được (cho ensureToday / changePlant): loài không khoá + loài khoá đã mở. */
@@ -60,14 +60,15 @@ export async function availablePlants(deps): Promise<CatalogPlant[]>;
 - `unlockedPlants` lọc bỏ id không còn trong nội dung hoặc không khoá.
 - **Bài học Dexie:** `ensureToday` đọc `availablePlants` **trước** transaction (như `listUnlockedStyles`), rồi `pickUniform` trong danh sách đó. Khi chưa có loài khoá nào được mở, danh sách = 9 loài cũ nên **chuỗi random không đổi** với người dùng hiện tại.
 - `changePlant` từ chối loài khoá chưa mở: `AppError('plantLocked', { id })` (thêm vào `errors.ts` + `errorText` vi/en).
-- Báo mừng: `TodayScreen` giữ `earnedSlots` lần đọc trước; khi hôm nay vừa chuyển sang `bloom` lúc màn đang mở và `earnedSlots` tăng thì hiện khung `plant-unlock-ready` (~5 giây, cùng chỗ khung mừng dáng). Lần đọc đầu tiên khi mở màn không báo.
+- Ngày nghỉ bị loại khỏi cả hai vế (perfectHabitDays vốn đã bỏ ngày nghỉ). Ngày không có bản ghi `days` nhưng làm đủ thói quen vẫn tính.
+- Báo mừng: `TodayScreen` giữ `earnedSlots` lần đọc trước; khi hôm nay vừa thành ngày đạt (tick việc hoặc chip thói quen) lúc màn đang mở và `earnedSlots` tăng thì hiện khung `plant-unlock-ready` (~5 giây, cùng chỗ khung mừng dáng). Lần đọc đầu tiên khi mở màn không báo.
 
 ## Giao diện
 - **Bảng Đổi cây & chậu, tab Cây** (`PlantPicker`): mục mới `picker-new-plants` **Cây mới** dưới lưới loài.
   - 4 ô `new-plant-<id>`; loài khoá vẽ dạng ra hoa **mờ + ổ khoá** (`data-locked`), loài đã mở như ô loài thường (chọn được, có nút dáng).
-  - Thanh `plant-unlock-progress`: `x/30 ngày ra hoa` tới mốc tiếp theo; đã mở hết thì ẩn.
+  - Thanh `plant-unlock-progress`: `x/90 ngày đạt` tới mốc tiếp theo; đã mở hết thì ẩn. Dòng giải thích ngắn: `Ngày đạt = xong hết việc hoặc xong hết thói quen`.
   - Có lượt (`freeSlots > 0`): dòng `Bạn được mở {n} cây mới, chạm để chọn`; chạm ô khoá → hai nút `Mở khoá: <loài>` / `Thôi` (kiểu `DeleteWithConfirm`). Mở xong: khung mừng `plant-unlocked` ~5 giây, ô thành chọn được (không tự đổi cây hôm nay).
-  - Không có lượt: chạm ô khoá chỉ hiện dòng nhắc `Ra hoa thêm {n} ngày để mở` dưới ô (không đổi gì).
+  - Không có lượt: chạm ô khoá chỉ hiện dòng nhắc `Còn {n} ngày đạt nữa để mở` dưới ô (không đổi gì).
   - Ngày nghỉ: tab Cây vẫn khoá như cũ (không mở được cây trong ngày nghỉ).
 - **Chấm đỏ** trên nút `Đổi cây & chậu` (màn Hôm nay) khi `freeSlots > 0`.
 - **Khu vườn**: bỏ luống của loài khoá chưa mở (`gardenReport` nhận danh sách id hiển thị).
@@ -75,12 +76,12 @@ export async function availablePlants(deps): Promise<CatalogPlant[]>;
 
 ## Kiểm thử
 - Unit (viết test đỏ trước):
-  - `plantUnlocks`: đếm bỏ ngày nghỉ / ngày chưa ra hoa; 29 → 0 lượt, 30 → 1, 125 → 4; lượt trừ cây đã mở; `unlockPlant` từ chối khi hết lượt, loài thường, loài đã mở; id lạ bị lọc.
+  - `plantUnlocks`: ngày ra hoa tính, ngày trọn vẹn thói quen tính, ngày đạt cả hai chỉ tính 1, ngày nghỉ / ngày chưa ra hoa và chưa đủ thói quen không tính; 89 → 0 lượt, 90 → 1, 400 → 4; lượt trừ cây đã mở; `unlockPlant` từ chối khi hết lượt, loài thường, loài đã mở; id lạ bị lọc.
   - `ensureToday`: không bao giờ bốc loài khoá; bốc được loài đã mở; chuỗi random cũ không đổi khi chưa mở gì.
   - `changePlant`: từ chối loài khoá.
   - Sao lưu: xuất / khôi phục / gộp `unlockedPlants`; file cũ không có.
   - Nội dung: `plants.test` (danh sách 13 loài, chậu mặc định riêng, đủ dáng), `sayings` / `praises` / `taps` cho 4 loài ở cả hai ngôn ngữ; `Face` đủ 5 mood cho 4 kiểu mới.
-- E2E (WebKit, iPhone 13): nạp sao lưu có 30 ngày ra hoa → chấm đỏ → mở Cà chua → chọn Cà chua cho hôm nay; tiếng Anh ở `i18n.spec.ts`. Thêm mục Cây mới vào `layout.spec.ts`.
+- E2E (WebKit, iPhone 13): nạp sao lưu có 90 ngày đạt (trộn ngày ra hoa và ngày trọn vẹn thói quen) → chấm đỏ → mở Cà chua → chọn Cà chua cho hôm nay; tiếng Anh ở `i18n.spec.ts`. Thêm mục Cây mới vào `layout.spec.ts`.
 - Soát hình: ảnh WebKit Khu vườn (đủ 13 loài khi đã mở hết) và lưới Lịch; trang `styles` của sổ phác thảo.
 
 ## Ngoài phạm vi
