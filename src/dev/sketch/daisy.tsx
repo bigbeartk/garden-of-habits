@@ -8,7 +8,7 @@ import { Cell, Row, type Look } from './kit';
  * nhuỵ vàng mang mặt; bó cúc nhiều bông).
  * LƯU Ý DÁNG: ảnh mẫu chính (một bông to trên thân cao) TRÙNG dáng Hướng dương ("thân cao, một bông tròn
  * ở đỉnh"), trái quy tắc mỗi loài khác silhouette. D1 vẽ theo mẫu để so; D2 (bó ba bông) và D3 (cây đèn nến)
- * là dáng chưa loài nào dùng. Chưa chọn bản nào, chưa đưa vào app.
+ * là dáng chưa loài nào dùng. ĐÃ VÀO APP (src/content/plants/daisy.tsx): Gốc = D2, `candelabra` = D3, `single` = D1; chậu glass-bowl; mặt happy.
  * Mặt: chủ repo chọn mắt E5 (hí hửng ^ ^) + miệng M3 (nhỏ) từ trang `faces`; đưa vào app thì cần thêm kiểu mặt này vào Face.tsx.
  */
 
