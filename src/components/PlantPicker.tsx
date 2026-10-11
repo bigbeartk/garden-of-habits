@@ -1,6 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { BackButton } from './BackButton';
 import { LockedStyleArt } from './LockedStyleArt';
+import { NewPlants } from './NewPlants';
 import { PlantScene } from './PlantScene';
 import { StylesIcon } from './icons';
 import { useDeps } from '../app/deps';
@@ -34,6 +35,19 @@ export function PlantPicker({ currentId, currentSpecialId, currentStyleId: rawSt
   // dáng không thuộc loài hôm nay (file sao lưu, nội dung đã đổi) coi như Gốc
   const currentStyleId = getStyle(getSpecies(currentId), rawStyleId)?.id ?? BASE_STYLE_ID;
   const unlocked = useLiveQuery(() => listUnlockedSpecials(deps), [deps]) ?? [];
+  /** nút lá mở màn dáng của loài (n/3 dáng đã mở); loài chưa có dáng thì không có nút */
+  const styleButton = (plantId: string) => {
+    const p = getSpecies(plantId);
+    if (!p.styles?.length) return null;
+    const opened = 1 + p.styles.filter((s) => unlockedStyles?.has(styleKey({ plantId: p.id, styleId: s.id }))).length;
+    return (
+      <button type="button" className="picker__style-btn" aria-label={t.picker.styleButton(tr(p.name), opened)} onClick={() => onStyleFor(p.id)}>
+        <StylesIcon size={20} />
+        <span className="picker__style-count" aria-hidden="true">{opened}/3</span>
+        {p.id === currentId && currentStyleId !== BASE_STYLE_ID && <span className="icon-btn__badge" />}
+      </button>
+    );
+  };
 
   return (
     <>
@@ -42,9 +56,8 @@ export function PlantPicker({ currentId, currentSpecialId, currentStyleId: rawSt
       ) : (
         <>
           <div className="picker">
-            {PLANTS.map((p) => {
+            {PLANTS.filter((p) => !p.locked).map((p) => {
               const selected = p.id === currentId && !currentSpecialId;
-              const opened = 1 + (p.styles ?? []).filter((s) => unlockedStyles?.has(styleKey({ plantId: p.id, styleId: s.id }))).length;
               return (
                 <div key={p.id} className="picker__cell">
                   <button
@@ -57,17 +70,12 @@ export function PlantPicker({ currentId, currentSpecialId, currentStyleId: rawSt
                     <PlantScene className="picker__scene" testId="picker-scene" plantId={p.id} potId={p.defaultPotId} stage="bloom" specialId={null} mood="smile" />
                     <span>{tr(p.name)}</span>
                   </button>
-                  {!!p.styles?.length && (
-                    <button type="button" className="picker__style-btn" aria-label={t.picker.styleButton(tr(p.name), opened)} onClick={() => onStyleFor(p.id)}>
-                      <StylesIcon size={20} />
-                      <span className="picker__style-count" aria-hidden="true">{opened}/3</span>
-                      {p.id === currentId && currentStyleId !== BASE_STYLE_ID && <span className="icon-btn__badge" />}
-                    </button>
-                  )}
+                  {styleButton(p.id)}
                 </div>
               );
             })}
           </div>
+          <NewPlants currentId={currentId} currentSpecialId={currentSpecialId} onPick={onPick} styleButton={styleButton} />
           <h3 className="picker__heading">{t.picker.specialsHeading}</h3>
           {unlocked.length === 0 ? (
             <p className="sheet__hint">{t.picker.specialsHint}</p>

@@ -82,3 +82,14 @@
 }
 .seg-tabs__tab.is-active { border-color: var(--cocoa); background: var(--peach); box-shadow: var(--shadow-pop); }
 .seg-tabs__tab:disabled { opacity: 0.4; cursor: default; }
+
+/* Mục "Cây mới": loài khoá mờ + ổ khoá; ô mở rồi giống ô loài thường */
+.new-plants { margin-top: 12px; }
+.new-plants .picker__bar { margin-bottom: 6px; }
+.new-plants__cell { flex-direction: column; align-items: stretch; }
+.new-plants__row { display: flex; gap: 4px; min-width: 0; }
+.new-plants__row > .picker__item { flex: 1; min-width: 0; position: relative; }
+.picker__item.is-locked .picker__scene { opacity: 0.35; filter: grayscale(1); }
+.new-plants__lock { position: absolute; top: 6px; right: 6px; width: 22px; height: 29px; }
+.new-plants__confirm { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.new-plants__done { margin: 4px 0; font-weight: 800; color: var(--berry); }

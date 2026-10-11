@@ -4,7 +4,8 @@ import { vi } from 'vitest';
 import { PlantPotSheet } from '../../../src/components/PlantPotSheet';
 import { CATALOG } from '../../../src/content/catalog';
 import { handleBack } from '../../../src/app/back';
-import { setSetting } from '../../../src/db/settings';
+import { getSetting, setSetting } from '../../../src/db/settings';
+import { addDays } from '../../../src/domain/dayKey';
 import { DepsProvider } from '../../../src/app/deps';
 import { NavContext } from '../../../src/app/nav';
 import { I18nProvider } from '../../../src/i18n/I18nProvider';
@@ -81,8 +82,8 @@ describe('PlantPotSheet: dáng cây', () => {
     await deps.db.days.bulkPut(blooms('sunflower', 12));
     ui();
     expect(await screen.findByRole('button', { name: 'Dáng cây: Hướng dương (2/3)' }, LIVE)).toBeInTheDocument();
-    // loài chưa có dáng (chưa vẽ) thì không có nút: số nút = số loài có styles
-    expect(screen.getAllByRole('button', { name: /^Dáng cây:/ })).toHaveLength(CATALOG.plants.filter((p) => p.styles?.length).length);
+    // loài chưa có dáng (chưa vẽ) và loài khoá chưa mở thì không có nút: số nút = số loài có sẵn có styles
+    expect(screen.getAllByRole('button', { name: /^Dáng cây:/ })).toHaveLength(CATALOG.plants.filter((p) => p.styles?.length && !p.locked).length);
   });
 
   it('vừa mở bảng đã ghi đúng số dáng (không nháy 1/3)', async () => {
@@ -170,5 +171,51 @@ describe('PlantPotSheet: dáng cây', () => {
     const { ui } = setup({ id: 'sunflower', special: null, style: 'mini' });
     ui();
     expect(await screen.findByRole('button', { name: 'Hướng dương' })).toHaveAttribute('aria-pressed', 'true');
+  });
+});
+
+describe('PlantPotSheet: mục Cây mới (loài khoá)', () => {
+  /** n ngày ra hoa kết thúc hôm qua (hôm nay trong setup là 2026-10-02) */
+  const goodDays = (n: number) => Array.from({ length: n }, (_, i) => makeDay({ date: addDays('2026-10-01', -i), finalStage: 'bloom' }));
+
+  it('loài khoá không nằm trong lưới chính; mục Cây mới có 4 ô khoá và tiến độ 0/90', async () => {
+    const { ui } = setup();
+    ui();
+    const grid = await screen.findByTestId('picker-new-plants', {}, LIVE);
+    expect(within(grid).getAllByTestId(/^new-plant-/)).toHaveLength(4);
+    expect(within(grid).getByTestId('new-plant-tomato')).toHaveAttribute('data-locked', 'true');
+    expect(screen.queryByRole('button', { name: 'Cà chua' })).toBeNull();
+    expect(await screen.findByTestId('plant-unlock-progress', {}, LIVE)).toHaveTextContent('0/90 ngày đạt');
+    expect(screen.getByText('Ngày đạt = xong hết việc hoặc xong hết thói quen')).toBeInTheDocument();
+  });
+
+  it('chưa có lượt: chạm ô khoá chỉ nhắc còn bao nhiêu ngày, không có nút Mở khoá', async () => {
+    const { ui, user } = setup();
+    ui();
+    await user.click(await screen.findByRole('button', { name: 'Cà chua (đang khoá)' }, LIVE));
+    expect(await screen.findByText('Còn 90 ngày đạt nữa để mở')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Mở khoá: Cà chua' })).toBeNull();
+  });
+
+  it('có lượt: chạm → Mở khoá → mừng, ô thành chọn được; bấm nhanh hai lần chỉ mở một cây', async () => {
+    const { deps, ui, user, onPick } = setup();
+    await deps.db.days.bulkPut(goodDays(90));
+    ui();
+    expect(await screen.findByText('Bạn được mở 1 cây mới, chạm để chọn', {}, LIVE)).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Cà chua (đang khoá)' }));
+    await user.dblClick(screen.getByRole('button', { name: 'Mở khoá: Cà chua' }));
+    expect(await screen.findByTestId('plant-unlocked', {}, LIVE)).toHaveTextContent('Đã mở khoá Cà chua!');
+    expect(await getSetting(deps.db, 'unlockedPlants')).toEqual(['tomato']);
+    await user.click(await screen.findByRole('button', { name: 'Cà chua' }, LIVE));
+    expect(onPick).toHaveBeenCalledWith('tomato', null, 'base');
+  });
+
+  it('loài đã mở có nút dáng như loài thường', async () => {
+    const { deps, ui } = setup();
+    await setSetting(deps.db, 'unlockedPlants', ['daisy']);
+    ui();
+    const cell = await screen.findByTestId('new-plant-daisy', {}, LIVE);
+    await waitFor(() => expect(cell).toHaveAttribute('data-locked', 'false'), LIVE);
+    expect(within(cell).getByRole('button', { name: 'Dáng cây: Cúc hoạ mi (1/3)' })).toBeInTheDocument();
   });
 });
