@@ -7,7 +7,7 @@ import { Cell, Row, type Look } from './kit';
  * cặp quả đôi trên thân chẻ, cây nhánh treo quả). Dấu hiệu riêng: quả tròn có "vương miện" sao 5 cánh,
  * hoa chuông trắng khi ra chồi, quả non xanh / hồng chuyển dần sang tím.
  * Dáng khác các loài đã có: chùm nho quả lổn nhổn (không phải khối cầu lá trơn của cam), thân chẻ đôi thấp,
- * cây nhánh xương (không phải tán dù của cherry). Chưa chọn bản nào, chưa đưa vào app.
+ * cây nhánh xương (không phải tán dù của cherry). ĐÃ VÀO APP (src/content/plants/blueberry.tsx): Gốc = B2, `branchy` = B3, `cluster` = B1; chậu cat; mặt sparkle.
  * Mặt: chủ repo chọn mắt E4 (lấp lánh) + miệng M0 (cute) từ trang `faces`; đưa vào app thì cần thêm kiểu mặt này vào Face.tsx.
  */
 
