@@ -84,11 +84,13 @@ describe('hoa hồng quý cô', () => {
   });
 });
 
-describe('đủ 12 chậu', () => {
-  it('có Bể kính và Chậu mèo', () => {
-    expect(POTS).toHaveLength(12);
+describe('đủ 13 chậu', () => {
+  it('có Bể kính, Chậu mèo và Giỏ đan', () => {
+    expect(POTS).toHaveLength(13);
     expect(getPot('glass-bowl').name.vi).toBe('Bể kính');
     expect(getPot('cat').name.vi).toBe('Chậu mèo');
+    expect(POTS.at(-1)!.id).toBe('basket');
+    expect(getPot('basket').name).toEqual({ vi: 'Giỏ đan', en: 'Woven basket' });
     expect(POTS.every((p) => p.name.vi.length > 0 && p.name.en.length > 0)).toBe(true);
   });
 });

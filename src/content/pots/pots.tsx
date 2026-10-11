@@ -203,3 +203,26 @@ export function CatPot() {
     </g>
   );
 }
+
+/** Giỏ đan có quai (chậu mặc định của Dâu tây): thân bầu đan chéo, quai cong vòng sau cây. Chốt bản P1 ở src/dev/sketch/pots.tsx. */
+export function BasketPot() {
+  const clip = useId();
+  const body = 'M44 166 L156 166 Q158 214 128 230 L72 230 Q42 214 44 166 Z';
+  const weave = [-60, -40, -20, 0, 20, 40, 60, 80, 100, 120];
+  return (
+    <g data-part="pot">
+      <path d="M48 162 Q48 70 100 66 Q152 70 152 162" fill="none" stroke={INK} strokeWidth={9} strokeLinecap="round" />
+      <path d="M48 162 Q48 70 100 66 Q152 70 152 162" fill="none" stroke="#E3B77A" strokeWidth={5} strokeLinecap="round" />
+      <path d="M50 140 Q50 76 100 72" fill="none" stroke="#F2D3A0" strokeWidth={1.6} strokeLinecap="round" />
+      <clipPath id={clip}><path d={body} /></clipPath>
+      <path d={body} fill="#E3B77A" stroke={INK} strokeWidth={2.5} strokeLinejoin="round" />
+      <g clipPath={`url(#${clip})`} stroke="#C08A4E" strokeWidth={2.2}>
+        {weave.map((d) => <path key={`a${d}`} d={`M${40 + d} 166 l60 70`} />)}
+        {weave.map((d) => <path key={`b${d}`} d={`M${160 - d} 166 l-60 70`} />)}
+      </g>
+      <rect x={38} y={152} width={124} height={16} rx={8} fill="#C08A4E" stroke={INK} strokeWidth={2.5} />
+      <path d="M44 160 h112" stroke="#F2D3A0" strokeWidth={2} strokeDasharray="6 4" />
+      <ellipse cx={100} cy={156} rx={56} ry={4} fill="#8B5E3C" />
+    </g>
+  );
+}
