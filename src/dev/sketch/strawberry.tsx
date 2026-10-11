@@ -8,7 +8,7 @@ import { Cell, Row, type Look } from './kit';
  * Dáng khác các loài đã có: S1 cành cong treo quả (gần T2 của cà chua, nhưng cà chua chưa vào app),
  * S2 bụi lá thấp xoè + quả rủ qua miệng chậu, S3 một quả dâu khổng lồ làm thân ngồi trên khóm lá.
  * Mặt: chủ repo chọn bộ F3 Tinh nghịch (mắt E7 nháy + miệng M4 lè lưỡi) từ trang `faces`; đưa vào app thì cần thêm kiểu mặt này vào Face.tsx.
- * Chưa chọn bản nào, chưa đưa vào app.
+ * ĐÃ VÀO APP (src/content/plants/strawberry.tsx): Gốc = S3, `patch` = S2 (lá to hơn), `twig` = S1; chậu basket; mặt cheeky.
  */
 
 const STEM = '#5DAE5A', LEAF = '#4FA65B', LEAF_LIGHT = '#8FD497', LEAF_VEIN = '#9BD58C';

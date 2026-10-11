@@ -8,9 +8,9 @@ import { GROWTH_STAGES } from '../../../src/domain/growth';
 
 describe('plants', () => {
   it('các loài theo thứ tự', () => {
-    expect(PLANTS.map((p) => p.id)).toEqual(['sunflower', 'corn', 'cactus', 'pothos', 'orange', 'cherry', 'rose', 'watermelon', 'hydrangea', 'tomato', 'blueberry', 'daisy']);
-    expect(PLANTS.map((p) => p.name.vi)).toEqual(['Hướng dương', 'Ngô', 'Xương rồng', 'Monstera', 'Cây cam', 'Cherry', 'Hoa hồng', 'Dưa hấu', 'Tulip', 'Cà chua', 'Việt quất', 'Cúc hoạ mi']);
-    expect(PLANTS.map((p) => p.name.en)).toEqual(['Sunflower', 'Corn', 'Cactus', 'Monstera', 'Orange tree', 'Cherry', 'Rose', 'Watermelon', 'Tulip', 'Tomato', 'Blueberry', 'Daisy']);
+    expect(PLANTS.map((p) => p.id)).toEqual(['sunflower', 'corn', 'cactus', 'pothos', 'orange', 'cherry', 'rose', 'watermelon', 'hydrangea', 'tomato', 'blueberry', 'daisy', 'strawberry']);
+    expect(PLANTS.map((p) => p.name.vi)).toEqual(['Hướng dương', 'Ngô', 'Xương rồng', 'Monstera', 'Cây cam', 'Cherry', 'Hoa hồng', 'Dưa hấu', 'Tulip', 'Cà chua', 'Việt quất', 'Cúc hoạ mi', 'Dâu tây']);
+    expect(PLANTS.map((p) => p.name.en)).toEqual(['Sunflower', 'Corn', 'Cactus', 'Monstera', 'Orange tree', 'Cherry', 'Rose', 'Watermelon', 'Tulip', 'Tomato', 'Blueberry', 'Daisy', 'Strawberry']);
   });
 
   it('mỗi loài có đủ 4 giai đoạn, toạ độ mặt và chậu mặc định hợp lệ', () => {
@@ -62,11 +62,12 @@ describe('plants', () => {
       tomato: ['arch', 'staked'],
       blueberry: ['branchy', 'cluster'],
       daisy: ['candelabra', 'single'],
+      strawberry: ['patch', 'twig'],
     });
   });
 
   it('loài khoá: loài mới nằm sau 9 loài cũ', () => {
-    expect(PLANTS.filter((p) => p.locked).map((p) => p.id)).toEqual(['tomato', 'blueberry', 'daisy']);
+    expect(PLANTS.filter((p) => p.locked).map((p) => p.id)).toEqual(['tomato', 'blueberry', 'daisy', 'strawberry']);
     expect(PLANTS.slice(0, 9).every((p) => !p.locked)).toBe(true);
   });
 
