@@ -15,6 +15,7 @@ try {
   const page = await browser.newPage({ viewport: { width: Number(width), height: 800 }, deviceScaleFactor: 2 });
   await page.goto(`${url}sketch.html?s=${sheet}`);
   await page.locator('#root > div').waitFor();
+  await page.addStyleTag({ content: '[data-sketch-nav] { display: none !important; }' }); // ảnh chụp không cần nút mục lục
   await page.waitForTimeout(800); // font + SVG
   const box = await page.locator('#root > div').boundingBox();
   await page.screenshot({ path: out, fullPage: true, clip: box ?? undefined });

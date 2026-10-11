@@ -211,7 +211,7 @@ function Staked({ stage }: { stage: 'bud' | 'bloom' }) {
   );
 }
 
-const T: [string, Look, Look][] = [
+export const TOMATO_LOOKS: [string, Look, Look][] = [
   ['T1 · Theo mẫu (thân móc câu)', { face: { x: 96, y: 94, scale: 0.55 }, art: () => <Hook stage="bud" /> },
     { face: { x: 96, y: 92, scale: 0.75 }, art: () => <Hook stage="bloom" /> }],
   ['T2 · Cành cong ôm quả', { face: { x: 112, y: 88, scale: 0.55 }, art: () => <Arch stage="bud" /> },
@@ -224,13 +224,13 @@ export function TomatoSketches() {
   return (
     <div>
       <Row title="Cà chua · 3 bản (ra chồi | ra hoa), chậu Cốc hồng">
-        {T.flatMap(([name, bud, bloom]) => [
+        {TOMATO_LOOKS.flatMap(([name, bud, bloom]) => [
           <Cell key={`${name}-bud`} label={name} look={bud} potId="pink-cup" />,
           <Cell key={`${name}-bloom`} label="" look={bloom} potId="pink-cup" />,
         ])}
       </Row>
       <Row title="T1 trong các chậu còn trống (mỗi loài cần chậu mặc định riêng)">
-        {['pink-cup', 'cat', 'glass-bowl'].map((p) => <Cell key={p} label={p} look={T[0][2]} potId={p} />)}
+        {['pink-cup', 'cat', 'glass-bowl'].map((p) => <Cell key={p} label={p} look={TOMATO_LOOKS[0][2]} potId={p} />)}
       </Row>
     </div>
   );

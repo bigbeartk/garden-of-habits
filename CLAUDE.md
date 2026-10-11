@@ -87,7 +87,7 @@ src/
   platform/   khác biệt PWA ⇄ Android (Capacitor): chia sẻ file, link ngoài, resume, nút Back
   i18n/       vi.ts (nguồn chuẩn) + en.ts, lang (Lang, detectLang, resolveLang, Localized, tr), fmt (ngày giờ), I18nProvider (useI18n), errors (errorText)
   dev/        ArtGallery.tsx — xem trước mọi cây/chậu/côn trùng (render tạm từ main.tsx khi cần)
-              sketch/ — SỔ PHÁC THẢO (sketch.html, chỉ chạy ở dev, không vào build): kit (Cell/Row/StylesGrid), main (SHEETS), cherry, rose, sunflower, tulip, watermelon
+              sketch/ — SỔ PHÁC THẢO (sketch.html, chỉ chạy ở dev, không vào build): kit (Cell/Row/StylesGrid), main (SHEETS + GROUPS, mục lục chia nhóm), playground (Phòng thử), faces (mặt), tomato (loài chờ), cherry, rose, sunflower, tulip, watermelon
 ```
 
 - Màn hình không gọi thẳng `db` hay `Math.random`/`new Date()`. Chúng lấy `DayDeps = { db, catalog, rng, now }` qua `useDeps()`.
@@ -250,7 +250,7 @@ Các loài hiện có (id cũ được giữ để không mất dữ liệu cũ,
 | `watermelon` | Dưa hấu | `tin-bucket` | dây bò lá tim xoè ngang + quả dưa giữa |
 | `hydrangea` | Tulip (id cũ của Cẩm tú cầu) | `blue-ceramic` | một bông tulip đỏ mũm mĩm hình chén, cánh bo tròn, hai lá to ở gốc |
 
-**Phác thảo trước, đưa vào nội dung sau:** vẽ hình mới (loài, dáng, chậu…) thì phác thảo trong `src/dev/sketch/` (thêm trang vào `SHEETS` ở `main.tsx`, xem ở `http://localhost:5173/sketch.html?s=<trang>` hoặc chụp bằng `npm run sketch:shot`), cho chủ repo chọn rồi mới chép vào `src/content`. **Giữ lại** file phác thảo sau khi chốt (ghi bản nào đã chọn); trang `styles` vẽ mọi loài + dáng thật bằng `PlantScene`.
+**Phác thảo trước, đưa vào nội dung sau:** vẽ hình mới (loài, dáng, chậu…) thì phác thảo trong `src/dev/sketch/` (thêm trang vào `SHEETS` ở `main.tsx`, xem ở `http://localhost:5173/sketch.html?s=<trang>` hoặc chụp bằng `npm run sketch:shot`), cho chủ repo chọn rồi mới chép vào `src/content`. **Giữ lại** file phác thảo sau khi chốt (ghi bản nào đã chọn); trang `styles` vẽ mọi loài + dáng thật bằng `PlantScene`. Trang `playground` (Phòng thử) chọn cây / dáng / giai đoạn / chậu / kiểu mặt / mắt / miệng / nét mặt, lựa chọn nằm trên URL nên chụp lại được; nhãn ✅ = đang dùng trong app, ✏️ = phác thảo. Trang `faces`: 3 kiểu mặt đang dùng (vẽ bằng `Face` thật) + mắt E1–E4, miệng M1–M3 phác thảo. Trang `tomato`: Cà chua chờ đưa vào app (T1 bám ảnh mẫu nhất). Mỗi trang có nút `← Mục lục` (`sketch:shot` ẩn khi chụp).
 
 **Dáng mở khoá** (mỗi dáng phải khác mọi loài khác và 2 dáng còn lại của chính loài, nhưng vẫn nhận ra loài — **ngoại lệ do chủ repo chọn: Tulip, 2 dáng chỉ đổi màu**; soát bằng `src/dev/ArtGallery.tsx` chụp WebKit). `plants.test.tsx` kiểm mọi loài có `styles`: đúng 2 dáng, mốc 10 rồi 20, đủ bud/bloom. Một số id dáng là id cũ của bản vẽ trước, **giữ để không mất dữ liệu**.
 
