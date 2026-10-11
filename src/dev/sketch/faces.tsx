@@ -12,7 +12,7 @@ import { TOMATO_LOOKS } from './tomato';
  * Mỗi kiểu vẽ đủ 5 nét mặt vì app đổi mặt theo tình huống (thường, cười, nói, ngủ, buồn).
  * Hàng ĐANG DÙNG vẽ bằng chính <Face> của app (cute / cool / lady); hàng PHÁC THẢO là kiểu mới, app chưa dùng.
  * E0 / M0 là bản chép của mặt cute để ghép với kiểu mới. Bộ mặt F0–F5 (FACE_PRESETS) = cặp mắt + miệng có tính cách;
- * E5–E9, M4–M5 chỉ hiện trong các bộ đó. Việt quất đang thử F0 (E4 + M0). Chưa chốt kiểu nào vào app.
+ * E5–E9, M4–M5 chỉ hiện trong các bộ đó. ĐÃ VÀO APP (Face.tsx): doll = E6+M3, sparkle = E4+M0, happy = E5+M3, cheeky = E7+M4.
  */
 
 export const MOODS: Mood[] = ['normal', 'smile', 'talk', 'sleep', 'sad'];
@@ -334,6 +334,10 @@ const REAL: { style: FaceStyle; title: string; fill: string }[] = [
   { style: 'cute', title: 'cute · mặc định (mọi loài trừ xương rồng, hoa hồng) = E0 + M0', fill: '#EF4B3F' },
   { style: 'cool', title: 'cool · Xương rồng (kính râm, nhếch mép, không má hồng; ngủ/buồn thì mặt thường)', fill: '#7CC36E' },
   { style: 'lady', title: 'lady · Hoa hồng (mi cong, môi son; ngủ/buồn thì mặt thường)', fill: '#FFB3C8' },
+  { style: 'doll', title: 'doll · Cà chua (= bộ F2: E6 + M3)', fill: '#EF4B3F' },
+  { style: 'sparkle', title: 'sparkle · Việt quất (= bộ F0: E4 + M0)', fill: '#5B6FD6' },
+  { style: 'happy', title: 'happy · Cúc hoạ mi (E5 + M3)', fill: '#F2B84B' },
+  { style: 'cheeky', title: 'cheeky · Dâu tây (= bộ F3: E7 + M4)', fill: '#F0433A' },
 ];
 
 export function FaceSketches() {
