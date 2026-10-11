@@ -6,6 +6,7 @@ import { StylesGrid } from './kit';
 import { CherrySketches } from './cherry';
 import { RoseSketches } from './rose';
 import { SunflowerSketches } from './sunflower';
+import { TomatoSketches } from './tomato';
 import { TulipSketches } from './tulip';
 import { WatermelonSketches } from './watermelon';
 
@@ -21,6 +22,7 @@ const SHEETS: Record<string, { title: string; render: (q: URLSearchParams) => Re
   tulip: { title: 'Tulip: lưu trữ dáng Bó hoa cũ (10/2026)', render: () => <TulipSketches /> },
   watermelon: { title: 'Dưa hấu: dáng 3 kiểu máy bắn đá (10/2026, chưa dùng)', render: () => <WatermelonSketches /> },
   cherry: { title: 'Cherry: dáng 2 thay Rủ (10/2026)', render: () => <CherrySketches /> },
+  tomato: { title: 'Cà chua: loài mới theo ảnh mẫu (10/2026)', render: () => <TomatoSketches /> },
 };
 
 function Index() {
