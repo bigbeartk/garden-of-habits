@@ -17,13 +17,15 @@ import { getSetting, setSetting } from '../db/settings';
 import { SettingSwitch } from '../components/SettingSwitch';
 import { addDays, dayKey } from '../domain/dayKey';
 import { gardenReport } from '../domain/garden';
+import { availablePlants } from '../domain/plantUnlocks';
 import type { GardenView } from '../domain/types';
 import { useNow } from '../hooks/useNow';
 import { useI18n } from '../i18n/I18nProvider';
 import { HabitsScreen } from './HabitsScreen';
 import './garden.css';
 
-const PLANT_IDS = PLANTS.map((p) => p.id);
+/** loài có sẵn (không khoá): dùng khi danh sách loài đã mở chưa đọc xong */
+const DEFAULT_PLANT_IDS = PLANTS.filter((p) => !p.locked).map((p) => p.id);
 
 /**
  * Báo cáo "Khu vườn": chọn từ ngày tới ngày, mỗi loài cây đứng trong vườn cỏ (dạng ra hoa, chậu mặc định)
@@ -44,7 +46,9 @@ export function GardenScreen() {
   const firstKey = useLiveQuery(() => firstDayKey(deps.db), [deps.db]) ?? null;
   const onlyPlanted = useLiveQuery(async () => (await getSetting(deps.db, 'gardenOnlyPlanted')) ?? false, [deps.db], false);
   const separateSpecial = useLiveQuery(async () => (await getSetting(deps.db, 'gardenSeparateSpecial')) ?? false, [deps.db], false);
-  const report = gardenReport(records ?? [], PLANT_IDS, lo, hi, { todayKey, firstKey, separateSpecial });
+  // loài khoá chưa mở không có luống (kể cả luống 0 ngày)
+  const plantIds = useLiveQuery(async () => (await availablePlants(deps)).map((p) => p.id), [deps]) ?? DEFAULT_PLANT_IDS;
+  const report = gardenReport(records ?? [], plantIds, lo, hi, { todayKey, firstKey, separateSpecial });
   // luống > 0 ngày đứng trên; bật "Chỉ hiện cây đã trồng" thì bỏ mọi luống 0 ngày (kể cả Cây héo / Ngày nghỉ)
   const beds = onlyPlanted ? report.beds.filter((b) => b.count > 0) : report.beds;
   const nothing = beds.length === 0;
@@ -204,7 +208,7 @@ function SpecialBed({ testId, mode, label, count }: { testId: string; mode: 'wil
   const { t } = useI18n();
   return (
     <li className={`garden__bed garden__bed--${mode}${count === 0 ? ' is-empty' : ''}`} data-testid={testId}>
-      <PlantScene className="garden__plant" plantId={PLANT_IDS[0]} potId={DEFAULT_POT_ID} stage="seed" specialId={null} mood="sleep" mode={mode} title={label} />
+      <PlantScene className="garden__plant" plantId={PLANTS[0].id} potId={DEFAULT_POT_ID} stage="seed" specialId={null} mood="sleep" mode={mode} title={label} />
       <span className="garden__name">{label}</span>
       <span className="garden__tally">
         <span className="garden__count">{count}</span> {t.garden.days(count)}

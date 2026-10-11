@@ -64,9 +64,9 @@ describe('Khu vườn (báo cáo từ ngày tới ngày)', () => {
     expect(countOf(garden, 'rose')).toBe('0'); // 20/09 nằm ngoài khoảng
     expect(within(garden).getByTestId('garden-plant-rose')).toHaveClass('is-empty');
     expect(within(garden).getByTestId('garden-plant-corn')).not.toHaveClass('is-empty');
-    // đủ mọi loài, nhiều nhất đứng đầu, vẽ ở dạng ra hoa
+    // đủ mọi loài chưa khoá (loài khoá chưa mở không có luống), nhiều nhất đứng đầu, vẽ ở dạng ra hoa
     const tiles = within(garden).getAllByTestId(/^garden-plant-/);
-    expect(tiles).toHaveLength(CATALOG.plants.length);
+    expect(tiles).toHaveLength(CATALOG.plants.filter((p) => !p.locked).length);
     expect(tiles[0]).toHaveAttribute('data-testid', 'garden-plant-corn');
     expect(within(tiles[0]).getByTestId('plant-scene')).toHaveAttribute('data-stage', 'bloom');
     expect(within(garden).getByTestId('garden-summary')).toHaveTextContent('5 ngày');
@@ -276,5 +276,20 @@ describe('Khu vườn: công tắc Cây | Thói quen', () => {
     expect(await screen.findByTestId('habit-report')).toBeTruthy();
     obs.disconnect();
     expect(seen).toEqual([]);
+  });
+});
+
+describe('GardenScreen: loài khoá', () => {
+  it('không có luống cho loài khoá chưa mở; mở rồi thì có', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 15, 10, 0), CATALOG);
+    await deps.db.days.put(makeDay({ date: '2026-10-14', plantId: 'sunflower', finalStage: 'bloom' }));
+    await setSetting(deps.db, 'gardenView', 'plants');
+    renderWithDeps(<GardenScreen />, deps);
+    const garden = await screen.findByTestId('garden');
+    await within(garden).findByTestId('garden-plant-sunflower', {}, { timeout: 3000 });
+    expect(within(garden).queryByTestId('garden-plant-tomato')).toBeNull();
+    await setSetting(deps.db, 'unlockedPlants', ['tomato']);
+    expect(await within(garden).findByTestId('garden-plant-tomato', {}, { timeout: 3000 })).toBeInTheDocument();
+    expect(within(garden).queryByTestId('garden-plant-daisy')).toBeNull();
   });
 });
