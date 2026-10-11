@@ -196,7 +196,7 @@ export const en: Messages = {
     goalPlaceholder: 'Set a goal for today…',
     styleUnlocked: (plant, style) => `New style unlocked: ${plant} · ${style}!`,
     styleUnlockedHint: 'Try it in Plant & pot',
-    plantUnlockReady: '90 good days! Unlock a new plant in Plant & pot 🌱',
+    plantUnlockReady: (n) => `${n} good days! Unlock a new plant in Plant & pot 🌱`,
     bugVisit: {
       new: (name, rarity) => `New friend: ${name}${rarity ? ` (${rarity.toLowerCase()})` : ''}!`,
       rare: (name) => `A rare ${name.toLowerCase()} dropped by!`,

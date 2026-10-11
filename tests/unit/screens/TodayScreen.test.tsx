@@ -646,4 +646,44 @@ describe('TodayScreen: lượt mở cây mới', () => {
     expect(screen.queryByTestId('plant-unlock-ready')).toBeNull();
     expect(await screen.findByTestId('plant-unlock-ready', {}, { timeout: 8000 })).toBeInTheDocument();
   }, 15000);
+
+  it('khung mừng ghi đúng mốc vừa đạt (180), không cố định 90', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
+    await deps.db.days.bulkPut([...good(179), makeDay({ date: '2026-10-02', plantId: 'corn', potId: 'rattan', greetedAt: 1, speech: '' })]);
+    await setSetting(deps.db, 'unlockedStyles', ['corn|popcorn', 'corn|rainbow']);
+    await setSetting(deps.db, 'unlockedPlants', ['tomato']);
+    const user = userEvent.setup();
+    renderWithDeps(<TodayScreen />, deps);
+    await addTodoInline(user, 'Uống nước');
+    await user.click(await screen.findByRole('checkbox', { name: 'Hoàn thành: Uống nước' }));
+    expect(await screen.findByTestId('plant-unlock-ready', {}, { timeout: 3000 })).toHaveTextContent('Đủ 180 ngày đạt!');
+  });
+
+  it('bỏ tick rồi tick lại không mừng lần nữa', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
+    await deps.db.days.bulkPut([...good(89), makeDay({ date: '2026-10-02', plantId: 'corn', potId: 'rattan', greetedAt: 1, speech: '' })]);
+    await setSetting(deps.db, 'unlockedStyles', ['corn|popcorn', 'corn|rainbow']);
+    const user = userEvent.setup();
+    renderWithDeps(<TodayScreen />, deps);
+    await addTodoInline(user, 'Uống nước');
+    await user.click(await screen.findByRole('checkbox', { name: 'Hoàn thành: Uống nước' }));
+    expect(await screen.findByTestId('plant-unlock-ready', {}, { timeout: 3000 })).toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByTestId('plant-unlock-ready')).toBeNull(), { timeout: 7000 });
+    await user.click(await screen.findByRole('checkbox', { name: 'Bỏ hoàn thành: Uống nước' }, { timeout: 3000 }));
+    await waitFor(() => expect(screen.getByTestId('plant-scene')).not.toHaveAttribute('data-stage', 'bloom'));
+    await user.click(await screen.findByRole('checkbox', { name: 'Hoàn thành: Uống nước' }, { timeout: 3000 }));
+    await waitFor(() => expect(screen.getByTestId('plant-scene')).toHaveAttribute('data-stage', 'bloom'));
+    await new Promise((r) => setTimeout(r, 800));
+    expect(screen.queryByTestId('plant-unlock-ready')).toBeNull();
+  }, 20000);
+
+  it('ngày tiết kiệm năng lượng: không chấm ở nút Đổi cây (tab Cây bị khoá)', async () => {
+    const { deps } = makeDeps(new Date(2026, 9, 2, 10, 0), CATALOG);
+    await deps.db.days.bulkPut([...good(95), makeDay({ date: '2026-10-02', plantId: 'corn', potId: 'rattan', isRestDay: true, greetedAt: 1, speech: '' })]);
+    renderWithDeps(<TodayScreen />, deps);
+    const btn = await screen.findByRole('button', { name: 'Đổi cây & chậu' });
+    await new Promise((r) => setTimeout(r, 800));
+    expect(btn.querySelector('.icon-btn__badge')).toBeNull();
+  });
 });
+

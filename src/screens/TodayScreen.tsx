@@ -40,7 +40,7 @@ import { useToday } from '../hooks/useToday';
 import { useI18n } from '../i18n/I18nProvider';
 import { errorText } from '../i18n/errors';
 import { useBackHandler } from '../app/back';
-import { plantUnlockState } from '../domain/plantUnlocks';
+import { PLANT_UNLOCK_EVERY, plantUnlockState } from '../domain/plantUnlocks';
 import { RemindersScreen } from './RemindersScreen';
 import './today.css';
 
@@ -158,21 +158,22 @@ export function TodayScreen() {
     }
     seenStyles.current = unlockedStyles.all;
   }, [unlockedStyles]);
-  // lượt mở cây mới: chấm ở nút Đổi cây; mừng khi số lượt đã kiếm TĂNG lúc màn đang mở (lần đọc đầu không mừng).
+  // lượt mở cây mới: chấm ở nút Đổi cây; mừng khi số lượt đã kiếm vượt mức CAO NHẤT đã thấy lúc màn đang mở
+  // (lần đọc đầu không mừng; bỏ tick rồi tick lại không mừng lần nữa). unlockReady = mốc ngày đạt vừa đạt (90, 180…).
   // Dexie theo dõi mọi bảng plantUnlockState đọc (days, habits, habitChecks, settings) nên tick thói quen cũng cập nhật.
   const plantUnlock = useLiveQuery(() => plantUnlockState(deps), [deps]);
-  const seenEarned = useRef<number | null>(null);
-  const [unlockReady, setUnlockReady] = useState(false);
+  const bestEarned = useRef<number | null>(null);
+  const [unlockReady, setUnlockReady] = useState<number | null>(null);
   useEffect(() => {
     if (!plantUnlock) return;
-    const earned = plantUnlock.unlocked.length + plantUnlock.freeSlots;
-    if (seenEarned.current !== null && earned > seenEarned.current) setUnlockReady(true);
-    seenEarned.current = earned;
+    const earned = Math.min(Math.floor(plantUnlock.goodDays / PLANT_UNLOCK_EVERY), plantUnlock.unlocked.length + plantUnlock.locked.length);
+    if (bestEarned.current !== null && earned > bestEarned.current) setUnlockReady(earned * PLANT_UNLOCK_EVERY);
+    bestEarned.current = Math.max(bestEarned.current ?? 0, earned);
   }, [plantUnlock]);
   // đang mừng dáng mới thì xếp hàng: khung cây mới chỉ bắt đầu đếm 5 giây khi khung dáng đã tắt
   useEffect(() => {
     if (!unlockReady || newStyles.length) return;
-    const id = setTimeout(() => setUnlockReady(false), 5000);
+    const id = setTimeout(() => setUnlockReady(null), 5000);
     return () => clearTimeout(id);
   }, [unlockReady, newStyles.length]);
   useEffect(() => {
@@ -256,13 +257,13 @@ export function TodayScreen() {
             </div>
           )}
           {newStyles.length > 0 && <StyleUnlock keys={newStyles} below={intro && !!special} />}
-          {unlockReady && !newStyles.length && (
+          {unlockReady !== null && !newStyles.length && (
             <div className={`special-intro style-unlock${intro && special ? ' style-unlock--below' : ''}`} data-testid="plant-unlock-ready" role="status">
               <span className="special-intro__sparkles" aria-hidden="true">🌱 ✨ 🌱</span>
-              {t.today.plantUnlockReady}
+              {t.today.plantUnlockReady(unlockReady)}
             </div>
           )}
-          {bugVisit && !newStyles.length && !unlockReady && <BugVisit kind={bugVisit.kind} bugId={bugVisit.bugId} below={intro && !!special} />}
+          {bugVisit && !newStyles.length && unlockReady === null && <BugVisit kind={bugVisit.kind} bugId={bugVisit.bugId} below={intro && !!special} />}
           <SpeechBubble
             text={said?.text ?? null}
             kind={said?.kind}
@@ -299,7 +300,7 @@ export function TodayScreen() {
           {special && <span className="today__badge">{t.today.specialBadge(tr(special.name))}</span>}
         </div>
         <div className="today__actions">
-          <IconButton label={t.today.changePlantPot} icon={<PlantSwapIcon size={30} />} onClick={() => setSheet('plant')} badge={(plantUnlock?.freeSlots ?? 0) > 0} />
+          <IconButton label={t.today.changePlantPot} icon={<PlantSwapIcon size={30} />} onClick={() => setSheet('plant')} badge={!day.isRestDay && (plantUnlock?.freeSlots ?? 0) > 0} />
           <IconButton label={t.today.note} icon={<NoteIcon size={30} />} onClick={() => setSheet('note')} badge={day.note.length > 0} />
           <IconButton
             label={day.isRestDay ? t.today.wakeUp : t.today.restDay}
