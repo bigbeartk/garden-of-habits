@@ -10,6 +10,7 @@ import { PotSketches } from './pots';
 import { CherrySketches } from './cherry';
 import { FaceSketches } from './faces';
 import { HabitIconSketches } from './habitIcons';
+import { HabitCatSketches } from './habitCats';
 import { MushroomSketches } from './mushrooms';
 import { Playground } from './playground';
 import { RoseSketches } from './rose';
@@ -45,6 +46,7 @@ const SHEETS: Record<string, { group: keyof typeof GROUPS; title: string; render
   strawberry: { group: 'species', title: 'Dâu tây: loài mới theo ảnh mẫu (10/2026)', render: () => <StrawberrySketches /> },
   pots: { group: 'pots', title: 'Giỏ đan cho Dâu tây: 3 bản (10/2026)', render: () => <PotSketches /> },
   'habit-icons': { group: 'icons', title: 'Icon thói quen kiểu kawaii thay 24 emoji (10/2026, chưa dùng)', render: () => <HabitIconSketches /> },
+  'habit-cats': { group: 'icons', title: 'Icon thói quen mèo mướp theo ảnh mẫu (10/2026)', render: (q) => <HabitCatSketches only={q.get('only')?.split(',')} /> },
   rose: { group: 'styles', title: 'Hoa hồng: các bản phác thảo dáng 2 / 3 (10/2026)', render: () => <RoseSketches /> },
   sunflower: { group: 'styles', title: 'Hướng dương: dáng 2 kiểu game thủ thành (10/2026)', render: () => <SunflowerSketches /> },
   cherry: { group: 'styles', title: 'Cherry: dáng 2 thay Rủ (10/2026)', render: () => <CherrySketches /> },

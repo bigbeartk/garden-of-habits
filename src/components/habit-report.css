@@ -52,6 +52,8 @@
 .habit-months, .habit-years { display: flex; flex-direction: column; gap: 10px; }
 .habit-month, .habit-year { border: 2px solid var(--cocoa-soft); border-radius: 14px; padding: 8px; background: var(--white); }
 .habit-month__head { display: flex; align-items: center; gap: 6px; font-weight: 700; margin-bottom: 6px; }
+.habit-month__head .habit-icon { width: 28px; height: 28px; display: block; }
+.habit-week__name .habit-icon { width: 22px; height: 22px; }
 .habit-month__name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .habit-month__rate { font-family: var(--font-display); }
 .habit-month__grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; justify-items: center; }

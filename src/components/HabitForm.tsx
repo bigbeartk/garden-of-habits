@@ -3,6 +3,7 @@ import { HABIT_COLORS, HABIT_COLOR_IDS, HABIT_ICONS } from '../content/habits';
 import { HABIT_NAME_MAX, type HabitInput } from '../domain/habitService';
 import { useI18n } from '../i18n/I18nProvider';
 import { errorText } from '../i18n/errors';
+import { HabitIcon } from './HabitIcon';
 import { WeekdayPicker } from './WeekdayPicker';
 
 const BLANK: HabitInput = { name: '', icon: HABIT_ICONS[0], color: 'peach', weekdays: [0, 1, 2, 3, 4, 5, 6] };
@@ -50,7 +51,7 @@ export function HabitForm({ initial = BLANK, onSave, onCancel }: {
             className={`habit-form__icon${v.icon === icon ? ' is-on' : ''}`}
             onClick={() => setV({ ...v, icon })}
           >
-            {icon}
+            <HabitIcon icon={icon} />
           </button>
         ))}
       </div>

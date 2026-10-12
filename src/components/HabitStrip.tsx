@@ -7,6 +7,7 @@ import { getSetting } from '../db/settings';
 import { checksOn, habitsForDay, isStopped, listHabits, toggleHabit } from '../domain/habitService';
 import { useI18n } from '../i18n/I18nProvider';
 import { errorText } from '../i18n/errors';
+import { HabitIcon } from './HabitIcon';
 import { PlusIcon } from './icons';
 import './habit-strip.css';
 
@@ -72,7 +73,7 @@ export function HabitStrip({ date, isRestDay, onChecked, onManage }: {
               style={{ ['--habit-color' as string]: HABIT_COLORS[h.color] }}
               onClick={() => toggle(h.id)}
             >
-              <span className="habit-chip__dot" aria-hidden="true">{h.icon}{on && <span className="habit-chip__check">✓</span>}</span>
+              <span className="habit-chip__dot" aria-hidden="true"><HabitIcon icon={h.icon} />{on && <span className="habit-chip__check">✓</span>}</span>
               <span className="habit-chip__name" aria-hidden="true">{h.name}</span>
             </button>
           );

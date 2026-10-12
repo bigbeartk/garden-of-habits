@@ -5,6 +5,7 @@ import { BUGS, getBug } from '../content/bugs';
 import { HABIT_COLORS } from '../content/habits';
 import { PLANTS } from '../content/plants/registry';
 import { DEFAULT_POT_ID } from '../content/pots/registry';
+import { HabitIcon } from './HabitIcon';
 import { PlantScene } from './PlantScene';
 import { ChevronIcon } from './icons';
 import { listDaysInRange } from '../db/queries';
@@ -111,7 +112,7 @@ function WeekTable({ report, days, todayKey, todayRest }: {
       </div>
       {report.rows.map((row) => (
         <div key={row.habit.id} className="habit-week__row" role="row" style={colorVar(row.habit)}>
-          <span role="rowheader" className="habit-week__name"><span aria-hidden="true">{row.habit.icon}</span> {row.habit.name}</span>
+          <span role="rowheader" className="habit-week__name"><span aria-hidden="true"><HabitIcon icon={row.habit.icon} /></span> {row.habit.name}</span>
           {row.cells.map((c) => c.date === todayKey && !todayRest && isScheduled(row.habit, c.date) ? (
             <span key={c.date} role="cell" className="habit-week__cell">
               <TodayCell habit={row.habit} date={c.date} state={c.state} onError={(e) => setError(errorText(e, t))} />
@@ -172,7 +173,7 @@ function MonthCards({ report }: { report: HabitReportResult }) {
       {report.rows.map((row) => (
         <section key={row.habit.id} className="habit-month" data-testid={`habit-month-${row.habit.id}`} style={colorVar(row.habit)}>
           <header className="habit-month__head">
-            <span aria-hidden="true">{row.habit.icon}</span>
+            <span aria-hidden="true"><HabitIcon icon={row.habit.icon} /></span>
             <span className="habit-month__name">{row.habit.name}</span>
             <span className="habit-month__rate">{row.rate === null ? '–' : `${row.rate}%`}</span>
           </header>
@@ -202,7 +203,7 @@ function YearBars({ habits, checks, rest, year, todayKey }: {
       {habits.map((h, i) => (
         <section key={h.id} className="habit-year" data-testid={`habit-year-${h.id}`} style={colorVar(h)}>
           <header className="habit-month__head">
-            <span aria-hidden="true">{h.icon}</span>
+            <span aria-hidden="true"><HabitIcon icon={h.icon} /></span>
             <span className="habit-month__name">{h.name}</span>
           </header>
           <div className="habit-year__bars">

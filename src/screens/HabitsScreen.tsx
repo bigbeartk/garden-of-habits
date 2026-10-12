@@ -5,6 +5,7 @@ import { useDeps } from '../app/deps';
 import { BackButton } from '../components/BackButton';
 import { ConfirmButton } from '../components/ConfirmButton';
 import { HabitForm } from '../components/HabitForm';
+import { HabitIcon } from '../components/HabitIcon';
 import { SettingSwitch } from '../components/SettingSwitch';
 import { PauseIcon, PencilIcon, PlayIcon, RemoveIcon } from '../components/icons';
 import { WEEK_ORDER } from '../components/WeekdayPicker';
@@ -39,7 +40,7 @@ export function HabitsScreen({ onBack, startAdding = false, backLabel }: { onBac
 
   const head = (h: Habit, sub: string) => (
     <>
-      <span className="habit-card__icon" style={{ background: HABIT_COLORS[h.color] }} aria-hidden="true">{h.icon}</span>
+      <span className="habit-card__icon" style={{ background: HABIT_COLORS[h.color] }} aria-hidden="true"><HabitIcon icon={h.icon} /></span>
       <div className="habit-card__text">
         <h2 className="habit-card__name">{h.name}</h2>
         <p className="habit-card__days">{sub}</p>

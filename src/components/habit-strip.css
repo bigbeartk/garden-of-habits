@@ -15,6 +15,7 @@
   position: relative; width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center;
   font-size: 1.45rem; line-height: 1; background: var(--white); border: 2px dashed var(--cocoa-soft);
 }
+.habit-chip__dot .habit-icon { width: 40px; height: 40px; }
 .habit-chip.is-on .habit-chip__dot {
   background: var(--habit-color); border: 2px solid var(--cocoa); box-shadow: var(--shadow-pop);
   animation: habit-pop 0.35s ease-out;

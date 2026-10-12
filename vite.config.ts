@@ -46,7 +46,7 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,png,jpg,ico,woff,woff2}'], // jpg: mã QR ủng hộ, xem được khi offline
+        globPatterns: ['**/*.{js,css,html,svg,png,jpg,webp,ico,woff,woff2}'], // jpg: mã QR ủng hộ, webp: icon thói quen, xem được khi offline
         navigateFallback: 'index.html',
       },
     }),
