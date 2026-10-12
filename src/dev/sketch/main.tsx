@@ -9,6 +9,7 @@ import { StrawberrySketches } from './strawberry';
 import { PotSketches } from './pots';
 import { CherrySketches } from './cherry';
 import { FaceSketches } from './faces';
+import { MushroomSketches } from './mushrooms';
 import { Playground } from './playground';
 import { RoseSketches } from './rose';
 import { SunflowerSketches } from './sunflower';
@@ -25,6 +26,7 @@ import { WatermelonSketches } from './watermelon';
 const GROUPS = {
   tools: 'Công cụ xem thử',
   faces: 'Mặt chibi',
+  draft: 'Loài mới đang phác thảo',
   species: 'Loài khoá (đã vào app, giữ bản phác thảo)',
   pots: 'Chậu',
   styles: 'Dáng mở khoá (đã chốt / lưu trữ bản cũ)',
@@ -34,6 +36,7 @@ const SHEETS: Record<string, { group: keyof typeof GROUPS; title: string; render
   playground: { group: 'tools', title: 'Phòng thử: chọn cây / dáng / giai đoạn / chậu / mặt / mắt / miệng / nét mặt', render: () => <Playground /> },
   styles: { group: 'tools', title: 'Mọi loài + dáng mở khoá (?p=rose,hydrangea để lọc; Tulip có id hydrangea)', render: (q) => <StylesGrid only={q.get('p')?.split(',')} /> },
   faces: { group: 'faces', title: 'Mặt chibi: kiểu đang dùng + kiểu mắt / miệng mới × 5 nét mặt (10/2026)', render: () => <FaceSketches /> },
+  mushrooms: { group: 'draft', title: 'Nấm mặt trời + Nấm băng: 2 loài nấm mới, 3 bản mỗi loài (10/2026)', render: () => <MushroomSketches /> },
   tomato: { group: 'species', title: 'Cà chua: loài mới theo ảnh mẫu (10/2026)', render: () => <TomatoSketches /> },
   blueberry: { group: 'species', title: 'Việt quất: loài mới theo ảnh mẫu (10/2026)', render: () => <BlueberrySketches /> },
   daisy: { group: 'species', title: 'Cúc hoạ mi: loài mới theo ảnh mẫu (10/2026)', render: () => <DaisySketches /> },

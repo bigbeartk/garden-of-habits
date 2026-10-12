@@ -226,3 +226,35 @@ export function BasketPot() {
     </g>
   );
 }
+
+/** Khúc gỗ (của Nấm mặt trời): thân trụ vỏ nâu có rãnh dọc, mặt cắt vòng tuổi làm vành, mảng rêu */
+export function LogPot() {
+  return (
+    <g data-part="pot">
+      <path d="M46 162 L46 222 Q100 238 154 222 L154 162 Z" fill="#A9764A" stroke={INK} strokeWidth={2.5} strokeLinejoin="round" />
+      <g stroke="#7E5432" strokeWidth={2.4} strokeLinecap="round" fill="none">
+        <path d="M62 172 q-3 20 1 46" /><path d="M84 176 q3 22 -1 50" /><path d="M116 176 q-3 22 1 50" /><path d="M138 172 q3 20 -1 46" />
+      </g>
+      <path d="M46 214 q10 -8 20 -2 q8 -8 18 0 q2 8 -8 12 q-16 4 -30 -4 Z" fill="#8FCB6B" stroke={INK} strokeWidth={1.8} strokeLinejoin="round" />
+      <ellipse cx={100} cy={160} rx={58} ry={11} fill="#F2D3A0" stroke={INK} strokeWidth={2.5} />
+      <ellipse cx={100} cy={160} rx={46} ry={8} fill="none" stroke="#D9AE74" strokeWidth={1.8} />
+      <ellipse cx={100} cy={159} rx={36} ry={5.5} fill="#8B5E3C" />
+    </g>
+  );
+}
+
+/** Chậu băng (của Nấm băng): khối băng vuông bo góc trong xanh, vệt sáng, tuyết trên vành, nhũ băng rủ */
+export function IceBlockPot() {
+  const icicles = [56, 76, 118, 140];
+  return (
+    <g data-part="pot">
+      <rect x={44} y={162} width={112} height={68} rx={12} fill="#CDEFFB" stroke={INK} strokeWidth={2.5} />
+      <path d="M54 178 L70 172 M54 190 L80 178 M136 212 L146 206" stroke="#fff" strokeWidth={4} strokeLinecap="round" />
+      <path d="M100 196 l10 -14 l10 14 l-10 14 z" fill="#A8DDF3" stroke="#7CC3E8" strokeWidth={1.6} strokeLinejoin="round" />
+      <rect x={38} y={152} width={124} height={16} rx={8} fill="#E6F9FF" stroke={INK} strokeWidth={2.5} />
+      {icicles.map((x, i) => <path key={x} d={`M${x - 5} 167 Q${x} ${180 + (i % 2) * 8} ${x + 5} 167 Z`} fill="#E6F9FF" stroke={INK} strokeWidth={1.6} strokeLinejoin="round" />)}
+      <path d="M40 156 q8 -8 18 -2 q8 -7 16 0 M124 154 q8 -7 16 0 q8 -6 18 2" fill="#fff" stroke={INK} strokeWidth={1.6} strokeLinecap="round" />
+      <ellipse cx={100} cy={157} rx={56} ry={4} fill="#5E7C8E" />
+    </g>
+  );
+}

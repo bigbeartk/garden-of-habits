@@ -84,12 +84,14 @@ describe('hoa hồng quý cô', () => {
   });
 });
 
-describe('đủ 13 chậu', () => {
-  it('có Bể kính, Chậu mèo và Giỏ đan', () => {
-    expect(POTS).toHaveLength(13);
+describe('đủ 15 chậu', () => {
+  it('có Bể kính, Chậu mèo, Giỏ đan, Khúc gỗ và Chậu băng', () => {
+    expect(POTS).toHaveLength(15);
     expect(getPot('glass-bowl').name.vi).toBe('Bể kính');
     expect(getPot('cat').name.vi).toBe('Chậu mèo');
-    expect(POTS.at(-1)!.id).toBe('basket');
+    expect(POTS.slice(-3).map((p) => p.id)).toEqual(['basket', 'log', 'ice-block']);
+    expect(getPot('log').name).toEqual({ vi: 'Khúc gỗ', en: 'Log stump' });
+    expect(getPot('ice-block').name).toEqual({ vi: 'Chậu băng', en: 'Ice block' });
     expect(getPot('basket').name).toEqual({ vi: 'Giỏ đan', en: 'Woven basket' });
     expect(POTS.every((p) => p.name.vi.length > 0 && p.name.en.length > 0)).toBe(true);
   });

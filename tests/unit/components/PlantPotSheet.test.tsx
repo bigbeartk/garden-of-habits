@@ -178,11 +178,11 @@ describe('PlantPotSheet: mục Cây mới (loài khoá)', () => {
   /** n ngày ra hoa kết thúc hôm qua (hôm nay trong setup là 2026-10-02) */
   const goodDays = (n: number) => Array.from({ length: n }, (_, i) => makeDay({ date: addDays('2026-10-01', -i), finalStage: 'bloom' }));
 
-  it('loài khoá không nằm trong lưới chính; mục Cây mới có 4 ô khoá và tiến độ 0/90', async () => {
+  it('loài khoá không nằm trong lưới chính; mục Cây mới có 6 ô khoá và tiến độ 0/90', async () => {
     const { ui } = setup();
     ui();
     const grid = await screen.findByTestId('picker-new-plants', {}, LIVE);
-    expect(within(grid).getAllByTestId(/^new-plant-/)).toHaveLength(4);
+    expect(within(grid).getAllByTestId(/^new-plant-/)).toHaveLength(6);
     expect(within(grid).getByTestId('new-plant-tomato')).toHaveAttribute('data-locked', 'true');
     expect(screen.queryByRole('button', { name: 'Cà chua' })).toBeNull();
     expect(await screen.findByTestId('plant-unlock-progress', {}, LIVE)).toHaveTextContent('0/90 ngày đạt');
@@ -204,11 +204,12 @@ describe('PlantPotSheet: mục Cây mới (loài khoá)', () => {
     expect(await screen.findByText('Bạn được mở 1 cây mới, chạm để chọn', {}, LIVE)).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Cà chua (đang khoá)' }));
     await user.dblClick(screen.getByRole('button', { name: 'Mở khoá: Cà chua' }));
-    expect(await screen.findByTestId('plant-unlocked', {}, LIVE)).toHaveTextContent('Đã mở khoá Cà chua!');
+    // chạy cả bộ song song, mỗi lần liveQuery cập nhật là vẽ lại cả lưới cây: từng mất hơn 3 giây mỗi bước
+    expect(await screen.findByTestId('plant-unlocked', {}, { timeout: 10_000 })).toHaveTextContent('Đã mở khoá Cà chua!');
     expect(await getSetting(deps.db, 'unlockedPlants')).toEqual(['tomato']);
-    await user.click(await screen.findByRole('button', { name: 'Cà chua' }, LIVE));
+    await user.click(await screen.findByRole('button', { name: 'Cà chua' }, { timeout: 10_000 }));
     expect(onPick).toHaveBeenCalledWith('tomato', null, 'base');
-  });
+  }, 30_000); // nhiều bước + vẽ đủ lưới cây: chạy cả bộ song song từng chạm ngưỡng 5 giây
 
   it('loài đã mở có nút dáng như loài thường', async () => {
     const { deps, ui } = setup();
