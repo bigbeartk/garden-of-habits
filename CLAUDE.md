@@ -87,7 +87,7 @@ src/
   platform/   khác biệt PWA ⇄ Android (Capacitor): chia sẻ file, link ngoài, resume, nút Back
   i18n/       vi.ts (nguồn chuẩn) + en.ts, lang (Lang, detectLang, resolveLang, Localized, tr), fmt (ngày giờ), I18nProvider (useI18n), errors (errorText)
   dev/        ArtGallery.tsx — xem trước mọi cây/chậu/côn trùng (render tạm từ main.tsx khi cần)
-              sketch/ — SỔ PHÁC THẢO (sketch.html, chỉ chạy ở dev, không vào build): kit (Cell/Pair/Row/StylesGrid; mỗi bản phác thảo là một thẻ `Pair` có nhãn giai đoạn Ra chồi | Ra hoa), main (SHEETS + GROUPS, mục lục chia nhóm), playground (Phòng thử), faces (mặt), tomato + blueberry + daisy + strawberry (bản phác thảo của 4 loài khoá), pots (Giỏ đan), cherry, rose, sunflower, tulip, watermelon, mushrooms (Nấm mặt trời + Nấm băng, đã vào app)
+              sketch/ — SỔ PHÁC THẢO (sketch.html, chỉ chạy ở dev, không vào build): kit (Cell/Pair/Row/StylesGrid; mỗi bản phác thảo là một thẻ `Pair` có nhãn giai đoạn Ra chồi | Ra hoa), main (SHEETS + GROUPS, mục lục chia nhóm), playground (Phòng thử), faces (mặt), tomato + blueberry + daisy + strawberry (bản phác thảo của 4 loài khoá), pots (Giỏ đan), cherry, rose, sunflower, tulip, watermelon, mushrooms (Nấm mặt trời + Nấm băng, đã vào app), habitIcons (trang `habit-icons`: 24 icon thói quen kawaii thay emoji, **chưa dùng**, lưu để dùng sau)
 ```
 
 - Màn hình không gọi thẳng `db` hay `Math.random`/`new Date()`. Chúng lấy `DayDeps = { db, catalog, rng, now }` qua `useDeps()`.
