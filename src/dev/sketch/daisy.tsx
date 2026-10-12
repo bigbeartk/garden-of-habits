@@ -1,7 +1,7 @@
 import { PlantScene } from '../../components/PlantScene';
 import { INK, type Mood } from '../../content/Face';
 import { EYES, MOUTHS, SketchFace } from './faces';
-import { Cell, Row, type Look } from './kit';
+import { Cell, Pair, Row, type Look } from './kit';
 
 /*
  * Phác thảo loài mới: Cúc hoạ mi (10/2026), theo ảnh mẫu chủ repo gửi (bông cúc trắng cánh dài,
@@ -145,10 +145,7 @@ export function DaisySketches() {
   return (
     <div>
       <Row title="Cúc hoạ mi · 3 bản (ra chồi | ra hoa), Bể kính · mặt E5 + M3, nét Thường">
-        {DAISY_LOOKS.flatMap(([name, bud, bloom]) => [
-          <Cell key={`${name}-bud`} label={name} look={bud} potId="glass-bowl" mood="normal" />,
-          <Cell key={`${name}-bloom`} label="" look={bloom} potId="glass-bowl" mood="normal" />,
-        ])}
+        {DAISY_LOOKS.map(([name, bud, bloom]) => <Pair key={name} name={name} looks={[bud, bloom]} potId="glass-bowl" mood="normal" />)}
       </Row>
       <Row title="So dáng: D1 cạnh Hướng dương thật (ra hoa), gần như cùng silhouette">
         <Cell label="D1 · Cúc theo mẫu" look={DAISY_LOOKS[0][2]} potId="terracotta" mood="normal" />

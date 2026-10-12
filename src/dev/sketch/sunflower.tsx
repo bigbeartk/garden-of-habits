@@ -1,5 +1,5 @@
 import { INK } from '../../content/Face';
-import { Cell, Row, type Look } from './kit';
+import { Pair, Row, type Look } from './kit';
 
 /*
  * Phác thảo dáng 2 của Hướng dương theo tinh thần "hoa hướng dương kiểu game thủ thành" (10/2026):
@@ -143,16 +143,10 @@ export function SunflowerSketches() {
   return (
     <div>
       <Row title="Hướng dương · dáng 2 kiểu game thủ thành (ra chồi | ra hoa)">
-        {V.flatMap(([name, bud, bloom]) => [
-          <Cell key={`${name}-bud`} label={name} look={bud} potId="terracotta" />,
-          <Cell key={`${name}-bloom`} label="" look={bloom} potId="terracotta" />,
-        ])}
+        {V.map(([name, bud, bloom]) => <Pair key={name} name={name} looks={[bud, bloom]} potId="terracotta" />)}
       </Row>
       <Row title="Hướng dương · dáng 3 thay Khổng lồ (ra chồi | ra hoa)">
-        {G.flatMap(([name, [bud, bloom]]) => [
-          <Cell key={`${name}-bud`} label={name} look={bud} potId="terracotta" />,
-          <Cell key={`${name}-bloom`} label="" look={bloom} potId="terracotta" />,
-        ])}
+        {G.map(([name, [bud, bloom]]) => <Pair key={name} name={name} looks={[bud, bloom]} potId="terracotta" />)}
       </Row>
     </div>
   );

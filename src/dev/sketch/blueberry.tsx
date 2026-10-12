@@ -1,6 +1,6 @@
 import { INK, type Mood } from '../../content/Face';
 import { EYES, MOUTHS, SketchFace } from './faces';
-import { Cell, Row, type Look } from './kit';
+import { Cell, Pair, Row, type Look } from './kit';
 
 /*
  * Phác thảo loài mới: Việt quất (10/2026), theo ảnh mẫu chủ repo gửi (chùm quả tím mang mặt,
@@ -161,10 +161,7 @@ export function BlueberrySketches() {
   return (
     <div>
       <Row title="Việt quất · 3 bản (ra chồi | ra hoa), Chậu mèo · mặt E4 + M0, nét Thường">
-        {BLUEBERRY_LOOKS.flatMap(([name, bud, bloom]) => [
-          <Cell key={`${name}-bud`} label={name} look={bud} potId="cat" mood="normal" />,
-          <Cell key={`${name}-bloom`} label="" look={bloom} potId="cat" mood="normal" />,
-        ])}
+        {BLUEBERRY_LOOKS.map(([name, bud, bloom]) => <Pair key={name} name={name} looks={[bud, bloom]} potId="cat" mood="normal" />)}
       </Row>
       <Row title="B1 trong các chậu còn trống (cà chua cũng đang chờ một trong ba chậu này)">
         {['cat', 'pink-cup', 'glass-bowl'].map((p) => <Cell key={p} label={p} look={BLUEBERRY_LOOKS[0][2]} potId={p} mood="normal" />)}

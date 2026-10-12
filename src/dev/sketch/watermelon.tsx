@@ -1,5 +1,5 @@
 import { INK } from '../../content/Face';
-import { Cell, Row, type Look } from './kit';
+import { Pair, Row, type Look } from './kit';
 
 /*
  * Phác thảo dáng 3 của Dưa hấu theo tinh thần "cây dưa máy bắn đá" của game thủ thành (10/2026):
@@ -90,10 +90,7 @@ const W: [string, Look, Look][] = [
 export function WatermelonSketches() {
   return (
     <Row title="Dưa hấu · dáng 3 kiểu máy bắn đá (ra chồi | ra hoa)">
-      {W.flatMap(([name, bud, bloom]) => [
-        <Cell key={`${name}-bud`} label={name} look={bud} potId="tin-bucket" />,
-        <Cell key={`${name}-bloom`} label="" look={bloom} potId="tin-bucket" />,
-      ])}
+      {W.map(([name, bud, bloom]) => <Pair key={name} name={name} looks={[bud, bloom]} potId="tin-bucket" />)}
     </Row>
   );
 }

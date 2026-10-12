@@ -1,5 +1,5 @@
 import { INK } from '../../content/Face';
-import { Cell, Row, type Look } from './kit';
+import { Cell, Pair, Row, type Look } from './kit';
 
 /*
  * Phác thảo loài mới: Cà chua (10/2026), theo ảnh mẫu chủ repo gửi (quả to mang mặt giữa cây,
@@ -224,10 +224,7 @@ export function TomatoSketches() {
   return (
     <div>
       <Row title="Cà chua · 3 bản (ra chồi | ra hoa), chậu Cốc hồng">
-        {TOMATO_LOOKS.flatMap(([name, bud, bloom]) => [
-          <Cell key={`${name}-bud`} label={name} look={bud} potId="pink-cup" />,
-          <Cell key={`${name}-bloom`} label="" look={bloom} potId="pink-cup" />,
-        ])}
+        {TOMATO_LOOKS.map(([name, bud, bloom]) => <Pair key={name} name={name} looks={[bud, bloom]} potId="pink-cup" />)}
       </Row>
       <Row title="T1 trong các chậu còn trống (mỗi loài cần chậu mặc định riêng)">
         {['pink-cup', 'cat', 'glass-bowl'].map((p) => <Cell key={p} label={p} look={TOMATO_LOOKS[0][2]} potId={p} />)}

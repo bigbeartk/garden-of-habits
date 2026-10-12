@@ -1,5 +1,5 @@
 import { INK } from '../../content/Face';
-import { Cell, Row, type Look } from './kit';
+import { Pair, Row, type Look } from './kit';
 
 /*
  * Phác thảo dáng 2 của Cherry (10/2026), thay cho Rủ cũ (mặt trên quả bóng nhỏ, cành mảnh như dây).
@@ -147,14 +147,10 @@ export function CherrySketches() {
   return (
     <div>
       <Row title="Cherry · dáng 2 thay Rủ (ra chồi | ra hoa)">
-        {C.flatMap(([name, bud, bloom]) => [
-          <Cell key={`${name}-bud`} label={name} look={bud} potId="polka" />,
-          <Cell key={`${name}-bloom`} label="" look={bloom} potId="polka" />,
-        ])}
+        {C.map(([name, bud, bloom]) => <Pair key={name} name={name} looks={[bud, bloom]} potId="polka" />)}
       </Row>
       <Row title="Cherry · lưu trữ: dáng 2 Rủ cũ">
-        <Cell label="Rủ cũ (đã thay bằng Bụi)" look={OLD_WEEPING[0]} potId="polka" />
-        <Cell label="" look={OLD_WEEPING[1]} potId="polka" />
+        <Pair name="Rủ cũ (đã thay bằng Bụi)" looks={OLD_WEEPING} potId="polka" />
       </Row>
     </div>
   );

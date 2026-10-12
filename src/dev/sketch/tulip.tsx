@@ -1,6 +1,6 @@
 import { INK } from '../../content/Face';
 import { SOIL_Y } from '../../content/plants/parts';
-import { Cell, Row, type Look } from './kit';
+import { Pair, Row, type Look } from './kit';
 
 /*
  * Lưu trữ dáng Tulip đã thay (10/2026): dáng 3 `bouquet` "Bó hoa" (ba tulip hồng/vàng/đỏ buộc nơ xanh).
@@ -103,8 +103,7 @@ const BOUQUET_BLOOM: Look = {
 export function TulipSketches() {
   return (
     <Row title="Tulip · lưu trữ: dáng 3 Bó hoa cũ (ra chồi | ra hoa)">
-      <Cell label="Bó hoa (đã thay bằng tulip vàng)" look={BOUQUET_BUD} potId="blue-ceramic" />
-      <Cell label="" look={BOUQUET_BLOOM} potId="blue-ceramic" />
+      <Pair name="Bó hoa (đã thay bằng tulip vàng)" looks={[BOUQUET_BUD, BOUQUET_BLOOM]} potId="blue-ceramic" />
     </Row>
   );
 }

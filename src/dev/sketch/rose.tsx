@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { INK } from '../../content/Face';
-import { Cell, Row, type Look } from './kit';
+import { Cell, Pair, Row, type Look } from './kit';
 
 /*
  * Phác thảo dáng mở khoá của Hoa hồng (10/2026), giữ lại để tái dùng.
@@ -274,21 +274,14 @@ export function RoseSketches() {
   return (
     <div>
       <Row title="Vòng 1 · khung tim, có vương miện + nơ (ra chồi | ra hoa)">
-        {R1.flatMap(([name, bud, bloom]) => [
-          <Cell key={`${name}-bud`} label={name} look={bud} potId={POT} faceStyle="lady" />,
-          <Cell key={`${name}-bloom`} label="" look={bloom} potId={POT} faceStyle="lady" />,
-        ])}
+        {R1.map(([name, bud, bloom]) => <Pair key={name} name={name} looks={[bud, bloom]} potId={POT} faceStyle="lady" />)}
       </Row>
       <Row title="Vòng 2 · kiểu bông mới (đứng riêng | ghép vào tim)">
-        {R2.flatMap(([name, alone, heart]) => [
-          <Cell key={`${name}-solo`} label={name} look={alone} potId={POT} faceStyle="lady" />,
-          <Cell key={`${name}-heart`} label="" look={heart} potId={POT} faceStyle="lady" />,
-        ])}
+        {R2.map(([name, alone, heart]) => <Pair key={name} name={name} looks={[alone, heart]} potId={POT} faceStyle="lady" stages={['Đứng riêng', 'Ghép vào tim']} />)}
       </Row>
       <Row title="Vòng 3 · không phụ kiện">
         {R3.map(([name, look]) => <Cell key={name} label={name} look={look} potId={POT} faceStyle="lady" />)}
-        <Cell label="Z · Một cành ba bông ✔ (dáng 2) · ra chồi" look={Z_BUD} potId={POT} faceStyle="lady" />
-        <Cell label="Z · ra hoa" look={Z_BLOOM} potId={POT} faceStyle="lady" />
+        <Pair name="Z · Một cành ba bông ✔ (dáng 2)" looks={[Z_BUD, Z_BLOOM]} potId={POT} faceStyle="lady" />
       </Row>
     </div>
   );

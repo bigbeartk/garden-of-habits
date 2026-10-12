@@ -28,6 +28,23 @@ export function Cell({ look, potId = 'terracotta', faceStyle, label, size = 170,
   );
 }
 
+/** Một bản phác thảo = một thẻ viền màu: tên bản ở đầu thẻ, các ô bên dưới có nhãn giai đoạn (mặc định Ra chồi | Ra hoa) */
+export function Pair({ name, looks, potId, color = '#8A6A55', faceStyle, mood, stages = ['Ra chồi', 'Ra hoa'] }: { name: string; looks: Look[]; potId?: string; color?: string; faceStyle?: FaceStyle; mood?: Mood; stages?: string[] }) {
+  return (
+    <section style={{ border: `3px solid ${color}`, borderRadius: 16, padding: 8, background: '#fff' }}>
+      <h3 style={{ font: '700 16px sans-serif', margin: '0 0 6px', color }}>{name}</h3>
+      <div style={{ display: 'flex', gap: 8 }}>
+        {looks.map((look, i) => (
+          <div key={i} style={{ textAlign: 'center', font: '700 13px sans-serif' }}>
+            <Cell look={look} potId={potId} faceStyle={faceStyle} mood={mood} />
+            <span style={{ display: 'inline-block', marginTop: 4, background: color, color: '#fff', borderRadius: 999, padding: '1px 10px' }}>{stages[i]}</span>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 /** Một hàng có tiêu đề, các ô xếp ngang */
 export function Row({ title, children }: { title: string; children: ReactNode }) {
   return (

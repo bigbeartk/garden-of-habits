@@ -1,6 +1,6 @@
 import { INK, type Mood } from '../../content/Face';
 import { FACE_PRESETS, SketchFace } from './faces';
-import { Cell, Row, type Look } from './kit';
+import { Cell, Pair, Row, type Look } from './kit';
 
 /*
  * Phác thảo loài mới: Dâu tây (10/2026), theo ảnh mẫu chủ repo gửi (quả dâu to mang mặt treo trên cành cong,
@@ -184,10 +184,7 @@ export function StrawberrySketches() {
   return (
     <div>
       <Row title="Dâu tây · 3 bản (ra chồi | ra hoa), Cốc hồng · mặt F3 Tinh nghịch, nét Thường">
-        {STRAWBERRY_LOOKS.flatMap(([name, bud, bloom]) => [
-          <Cell key={`${name}-bud`} label={name} look={bud} potId="pink-cup" mood="normal" />,
-          <Cell key={`${name}-bloom`} label="" look={bloom} potId="pink-cup" mood="normal" />,
-        ])}
+        {STRAWBERRY_LOOKS.map(([name, bud, bloom]) => <Pair key={name} name={name} looks={[bud, bloom]} potId="pink-cup" mood="normal" />)}
       </Row>
       <Row title="S1 trong các chậu còn trống (cà chua, việt quất, cúc hoạ mi cũng đang chờ ba chậu này)">
         {['pink-cup', 'cat', 'glass-bowl'].map((p) => <Cell key={p} label={p} look={STRAWBERRY_LOOKS[0][2]} potId={p} mood="normal" />)}
